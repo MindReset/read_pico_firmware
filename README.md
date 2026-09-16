@@ -1,4 +1,5 @@
-# 小纸 Pico（Read Pico）出厂固件
+# 小纸 Pico 官方演示固件
+# Read Pico Demo Firmware
 
 [![License](https://img.shields.io/github/license/MindReset/read_pico_firmware?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
 [![Build](https://img.shields.io/github/actions/workflow/status/MindReset/read_pico_firmware/build.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/MindReset/read_pico_firmware/actions)
