@@ -1,5 +1,10 @@
 # 小纸 Pico（Read Pico）出厂固件
 
+[![license](https://img.shields.io/github/license/MindReset/read_pico_firmware)](LICENSE)
+[![build](https://img.shields.io/github/actions/workflow/status/MindReset/read_pico_firmware/build.yml?branch=main)](https://github.com/MindReset/read_pico_firmware/actions)
+![ESP-IDF](https://img.shields.io/static/v1?label=ESP-IDF&message=v6.1&color=E7352C)
+![target](https://img.shields.io/static/v1?label=target&message=ESP32-S3&color=blue)
+
 小纸 Pico 是一块 ESP32-S3 加 4.7 寸单色墨水屏的开发板，
 该设备面向为墨水屏设备编写开源固件的开发者。本仓库是它的出厂固件，随板子一起发布。
 
