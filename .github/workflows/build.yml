@@ -9,12 +9,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: espressif/idf:release-v6.1
+    # 钉在 v6.1 发布点。release-v6.1 分支会继续演进，LCD LL 接口已经变过一次。
+    # Pin to the v6.1 release. The release-v6.1 branch keeps moving; the LCD LL API already changed once.
+    container: espressif/idf:v6.1
     steps:
       - uses: actions/checkout@v4
 
       # sdkconfig.defaults 里的 120MHz flash / PSRAM 依赖真机的 flash 型号，
       # CI 用 sdkconfig.ci 换成默认时序，只验证能不能编过。
+      # The 120 MHz flash / PSRAM timing in sdkconfig.defaults needs the real
+      # flash part; CI uses sdkconfig.ci (default timing) and only checks that it compiles.
       - name: build
         shell: bash
         run: |
