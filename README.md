@@ -71,6 +71,17 @@ The 120 MHz flash / PSRAM timing in `sdkconfig.defaults` depends on the exact
 flash part on the board. CI builds with `sdkconfig.ci` (default timing) only to
 check that the tree compiles (see `.github/workflows/build.yml`).
 
+如果在固件开发或烧录时，设备在从睡眠状态恢复唤醒后无法被识别，请按以下步骤排查：  
+1. 更换 USB Type-A（标准 USB）数据线后重试。  
+2. 对设备执行一次重新睡眠/唤醒操作后重试。  
+3. 重启该开发板并重新进行尝试。
+
+If during firmware flashing, the device cannot be recognized after waking from sleep, please try the following:
+
+1. Replace the USB Type-A (standard USB) cable and try again.
+2. Attempt a new sleep/wake cycle for the device.
+3. Reboot the development board and retry.
+
 面板的公共电压（VCOM）在出厂时与该块屏一起写入 PMU。固件开机读取一次用于配置驱动，
 不在本地保存，也不提供修改入口。
 
