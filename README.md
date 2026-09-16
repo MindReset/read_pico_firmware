@@ -1,7 +1,7 @@
 # 小纸 Pico（Read Pico）出厂固件
 
-小纸 Pico 是深圳思维重置科技有限公司推出的一块 ESP32-S3 加 4.7 寸单色墨水屏的开发板，
-面向希望为墨水屏设备编写开源固件的开发者。本仓库是它的出厂固件，随板子一起发布。
+小纸 Pico 是一块 ESP32-S3 加 4.7 寸单色墨水屏的开发板，
+该设备面向为墨水屏设备编写开源固件的开发者。本仓库是它的出厂固件，随板子一起发布。
 
 Read Pico is an ESP32-S3 development board with a 4.7" monochrome e-paper panel,
 made by Shenzhen MindReset Technology Co., Ltd. for developers who want to write
