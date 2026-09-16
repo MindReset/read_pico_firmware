@@ -1,0 +1,25 @@
+menu "CST836U touch_read"
+
+    config CST836U_EXAMPLE_I2C_PORT
+        int "I2C port"
+        default 0
+        range 0 1
+
+    config CST836U_EXAMPLE_SDA
+        int "SDA GPIO"
+        default 39
+
+    config CST836U_EXAMPLE_SCL
+        int "SCL GPIO"
+        default 40
+
+    config CST836U_EXAMPLE_INT
+        int "INT GPIO (active low)"
+        default 43
+
+    config CST836U_EXAMPLE_RST
+        int "RST GPIO (-1 = skip sleep/wake demo)"
+        default -1
+        range -1 48
+
+endmenu

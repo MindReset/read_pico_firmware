@@ -1,0 +1,25 @@
+menu "FCA9555 read_ports"
+
+    config FCA9555_EXAMPLE_I2C_PORT
+        int "I2C port"
+        default 0
+        range 0 1
+
+    config FCA9555_EXAMPLE_SDA
+        int "SDA GPIO"
+        default 39
+
+    config FCA9555_EXAMPLE_SCL
+        int "SCL GPIO"
+        default 40
+
+    config FCA9555_EXAMPLE_ADDR
+        hex "7-bit I2C address (A2=1 A1=0 A0=0 → 0x24)"
+        default 0x24
+
+    config FCA9555_EXAMPLE_INT
+        int "INT# GPIO (-1 = skip)"
+        default 41
+        range -1 48
+
+endmenu

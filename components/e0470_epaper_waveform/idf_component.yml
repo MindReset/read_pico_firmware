@@ -1,0 +1,13 @@
+version: "1.0.0"
+description: "E0470A01 684x1216 epaper waveforms for epdiy: full GC16/GL16, boot-time trimmed default, 7-frame follow DU"
+url: "https://github.com/mindreset/e0470_epaper_waveform"
+repository: "https://github.com/mindreset/e0470_epaper_waveform.git"
+issues: "https://github.com/mindreset/e0470_epaper_waveform/issues"
+license: "Apache-2.0"
+tags:
+  - epd
+  - eink
+  - waveform
+  - e0470-a01
+dependencies:
+  idf: ">=5.3"

@@ -1,0 +1,12 @@
+version: "1.0.0"
+description: "Read Pico board support — I2C, IOE, SY7636A, EPD rails, SD, buzzer, flash HPM"
+url: "https://github.com/mindreset/read_pico"
+repository: "https://github.com/mindreset/read_pico.git"
+issues: "https://github.com/mindreset/read_pico/issues"
+license: "Apache-2.0"
+tags:
+  - epd
+  - eink
+  - board
+dependencies:
+  idf: ">=5.3"

@@ -1,0 +1,13 @@
+version: "1.0.0"
+description: "CST836U self-cap touch (Hynitron) — 2-point report and deep sleep"
+url: "https://github.com/mindreset/cst836u"
+repository: "https://github.com/mindreset/cst836u.git"
+issues: "https://github.com/mindreset/cst836u/issues"
+license: "Apache-2.0"
+tags:
+  - touch
+  - cst836u
+  - i2c
+  - hynitron
+dependencies:
+  idf: ">=5.3"

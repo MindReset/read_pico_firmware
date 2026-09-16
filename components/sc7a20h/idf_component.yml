@@ -1,0 +1,14 @@
+version: "1.0.0"
+description: "SC7A20H 3-axis accelerometer (Silan) — motion, click, FIFO, and pickup-to-wake"
+url: "https://github.com/mindreset/sc7a20h"
+repository: "https://github.com/mindreset/sc7a20h.git"
+issues: "https://github.com/mindreset/sc7a20h/issues"
+license: "Apache-2.0"
+tags:
+  - accelerometer
+  - sc7a20h
+  - i2c
+  - motion
+  - wakeup
+dependencies:
+  idf: ">=5.3"

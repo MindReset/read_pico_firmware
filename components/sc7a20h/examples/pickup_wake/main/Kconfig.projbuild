@@ -1,0 +1,20 @@
+menu "SC7A20H pickup_wake"
+
+    config SC7A20H_EXAMPLE_I2C_PORT
+        int "I2C port"
+        default 0
+        range 0 1
+
+    config SC7A20H_EXAMPLE_SDA
+        int "SDA GPIO"
+        default 6
+
+    config SC7A20H_EXAMPLE_SCL
+        int "SCL GPIO"
+        default 7
+
+    config SC7A20H_EXAMPLE_INT1
+        int "INT1 GPIO"
+        default 1
+
+endmenu

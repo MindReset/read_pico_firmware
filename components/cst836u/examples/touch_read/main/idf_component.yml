@@ -1,0 +1,4 @@
+dependencies:
+  mindreset/cst836u:
+    version: "^1.0.0"
+    override_path: "../../.."

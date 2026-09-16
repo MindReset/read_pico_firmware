@@ -1,0 +1,12 @@
+menu "FCA9555 I/O Expander"
+
+    config FCA9555_I2C_TIMEOUT_MS
+        int "I2C transfer timeout (ms)"
+        default 100
+        range 10 1000
+        help
+            Fail fast on a missing chip. 100 ms is enough for an 8-byte
+            sequential read at 400 kHz.
+            芯片无应答时尽快失败。400 kHz 下连读 8 字节，100 ms 足够。
+
+endmenu

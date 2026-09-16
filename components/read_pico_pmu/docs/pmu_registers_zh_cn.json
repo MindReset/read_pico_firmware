@@ -1,0 +1,605 @@
+{
+  "device": {
+    "name": "read_pico_pmu",
+    "product": "小纸 Pico（Read Pico）",
+    "company": "深圳思维重置科技有限公司",
+    "silicon": "CW32L010F8U6",
+    "manufacturer": "武汉芯源",
+    "package": "QFN20 3.0x3.0mm",
+    "device_id": "0x3201",
+    "i2c_addr_7bit": "0x2A",
+    "i2c_write_addr": "0x54",
+    "i2c_read_addr": "0x55",
+    "fw": "1.0.8",
+    "fw_major": 1,
+    "fw_minor": 0,
+    "fw_patch": 8,
+    "protocol": "1.1",
+    "protocol_major": 1,
+    "protocol_minor": 1,
+    "hw_revision": 1,
+    "build_number": 20260905,
+    "build_hash": 20260905,
+    "identity_magic": "PMU1",
+    "endian": "little",
+    "max_frame": 64,
+    "payload_max": 44,
+    "event_fifo_depth": 8,
+    "result_cache_depth": 4,
+    "capabilities": [
+      "BATTERY_ADC",
+      "CHARGE_STATUS",
+      "KEY_EVENTS",
+      "LED_CONTROL",
+      "HOST_EN_CONTROL",
+      "HOST_BOOT_CONTROL"
+    ]
+  },
+  "crc16": {
+    "name": "CRC-16/CCITT-FALSE",
+    "poly": "0x1021",
+    "init": "0xFFFF",
+    "refin": false,
+    "refout": false,
+    "xorout": 0,
+    "check": "0x29B1"
+  },
+  "pins": [
+    { "qfn": 1, "pad": "PB07/NRST", "net": "NRST", "dir": "I" },
+    { "qfn": 2, "pad": "PA00", "net": "ESP_EN", "dir": "O" },
+    { "qfn": 3, "pad": "PA01", "net": "CW_INT", "dir": "OD", "active": "low" },
+    { "qfn": 4, "pad": "VSS", "net": "GND", "dir": "PWR" },
+    { "qfn": 5, "pad": "Vcore", "net": "Vcore", "dir": "PWR" },
+    { "qfn": 6, "pad": "VDD", "net": "CW_VDD", "dir": "PWR" },
+    { "qfn": 7, "pad": "PA02", "net": "BAT_MEASURE_EN", "dir": "O" },
+    { "qfn": 8, "pad": "PB00", "net": "CHARGE_STATUS", "dir": "I" },
+    { "qfn": 9, "pad": "PB01", "net": null, "dir": "NC" },
+    { "qfn": 10, "pad": "PA03", "net": "BAT_ADC", "dir": "AIN" },
+    { "qfn": 11, "pad": "PA04", "net": "ESP_BOOT", "dir": "O" },
+    { "qfn": 12, "pad": "PA05", "net": "LED_RED", "dir": "PWM" },
+    { "qfn": 13, "pad": "PA06", "net": "LED_WHITE", "dir": "PWM" },
+    { "qfn": 14, "pad": "PA07/SWDIO", "net": "SWDIO", "dir": "DBG", "also": "UART1_RXD" },
+    { "qfn": 15, "pad": "PA08/SWCLK", "net": "SWCLK", "dir": "DBG", "also": "UART1_TXD" },
+    { "qfn": 16, "pad": "PB02", "net": "POWER_KEY", "dir": "I", "active": "low" },
+    { "qfn": 17, "pad": "PB03", "net": null, "dir": "NC" },
+    { "qfn": 18, "pad": "PB04", "net": null, "dir": "NC" },
+    { "qfn": 19, "pad": "PB05", "net": "I2C_SDA", "dir": "OD" },
+    { "qfn": 20, "pad": "PB06", "net": "I2C_SCL", "dir": "OD" }
+  ],
+  "registers": [
+    {
+      "addr": "0x00",
+      "name": "IDENTITY",
+      "size": 32,
+      "access": "R",
+      "crc": { "offset": 30, "cover": [0, 29] },
+      "fields": [
+        { "offset": 0, "type": "u8[4]", "name": "magic", "value": "PMU1" },
+        { "offset": 4, "type": "u8", "name": "protocol_major", "value": 1 },
+        { "offset": 5, "type": "u8", "name": "protocol_minor", "value": 1 },
+        { "offset": 6, "type": "u8", "name": "fw_major", "value": 1 },
+        { "offset": 7, "type": "u8", "name": "fw_minor", "value": 0 },
+        { "offset": 8, "type": "u8", "name": "fw_patch", "value": 8 },
+        { "offset": 9, "type": "u8", "name": "hw_revision", "value": 1 },
+        { "offset": 10, "type": "u16", "name": "device_id", "value": "0x3201" },
+        { "offset": 12, "type": "u32", "name": "boot_id" },
+        { "offset": 16, "type": "u32", "name": "capabilities" },
+        { "offset": 20, "type": "u8", "name": "max_frame_size", "value": 64 },
+        { "offset": 21, "type": "u8", "name": "event_fifo_depth", "value": 8 },
+        { "offset": 22, "type": "u16", "name": "build_number" },
+        { "offset": 24, "type": "u32", "name": "build_hash" },
+        { "offset": 28, "type": "u16", "name": "reserved" },
+        { "offset": 30, "type": "u16", "name": "crc16" }
+      ]
+    },
+    {
+      "addr": "0x20",
+      "name": "STATUS",
+      "size": 64,
+      "access": "R",
+      "crc": { "offset": 62, "cover": [0, 61] },
+      "fields": [
+        { "offset": 0, "type": "u16", "name": "generation" },
+        { "offset": 2, "type": "u8", "name": "power_state" },
+        { "offset": 3, "type": "u8", "name": "wake_reason" },
+        { "offset": 4, "type": "u32", "name": "status_flags" },
+        { "offset": 8, "type": "u16", "name": "battery_mv" },
+        { "offset": 10, "type": "u16", "name": "battery_adc_raw" },
+        { "offset": 12, "type": "u16", "name": "battery_soc_permille" },
+        { "offset": 14, "type": "i16", "name": "mcu_temp_centi_c" },
+        { "offset": 16, "type": "u8", "name": "charge_state" },
+        { "offset": 17, "type": "u8", "name": "key_state" },
+        { "offset": 18, "type": "u8", "name": "led_state" },
+        { "offset": 19, "type": "u8", "name": "host_state" },
+        { "offset": 20, "type": "u32", "name": "fault_flags" },
+        { "offset": 24, "type": "u8", "name": "pending_events" },
+        { "offset": 25, "type": "u8", "name": "cw_reset_reason" },
+        { "offset": 26, "type": "u8", "name": "reserved" },
+        { "offset": 27, "type": "u8", "name": "last_command_status" },
+        { "offset": 28, "type": "u32", "name": "uptime_ms" },
+        { "offset": 32, "type": "u32", "name": "reserved" },
+        { "offset": 36, "type": "u32", "name": "config_generation" },
+        { "offset": 40, "type": "u16", "name": "last_command_sequence" },
+        { "offset": 42, "type": "u16", "name": "last_event_id" },
+        { "offset": 44, "type": "u32", "name": "last_action_reason" },
+        { "offset": 62, "type": "u16", "name": "crc16" }
+      ]
+    },
+    {
+      "addr": "0x60",
+      "name": "DIAGNOSTICS",
+      "size": 32,
+      "access": "R",
+      "crc": { "offset": 30, "cover": [0, 29] },
+      "fields": [
+        { "offset": 0, "type": "u16", "name": "i2c_rx_errors", "incremented": true },
+        { "offset": 2, "type": "u16", "name": "i2c_bus_recovery_count", "incremented": true },
+        { "offset": 4, "type": "u16", "name": "frame_crc_errors", "incremented": true },
+        { "offset": 6, "type": "u16", "name": "bad_length_errors", "incremented": true },
+        { "offset": 8, "type": "u16", "name": "unknown_command_errors", "incremented": true },
+        { "offset": 10, "type": "u16", "name": "command_busy_count", "reserved": true },
+        { "offset": 12, "type": "u16", "name": "event_overflow_count", "incremented": true },
+        { "offset": 14, "type": "u16", "name": "deepsleep_entry_count", "incremented": true },
+        { "offset": 16, "type": "u16", "name": "host_reset_count", "incremented": true },
+        { "offset": 18, "type": "u16", "name": "cw_watchdog_reset_count", "reserved": true },
+        { "offset": 20, "type": "u16", "name": "adc_error_count", "incremented": true },
+        { "offset": 24, "type": "u16", "name": "last_error_code", "reserved": true },
+        { "offset": 26, "type": "u16", "name": "last_error_detail", "reserved": true },
+        { "offset": 30, "type": "u16", "name": "crc16" }
+      ]
+    },
+    { "addr": "0x80", "name": "COMMAND", "size": 64, "access": "W" },
+    { "addr": "0x81", "name": "RESPONSE", "size": 64, "access": "R" },
+    { "addr": "0x82", "name": "EVENT_PEEK", "size": 16, "access": "R" },
+    { "addr": "0x83", "name": "EVENT_ACK", "size": 4, "access": "W" },
+    { "addr": "0x84", "name": "EVENT_COUNT", "size": 1, "access": "R" },
+    {
+      "addr": "0x85",
+      "name": "QUICK_BATTERY",
+      "size": 8,
+      "access": "R",
+      "crc": { "offset": 6, "cover": [0, 5] },
+      "fields": [
+        { "offset": 0, "type": "u16", "name": "battery_mv" },
+        { "offset": 2, "type": "u16", "name": "soc_permille", "invalid": "0xFFFF" },
+        { "offset": 4, "type": "u8", "name": "charge_state" },
+        { "offset": 5, "type": "u8", "name": "flags", "bits": { "0": "battery_valid", "1": "soc_valid", "2": "charging_active" } },
+        { "offset": 6, "type": "u16", "name": "crc16" }
+      ]
+    }
+  ],
+  "frame": {
+    "size": 64,
+    "fields": [
+      { "offset": 0, "type": "u8", "name": "magic", "value": "0xA5" },
+      { "offset": 1, "type": "u8", "name": "header_version", "value": 1 },
+      { "offset": 2, "type": "u8", "name": "kind", "req": 0, "resp": 1 },
+      { "offset": 3, "type": "u8", "name": "flags" },
+      { "offset": 4, "type": "u8", "name": "protocol_major" },
+      { "offset": 5, "type": "u8", "name": "protocol_minor" },
+      { "offset": 6, "type": "u16", "name": "sequence", "forbidden": 0 },
+      { "offset": 8, "type": "u16", "name": "code" },
+      { "offset": 10, "type": "u16", "name": "status" },
+      { "offset": 12, "type": "u8", "name": "payload_length", "max": 44 },
+      { "offset": 13, "type": "u8", "name": "reserved" },
+      { "offset": 14, "type": "u32", "name": "session_id" },
+      { "offset": 18, "type": "u8[44]", "name": "payload" },
+      { "offset": 62, "type": "u16", "name": "crc16" }
+    ]
+  },
+  "event": {
+    "size": 16,
+    "fields": [
+      { "offset": 0, "type": "u16", "name": "event_id" },
+      { "offset": 2, "type": "u8", "name": "type" },
+      { "offset": 3, "type": "u8", "name": "severity" },
+      { "offset": 4, "type": "u32", "name": "timestamp_ms" },
+      { "offset": 8, "type": "u32", "name": "arg0" },
+      { "offset": 12, "type": "u16", "name": "arg1" },
+      { "offset": 14, "type": "u16", "name": "crc16" }
+    ],
+    "ack": [
+      { "offset": 0, "type": "u16", "name": "event_id" },
+      { "offset": 2, "type": "u16", "name": "crc16", "cover": [0, 1] }
+    ]
+  },
+  "commands": [
+    { "opcode": "0x0001", "name": "PING", "public": true, "request": [], "response": [] },
+    {
+      "opcode": "0x0002",
+      "name": "GET_EXTENDED_INFO",
+      "public": true,
+      "request": [],
+      "response": [
+        { "offset": 0, "type": "u8", "name": "fw_major" },
+        { "offset": 1, "type": "u8", "name": "fw_minor" },
+        { "offset": 2, "type": "u8", "name": "fw_patch" },
+        { "offset": 3, "type": "u8", "name": "hw_revision" },
+        { "offset": 4, "type": "u16", "name": "build_number" }
+      ]
+    },
+    {
+      "opcode": "0x0004",
+      "name": "HOST_READY",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u8", "name": "boot_reason" }],
+      "errors": ["BAD_LENGTH"]
+    },
+    {
+      "opcode": "0x0005",
+      "name": "TIME_SYNC",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u32", "name": "unix_seconds", "min": 946684800, "max": 4102444799 }],
+      "errors": ["BAD_LENGTH", "INVALID_ARGUMENT"]
+    },
+    { "opcode": "0x0006", "name": "CLEAR_DIAGNOSTICS", "public": true, "note": "clears first 30 bytes; mask ignored" },
+    {
+      "opcode": "0x0007",
+      "name": "TIME_GET",
+      "public": true,
+      "response": [
+        { "offset": 0, "type": "u32", "name": "unix_seconds" },
+        { "offset": 4, "type": "u16", "name": "millis", "value": 0 },
+        { "offset": 6, "type": "u8", "name": "synced" },
+        { "offset": 7, "type": "u8", "name": "reserved" }
+      ]
+    },
+    {
+      "opcode": "0x0008",
+      "name": "ALARM_SET",
+      "public": true,
+      "request": [
+        { "offset": 0, "type": "u8", "name": "mode" },
+        { "offset": 1, "type": "u32", "name": "seconds", "min": 10, "max": 2678400 }
+      ],
+      "errors": ["BAD_LENGTH", "INVALID_ARGUMENT"]
+    },
+    {
+      "opcode": "0x0009",
+      "name": "ALARM_GET",
+      "public": true,
+      "response": [
+        { "offset": 0, "type": "u8", "name": "mode" },
+        { "offset": 1, "type": "u8", "name": "reserved" },
+        { "offset": 2, "type": "u32", "name": "remaining_sec" },
+        { "offset": 6, "type": "u32", "name": "target_unix" }
+      ]
+    },
+    { "opcode": "0x000A", "name": "RTC_RAW", "public": true, "response_len": 36 },
+    { "opcode": "0x0100", "name": "BATTERY_SAMPLE", "public": true, "status": "ACCEPTED" },
+    { "opcode": "0x0101", "name": "BATTERY_SET_PROFILE", "public": true, "errors": ["NOT_SUPPORTED"] },
+    {
+      "opcode": "0x0200",
+      "name": "LED_SET",
+      "public": true,
+      "request": [
+        { "offset": 0, "type": "u8", "name": "color" },
+        { "offset": 1, "type": "u8", "name": "brightness" },
+        { "offset": 2, "type": "u16", "name": "fade_ms", "optional": true }
+      ],
+      "errors": ["BAD_LENGTH"]
+    },
+    { "opcode": "0x0203", "name": "LED_OVERRIDE_CLEAR", "public": true },
+    {
+      "opcode": "0x0300",
+      "name": "ACTION_PREPARE",
+      "public": true,
+      "request": [
+        { "offset": 0, "type": "u8", "name": "action" },
+        { "offset": 1, "type": "u16", "name": "delay_ms" },
+        { "offset": 3, "type": "u16", "name": "reason" }
+      ],
+      "response": [
+        { "offset": 0, "type": "u32", "name": "token" },
+        { "offset": 4, "type": "u16", "name": "expires_in_ms", "value": 2000 },
+        { "offset": 6, "type": "u16", "name": "effective_delay_ms" }
+      ],
+      "errors": ["BAD_LENGTH"]
+    },
+    {
+      "opcode": "0x0301",
+      "name": "ACTION_COMMIT",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u32", "name": "token" }],
+      "status": "ACCEPTED",
+      "errors": ["BAD_LENGTH", "NOT_ARMED", "TOKEN_EXPIRED"]
+    },
+    {
+      "opcode": "0x0302",
+      "name": "ACTION_CANCEL",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u32", "name": "token" }],
+      "errors": ["BAD_LENGTH", "NOT_ARMED"]
+    },
+    {
+      "opcode": "0x0303",
+      "name": "SHUTDOWN_READY",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u16", "name": "request_event_id" }],
+      "errors": ["BAD_LENGTH"]
+    },
+    { "opcode": "0x0310", "name": "HOST_SOFT_SLEEP", "public": true, "status": "ACCEPTED", "errors": ["INVALID_STATE"] },
+    {
+      "opcode": "0x0311",
+      "name": "HOST_REQUEST_OFF",
+      "public": true,
+      "request": [
+        { "offset": 0, "type": "u8", "name": "force" },
+        { "offset": 1, "type": "u16", "name": "reason" }
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "opcode": "0x0312",
+      "name": "HOST_REQUEST_RESET",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u16", "name": "reason" }],
+      "status": "ACCEPTED"
+    },
+    { "opcode": "0x0313", "name": "EVENTS_CLEAR_ALL", "public": true },
+    { "opcode": "0x0500", "name": "CONFIG_GET", "public": true, "response_len": 36 },
+    {
+      "opcode": "0x0501",
+      "name": "CONFIG_SET_WAKE_ON_CHARGE",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u8", "name": "enable" }],
+      "ram_only": true
+    },
+    {
+      "opcode": "0x0502",
+      "name": "CONFIG_SET_LOW_SOC_NOTIFY",
+      "public": true,
+      "request": [
+        { "offset": 0, "type": "u8", "name": "enable" },
+        { "offset": 1, "type": "u16", "name": "threshold_permille", "optional": true, "min": 1, "max": 1000 }
+      ],
+      "ram_only": true,
+      "errors": ["BAD_LENGTH", "INVALID_ARGUMENT"]
+    },
+    { "opcode": "0x0503", "name": "CONFIG_SET_KEY_EVENTS", "public": true, "ram_only": true },
+    { "opcode": "0x0504", "name": "CONFIG_SET_CHARGE_LED", "public": true, "ram_only": true },
+    { "opcode": "0x0505", "name": "CONFIG_FACTORY_DEFAULT", "public": true, "note": "restores RAM switches only" },
+    {
+      "opcode": "0x0510",
+      "name": "VCOM_GET",
+      "public": true,
+      "response": [
+        { "offset": 0, "type": "u16", "name": "vcom_mv" },
+        { "offset": 2, "type": "u8", "name": "valid" },
+        { "offset": 3, "type": "u8", "name": "reserved" }
+      ]
+    },
+    {
+      "opcode": "0x0511",
+      "name": "VCOM_SET",
+      "public": true,
+      "request": [{ "offset": 0, "type": "u16", "name": "vcom_mv", "min": 500, "max": 2500, "align": 10 }],
+      "response": [{ "offset": 0, "type": "u16", "name": "vcom_mv" }],
+      "errors": ["BAD_LENGTH", "INVALID_ARGUMENT"]
+    },
+    {
+      "opcode": "0x05F2",
+      "name": "MAINT_GET_INFO",
+      "public": true,
+      "response_len": 36
+    }
+  ],
+  "events": [
+    { "type": "0x01", "name": "KEY_DOWN", "severity": "INFO" },
+    { "type": "0x02", "name": "KEY_UP", "severity": "INFO", "arg0": "held_ms" },
+    { "type": "0x03", "name": "KEY_SHORT", "severity": "NOTICE", "arg0": "held_ms" },
+    { "type": "0x04", "name": "KEY_LONG", "severity": "NOTICE", "arg0": "held_ms" },
+    { "type": "0x05", "name": "KEY_FORCE_OFF", "severity": "WARNING", "arg0": "held_ms" },
+    { "type": "0x10", "name": "CHARGE_STATE_CHANGED", "severity": "NOTICE", "arg0": "new", "arg1": "old" },
+    { "type": "0x11", "name": "BATTERY_SAMPLE_READY", "severity": "INFO", "arg0": "mv", "arg1": "raw" },
+    { "type": "0x12", "name": "BATTERY_LOW", "severity": "WARNING", "arg0": "mv", "arg1": "threshold" },
+    { "type": "0x13", "name": "BATTERY_CRITICAL", "severity": "CRITICAL", "arg0": "mv", "arg1": "threshold" },
+    { "type": "0x14", "name": "BATTERY_SOC_LOW", "severity": "WARNING", "arg0": "soc_permille", "arg1": "threshold_permille" },
+    { "type": "0x15", "name": "ALARM_FIRED", "severity": "NOTICE", "arg0": "mode" },
+    { "type": "0x20", "name": "HOST_STARTED", "severity": "NOTICE", "arg0": "wake_reason" },
+    { "type": "0x21", "name": "HOST_READY", "severity": "NOTICE", "arg0": "boot_ms", "arg1": "boot_reason" },
+    { "type": "0x22", "name": "SHUTDOWN_REQUESTED", "severity": "WARNING", "arg0": "reason", "arg1": "deadline_ms" },
+    { "type": "0x24", "name": "HOST_RESET_PERFORMED", "severity": "NOTICE", "arg0": "reason", "arg1": "count" },
+    { "type": "0x30", "name": "COMMAND_COMPLETED", "severity": "INFO", "arg0": "sequence", "arg1": "status" },
+    { "type": "0x40", "name": "CONFIG_RECOVERED", "severity": "NOTICE", "arg0": "generation", "arg1": "reason" },
+    { "type": "0x41", "name": "CW_RESET", "severity": "WARNING", "arg0": "reset_reason", "arg1": "boot_id_lo16" },
+    { "type": "0x7F", "name": "OVERFLOW", "severity": "CRITICAL", "arg0": "lost_count" }
+  ],
+  "status_codes": [
+    { "value": "0x0000", "name": "OK" },
+    { "value": "0x0001", "name": "ACCEPTED" },
+    { "value": "0x0002", "name": "BUSY" },
+    { "value": "0x0010", "name": "BAD_CRC" },
+    { "value": "0x0011", "name": "BAD_MAGIC" },
+    { "value": "0x0012", "name": "BAD_LENGTH" },
+    { "value": "0x0013", "name": "UNSUPPORTED_VERSION" },
+    { "value": "0x0014", "name": "UNKNOWN_COMMAND" },
+    { "value": "0x0015", "name": "INVALID_ARGUMENT" },
+    { "value": "0x0016", "name": "SEQUENCE_CONFLICT" },
+    { "value": "0x0017", "name": "STALE_SESSION" },
+    { "value": "0x0018", "name": "NOT_SUPPORTED" },
+    { "value": "0x0020", "name": "INVALID_STATE" },
+    { "value": "0x0021", "name": "NOT_ARMED" },
+    { "value": "0x0022", "name": "TOKEN_EXPIRED" },
+    { "value": "0x0023", "name": "PERMISSION_DENIED" },
+    { "value": "0x0030", "name": "CONFIG_INVALID" },
+    { "value": "0x0031", "name": "NVM_FAILURE" },
+    { "value": "0x0040", "name": "ADC_FAILURE" },
+    { "value": "0x0041", "name": "HOST_TIMEOUT" },
+    { "value": "0x00FF", "name": "INTERNAL_ERROR" }
+  ],
+  "enums": {
+    "power_state": {
+      "0": "OFF",
+      "1": "POWERING_ON",
+      "2": "BOOT_WAIT",
+      "3": "RUNNING",
+      "4": "SHUTDOWN_PENDING",
+      "5": "RESETTING",
+      "6": "DOWNLOAD_MODE",
+      "7": "FAULT",
+      "8": "SOFT_SLEEP"
+    },
+    "charge_state": {
+      "0": "UNKNOWN",
+      "1": "NOT_CHARGING",
+      "2": "CHARGING",
+      "3": "FULL_INFERRED",
+      "4": "FAULT"
+    },
+    "action": {
+      "1": "HOST_LOGICAL_OFF",
+      "2": "HOST_HARD_RESET",
+      "3": "HOST_NORMAL_RESTART",
+      "4": "HOST_ENTER_DOWNLOAD_MODE",
+      "5": "HOST_EXIT_DOWNLOAD_MODE",
+      "6": "HOST_POWER_ON",
+      "7": "HOST_SOFT_SLEEP"
+    },
+    "led_color": { "0": "OFF", "1": "RED", "2": "WHITE", "3": "RED_WHITE" },
+    "severity": { "0": "INFO", "1": "NOTICE", "2": "WARNING", "3": "CRITICAL" },
+    "wake_reason": {
+      "0": "UNKNOWN",
+      "1": "COLD_BOOT_OFF",
+      "2": "KEY",
+      "3": "HOST_REQUEST",
+      "4": "IWDT_RECOVER",
+      "5": "CHARGE_PLUG",
+      "6": "RTC_ALARM"
+    },
+    "cw_reset_reason": {
+      "0": "UNKNOWN",
+      "1": "POR",
+      "2": "BROWNOUT",
+      "3": "NRST",
+      "4": "IWDT",
+      "5": "SOFTWARE",
+      "6": "LOCKUP",
+      "7": "CLOCK"
+    },
+    "host_state": {
+      "0": "UNKNOWN",
+      "1": "OFF",
+      "2": "STARTING",
+      "3": "READY",
+      "4": "SOFT_SLEEP",
+      "5": "SHUTTING_DOWN",
+      "6": "FAULT"
+    },
+    "status_flags": {
+      "0": "BATTERY_VALID",
+      "1": "BATTERY_LOW",
+      "2": "BATTERY_CRITICAL",
+      "3": "CHARGING_ACTIVE",
+      "4": "CHARGE_PIN_HIGH",
+      "5": "KEY_PRESSED",
+      "6": "HOST_EN_HIGH",
+      "7": "HOST_BOOT_LOW",
+      "8": "EVENT_PENDING",
+      "9": "COMMAND_BUSY",
+      "10": "CONFIG_VALID",
+      "13": "CW_INT_ASSERTED"
+    },
+    "repair_code": {
+      "0x00": "NONE",
+      "0x01": "BATTERY_REPLACED",
+      "0x02": "CHARGE_PORT",
+      "0x03": "CHARGER_IC",
+      "0x10": "MAINBOARD_REWORK",
+      "0x11": "MAINBOARD_REPLACED",
+      "0x12": "HOST_MODULE",
+      "0x13": "PMU_REFLASH",
+      "0x20": "DISPLAY_REPLACED",
+      "0x21": "DISPLAY_CABLE",
+      "0x30": "KEYPAD",
+      "0x31": "LED",
+      "0x40": "HOUSING",
+      "0x41": "LIQUID_DAMAGE",
+      "0x42": "DROP_DAMAGE",
+      "0x50": "REFURBISHED",
+      "0x51": "NO_FAULT_FOUND",
+      "0xE0": "CUSTOM_BASE"
+    }
+  },
+  "timings": {
+    "key_debounce_ms": 30,
+    "key_power_on_ms": 1000,
+    "key_long_press_ms": 1500,
+    "key_force_event_ms": 8000,
+    "key_force_off_ms": 10000,
+    "key_combo_gap_ms": 1200,
+    "key_download_hold_ms": 3000,
+    "esp_reset_pulse_ms": 250,
+    "esp_en_hold_ms": 20,
+    "esp_boot_setup_ms": 10,
+    "esp_boot_release_ms": 500,
+    "shutdown_en_delay_ms": 100,
+    "soft_sleep_en_delay_ms": 100,
+    "host_boot_timeout_ms": 15000,
+    "shutdown_timeout_ms": 10000,
+    "action_token_ttl_ms": 2000,
+    "action_delay_max_ms": 5000,
+    "deepsleep_idle_ms": 15000,
+    "i2c_stuck_ms": 100,
+    "iwdt_s": 1,
+    "led_override_ms": 5000,
+    "led_host_fade_ms": 400,
+    "led_host_fade_max_ms": 4000,
+    "charge_breathe_period_ms": 2600,
+    "charge_breathe_dark_ms": 300,
+    "battery_sample_run_ms": 30000,
+    "battery_sample_off_ms": 120000,
+    "battery_sample_off_chg_ms": 60000,
+    "battery_settle_ms": 10,
+    "battery_first_sample_ms": 800,
+    "charge_en_hold_ms": 2500,
+    "charge_en_rise_hold_ms": 2500,
+    "charge_full_steady_ms": 3000
+  },
+  "thresholds": {
+    "low_battery_mv": 3500,
+    "critical_battery_mv": 3300,
+    "forced_off_battery_mv": 3050,
+    "hysteresis_mv": 100,
+    "battery_min_mv": 2700,
+    "battery_max_mv": 4400,
+    "soc_full_mv": 4200,
+    "soc_empty_mv": 3050,
+    "vcom_min_mv": 500,
+    "vcom_max_mv": 2500,
+    "vcom_align_mv": 10,
+    "low_soc_default_permille": 50,
+    "low_soc_hysteresis_permille": 30
+  },
+  "soc_table": [
+    [4200, 1000], [4100, 960], [4000, 900], [3900, 780],
+    [3800, 620], [3700, 450], [3650, 330], [3600, 200],
+    [3550, 110], [3450, 70], [3300, 50], [3150, 20], [3050, 0]
+  ],
+  "nvm": {
+    "page": 127,
+    "addr": "0xFE00",
+    "record_size": 32,
+    "magic": "0x314D5650",
+    "version": 1,
+    "layout": [
+      { "offset": 0, "type": "u32", "name": "magic" },
+      { "offset": 4, "type": "u16", "name": "version" },
+      { "offset": 6, "type": "u16", "name": "cycle_count" },
+      { "offset": 8, "type": "u16", "name": "replace_count" },
+      { "offset": 10, "type": "u16", "name": "cycle_accum_permille" },
+      { "offset": 12, "type": "u8[16]", "name": "repair_codes" },
+      { "offset": 28, "type": "u16", "name": "vcom_mv" },
+      { "offset": 30, "type": "u16", "name": "crc16" }
+    ]
+  },
+  "host_notes": [
+    "DeepSleep does not respond on I2C.",
+    "After shutdown, soft-sleep complete, or reset pulse, the I2C slave stops answering until the host is powered on again.",
+    "Command OK or ACCEPTED is not power completion; wait for power_state.",
+    "Do not infer charge-full from battery_mv.",
+    "LED_SET can be covered by the charge LED unless CONFIG_SET_CHARGE_LED=0.",
+    "KEY_FORCE_OFF at 8 s is an event only; force power-off is 10 s.",
+    "If a response is lost, retry the same sequence; do not allocate a new one for the same action."
+  ]
+}

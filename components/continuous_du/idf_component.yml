@@ -1,0 +1,13 @@
+version: "1.0.0"
+description: "Per-pixel continuous DU for epdiy LCD path — one phase per scan"
+url: "https://github.com/mindreset/continuous_du"
+repository: "https://github.com/mindreset/continuous_du.git"
+issues: "https://github.com/mindreset/continuous_du/issues"
+license: "Apache-2.0"
+tags:
+  - epd
+  - eink
+  - waveform
+  - epd-du
+dependencies:
+  idf: ">=5.3"

@@ -1,0 +1,14 @@
+version: "1.1.0"
+description: "Read Pico CW32L010 PMU host — I2C protocol, battery, sleep, alarm, power-off"
+url: "https://github.com/mindreset/read_pico_pmu"
+repository: "https://github.com/mindreset/read_pico_pmu.git"
+issues: "https://github.com/mindreset/read_pico_pmu/issues"
+license: "Apache-2.0"
+tags:
+  - pmu
+  - cw32
+  - i2c
+  - power
+  - alarm
+dependencies:
+  idf: ">=5.3"

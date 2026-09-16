@@ -1,0 +1,33 @@
+menu "Read Pico board configuration"
+
+config READ_PICO_I2C_PORT
+    int "I2C controller"
+    default 0
+    range 0 1
+
+config READ_PICO_I2C_SCL_GPIO
+    int "I2C SCL GPIO"
+    default 40
+    range 0 48
+
+config READ_PICO_I2C_SDA_GPIO
+    int "I2C SDA GPIO"
+    default 39
+    range 0 48
+
+config READ_PICO_I2C_FREQ_HZ
+    int "I2C frequency (Hz)"
+    default 400000
+    range 10000 400000
+
+config READ_PICO_IOE_INT_GPIO
+    int "FCA9555 interrupt GPIO"
+    default 41
+    range 0 48
+
+config READ_PICO_TP_INT_GPIO
+    int "CST836U interrupt GPIO"
+    default 43
+    range 0 48
+
+endmenu

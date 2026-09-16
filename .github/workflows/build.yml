@@ -1,0 +1,29 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: espressif/idf:release-v6.1
+    steps:
+      - uses: actions/checkout@v4
+
+      # sdkconfig.defaults 里的 120MHz flash / PSRAM 依赖真机的 flash 型号，
+      # CI 用 sdkconfig.ci 换成默认时序，只验证能不能编过。
+      - name: build
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py -DSDKCONFIG_DEFAULTS=sdkconfig.ci set-target esp32s3
+          idf.py -DSDKCONFIG_DEFAULTS=sdkconfig.ci build
+
+      - name: size
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py size

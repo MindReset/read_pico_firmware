@@ -1,0 +1,14 @@
+version: "1.0.0"
+description: "SY7636A EPD PMIC (Silergy) — VCOM, rails, and temperature"
+url: "https://github.com/mindreset/sy7636a"
+repository: "https://github.com/mindreset/sy7636a.git"
+issues: "https://github.com/mindreset/sy7636a/issues"
+license: "Apache-2.0"
+tags:
+  - pmic
+  - sy7636a
+  - i2c
+  - epd
+  - eink
+dependencies:
+  idf: ">=5.3"

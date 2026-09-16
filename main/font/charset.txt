@@ -1,0 +1,91 @@
+# Built-in font charset. Lines starting with # are comments.
+# 1) ASCII 0x20-0x7E is injected by tools/gen_builtin_font.py
+# 2) Font-switch English (extracted in advance; do not depend on SD)
+Built-in
+Built in
+builtin
+fonts
+assets/fonts
+TTF
+SD
+SD card
+wght
+GC16
+DU
+GL16
+FOLLOW
+SY7636A
+FCA9555
+CST836U
+SC7A20H
+CW32
+Read Pico
+小纸 Pico
+Overview
+Power
+Firmware
+Battery
+Charge
+Host
+Build
+Hardware
+Offline
+不在线
+电源按键
+原始事件
+按下
+抬起
+短按
+长按
+No data
+Unknown
+Idle
+Charging
+Full
+Fault
+Serial
+Self-test
+Prev
+Next
+PASS
+FAIL
+ESP MAC
+序列号
+整机自检
+探测
+探活
+VCOM
+PGOOD
+INT
+RST
+ODR
+FIFO
+I2C
+PMU
+IOE
+NVS
+# Latin-1 / symbols used by chip status strings (not in ASCII, not in CJK scan)
+±
+℃
+# 3) Extra UI / home-page samples (CJK also scanned from sources)
+滚滚长江东逝水
+写入
+改回
+即将写入
+—.——
+0.50—2.50
+内建
+内建或存储卡 TTF
+使用中
+界面字体
+存储卡 TTF
+传感器型号
+曲谱
+柔和
+明亮
+增强
+持
+衰
+原
+右
+全

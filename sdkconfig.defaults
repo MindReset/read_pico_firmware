@@ -1,0 +1,35 @@
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_16M.csv"
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+# 实验性组合：MSPI 的 flash 与 PSRAM 共用时钟域，CPU 240MHz 下 IDF 只标定了
+# 模块时钟 120MHz，所以 PSRAM 想上 120MHz，flash 必须一起 120MHz。
+# 渲染线程逐行读 PSRAM 里的 framebuffer，80MHz 时的实效带宽（约 32MB/s）
+# 就是刷新速度的天花板。flash 侧靠 main/flash_hpm_zb.c 补上本机型号的高性能模式。
+# 已知风险：上电后温度漂移约 20℃ 会让 PSRAM 访问随机出错。IDF 的温度补偿
+# （SPIRAM_TIMING_TUNING_POINT_VIA_TEMPERATURE_SENSOR）只对 flash vendor
+# 0xC8/0x20 验证过，本机是 ZB25VQ128(Zbit)，开了会在 do_system_init_fn 里报
+# 「flash model has not been verified」直接 abort 并循环重启，所以必须关掉，
+# 等于没有这层保护。别改成 y。
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+CONFIG_ESPTOOLPY_FLASHFREQ_120M=y
+# 显式启用 HPM（AUTO 会因为"依赖具体 flash 型号"报 #warning，-Werror 下编不过）。
+# 本机 flash 靠写状态寄存器进入高性能模式，不需要调 dummy cycle，所以关掉 HPM-DC。
+CONFIG_SPI_FLASH_HPM_ENA=y
+CONFIG_SPI_FLASH_HPM_DC_DISABLE=y
+CONFIG_SPIRAM_SPEED_120M=y
+CONFIG_SPIRAM_TIMING_TUNING_POINT_VIA_TEMPERATURE_SENSOR=n
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=32768
+CONFIG_ESP32S3_DATA_CACHE_LINE_64B=y
+# 渲染线程逐行流式读 PSRAM 里的 framebuffer，cache 越大预取越不容易失效
+CONFIG_ESP32S3_DATA_CACHE_64KB=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+# 1ms tick：EPD 上电流程里按毫秒轮询 PGOOD，100Hz 的 tick 会把每次等待放大到 10ms
+CONFIG_FREERTOS_HZ=1000

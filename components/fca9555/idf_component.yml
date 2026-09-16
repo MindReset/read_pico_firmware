@@ -1,0 +1,14 @@
+version: "1.0.0"
+description: "FCA9555 / xCA9555 16-bit I2C GPIO expander (Nyfea, PCA9555-compatible)"
+url: "https://github.com/mindreset/fca9555"
+repository: "https://github.com/mindreset/fca9555.git"
+issues: "https://github.com/mindreset/fca9555/issues"
+license: "Apache-2.0"
+tags:
+  - gpio
+  - expander
+  - fca9555
+  - pca9555
+  - i2c
+dependencies:
+  idf: ">=5.3"

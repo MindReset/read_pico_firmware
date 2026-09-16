@@ -1,0 +1,4 @@
+dependencies:
+  mindreset/fca9555:
+    version: "^1.0.0"
+    override_path: "../../.."

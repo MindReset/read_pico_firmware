@@ -1,0 +1,50 @@
+set(main_requires
+    read_pico
+    continuous_du
+    e0470_epaper_waveform
+    read_pico_pmu
+    fatfs
+    bootloader_support
+    spi_flash
+    heap
+    nvs_flash
+    esp_hw_support
+    esp_driver_gpio
+    esp_driver_usb_serial_jtag
+    esp_app_format
+)
+idf_component_register(
+    SRCS
+        "app_main.c"
+        "display.c"
+        "sleep.c"
+        "settings.c"
+        "app/app_loop.c"
+        "app/app_registry.c"
+        "ui/ui_kit.c"
+        "ui/datamatrix.c"
+        "ui/ui_menu.c"
+        "apps/app_home.c"
+        "apps/app_refresh.c"
+        "apps/app_reading.c"
+        "apps/app_touch.c"
+        "apps/app_axis.c"
+        "apps/app_power.c"
+        "apps/app_ioe.c"
+        "apps/app_pmu.c"
+        "apps/app_sd.c"
+        "apps/app_font_pick.c"
+        "apps/app_sleep.c"
+        "apps/app_selftest.c"
+        "apps/app_key.c"
+        "font/ttf_font.c"
+        "factory/pmu_selftest.c"
+        "factory/vcom_setup.c"
+    REQUIRES ${main_requires}
+    INCLUDE_DIRS "." "app" "apps" "font" "ui" "factory"
+    EMBED_FILES
+        "assets/lock_4bpp.bin"
+        "assets/loading_4bpp.bin"
+        "assets/builtin.ttf"
+        "assets/reading.md"
+)
