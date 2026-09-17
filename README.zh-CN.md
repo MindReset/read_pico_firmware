@@ -1,4 +1,4 @@
-# Pico 官方演示固件
+# 小纸 Pico 官方演示固件
 
 **语言:** [English](./README.md) | [简体中文](./README.zh-CN.md) | [日本語](./README.ja-JP.md)
 
@@ -9,7 +9,7 @@
 ![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
 ![Target](https://img.shields.io/badge/target-ESP32--S3-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
 
-Pico 是深圳思维重置科技有限公司旗下小纸 Read 系列的开发板，面向墨水屏开源固件开发者，
+小纸 Pico 是深圳思维重置科技有限公司旗下小纸 Read 系列的开发板，面向墨水屏开源固件开发者，
 搭载 ESP32-S3 和 4.7 寸单色墨水屏。本仓库是随板发布的出厂固件。
 
 固件为显示、触摸、加速度计、电源、按键、TF 卡、字体、睡眠与唤醒提供独立的演示页和诊断页，
@@ -21,7 +21,7 @@ Pico 是深圳思维重置科技有限公司旗下小纸 Read 系列的开发板
 
 ## 官方文档与更多设备
 
-- [Pico 官方文档](https://dot.mindreset.tech/docs/read_0)
+- [小纸 Pico 官方文档](https://dot.mindreset.tech/docs/read_0)
 - [Dot Open Platform](https://github.com/MindReset/dot_open_platform)：探索更多可以动手玩的 Dot 设备与项目，包括 Quote/0 硬件资源和 Rand/0 本地显示集成，以及固件示例、引脚表和外壳文件。
 
 ## 硬件

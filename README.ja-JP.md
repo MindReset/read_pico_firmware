@@ -1,4 +1,4 @@
-# Read/0 公式デモファームウェア
+# Read Pico 公式デモファームウェア
 
 **言語:** [English](./README.md) | [简体中文](./README.zh-CN.md) | [日本語](./README.ja-JP.md)
 
@@ -9,7 +9,7 @@
 ![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
 ![Target](https://img.shields.io/badge/target-ESP32--S3-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
 
-Read/0 は、Read シリーズの開発ボードです。ESP32-S3 と 4.7 インチのモノクロ電子ペーパーディスプレイを搭載しています。
+Read Pico は、Read シリーズの開発ボードです。ESP32-S3 と 4.7 インチのモノクロ電子ペーパーディスプレイを搭載しています。
 Shenzhen MindReset Technology Co., Ltd. が、電子ペーパー向けのオープンソースファームウェアを
 開発する方に向けて提供しています。このリポジトリには、ボードに出荷時から搭載されるファームウェアが含まれています。
 
@@ -25,7 +25,7 @@ AI エージェント向けのディレクトリ構成、`app_desc_t` の仕様�
 
 ## 公式ドキュメントとその他のデバイス
 
-- [Read/0 公式ドキュメント](https://dot.mindreset.tech/docs/read_0)
+- [Read Pico 公式ドキュメント](https://dot.mindreset.tech/docs/read_0)
 - [Dot Open Platform](https://github.com/MindReset/dot_open_platform)：Quote/0 のハードウェア資料や Rand/0 のローカル表示連携など、ほかの Dot デバイスやプロジェクトも試してみてください。ファームウェアのサンプル、ピン配置、ケースの設計ファイルを公開しています。
 
 ## ハードウェア

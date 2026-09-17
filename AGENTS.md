@@ -120,6 +120,8 @@ Defined in [`main/app/app.h`](main/app/app.h). The loop presents via `app_presen
 
 ## 硬约束 / Hard rules
 
+- 对外产品文案：中文用“小纸 Pico”，英文和日文用“Read Pico”；Read/0 仅可作为内部代号保留。/ Public product copy: use “小纸 Pico” in Chinese and “Read Pico” in English and Japanese; reserve Read/0 for the internal codename.
+
 `冻结 / Frozen:` 段落是产品决策，不是建议。改行为前必须先改这段，并说明为什么决策变了。
 
 A `冻结 / Frozen:` block is a decision, not a hint. Change the behavior only after rewriting that block and saying why the decision changed.

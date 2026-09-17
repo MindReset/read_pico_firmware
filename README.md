@@ -1,4 +1,4 @@
-# Read/0 Demo Firmware
+# Read Pico Demo Firmware
 
 **Languages:** [English](./README.md) | [简体中文](./README.zh-CN.md) | [日本語](./README.ja-JP.md)
 
@@ -9,7 +9,7 @@
 ![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
 ![Target](https://img.shields.io/badge/target-ESP32--S3-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
 
-Read/0 is an ESP32-S3 development board in the Read series with a 4.7" monochrome e-paper panel,
+Read Pico is an ESP32-S3 development board in the Read series with a 4.7" monochrome e-paper panel,
 made by Shenzhen MindReset Technology Co., Ltd. for developers building open-source
 e-paper firmware. This repository contains the factory firmware shipped with the board.
 
@@ -25,7 +25,7 @@ Agent-facing layout, `app_desc_t` contract, glossary and comment style are in
 
 ## Documentation & More Devices
 
-- [Official Read/0 documentation](https://dot.mindreset.tech/docs/read_0)
+- [Official Read Pico documentation](https://dot.mindreset.tech/docs/read_0)
 - [Dot Open Platform](https://github.com/MindReset/dot_open_platform): explore other Dot devices and projects, including Quote/0 hardware resources and Rand/0 local display integration, with firmware examples, pin maps, and enclosure files.
 
 ## Hardware
