@@ -44,6 +44,9 @@ idf.py build
 | `components/cst836u/` `sc7a20h/` `fca9555/` `sy7636a/` | 芯片驱动。/ Chip drivers. |
 | `components/e0470_epaper_waveform/` | 面板波形与裁剪。`waveforms/*.h` 是数据表。/ Panel waveforms. |
 | `components/pwm_audio/` | PWM 音频（蜂鸣器底层之一）。/ PWM audio helper. |
+| `docs/PLAN.book-reader.md` | 图书阅读器 / WiFi 传书 / 触控交互层的分 Phase 实施计划与已定决策。开工前先读。/ Phased plan and settled decisions for the book reader, WiFi transfer and gesture layer. Read before starting that work. |
+
+交互准则与分阶段验收见 [docs/INTERACTION.md](docs/INTERACTION.md)。/ Interaction rules and phased acceptance gates: [docs/INTERACTION.md](docs/INTERACTION.md).
 
 ### demo 页 / Demo pages
 
