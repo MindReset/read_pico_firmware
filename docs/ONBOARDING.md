@@ -177,7 +177,7 @@ idf.py size                       # CI 也跑这一步
 
 `idf.py flash` 内部就是 `esptool write_flash @flash_args`，三段镜像各归其位。没有 idf.py 的宿主走 §3.4。
 
-烧写会**覆盖**设备出厂应用固件（含 NVS 里的睡眠模式 / 字体选择 / 自检结果；VCOM 在 PMU 里，不受影响）。分区表 [partitions_16M.csv](../partitions_16M.csv)：nvs 0x9000/0x5000、phy_init 0xE000/0x1000、factory app 0x10000/2 MB、spiffs 0x500000/5 MB（当前代码未挂载 spiffs，仅预留）。
+烧写会**覆盖**设备出厂应用固件，但按当前 `flash_args` 不会写入 NVS；睡眠模式 / 字体选择 / 自检结果会保留。VCOM 在 PMU 里，不受影响。分区表 [partitions_16M.csv](../partitions_16M.csv)：nvs 0x9000/0x5000、phy_init 0xE000/0x1000、factory app 0x10000/2 MB、spiffs 0x500000/5 MB（当前代码未挂载 spiffs，仅预留）。
 
 ### 4.2 CI 等价编译（只验证能不能编过）
 
