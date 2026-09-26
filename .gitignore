@@ -29,6 +29,9 @@ tools/fonts/
 /ChillDuanSansVF.ttf
 tools/buzzer_score_wav
 
+# Per-machine task handoff ledger; protocol lives in docs/HANDOFF.md
+/docs/HANDOFF.local.md
+
 # Per-machine IDE config (absolute toolchain paths, serial port)
 .vscode/
 
