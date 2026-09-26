@@ -1,7 +1,12 @@
 {
 	"name": "ESP-IDF QEMU",
 	"build": {
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Dockerfile",
+		"args": {
+			// Dockerfile 默认 latest（master 快照），编不过 components/epdiy；必须与 CI、README、dependencies.lock 的 v6.1 一致。
+			// Dockerfile defaults to latest (master snapshot), which breaks components/epdiy; keep in step with CI, README and dependencies.lock (v6.1).
+			"DOCKER_TAG": "v6.1"
+		}
 	},
 	"customizations": {
 		"vscode": {
