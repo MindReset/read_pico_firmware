@@ -51,33 +51,34 @@ This document is for **first-time human developers and AI agents**. After readin
 | MCU | ESP32-S3，16 MB flash（Zbit ZB25VQ128）+ 8 MB Octal PSRAM | — | flash/PSRAM 真机 120 MHz，见 §4.3 |
 | 墨水屏 | 4.7" E0470A01，1216×684，16 灰阶 | LCD 外设 16-bit 并口：D0–D15 = GPIO4–18、45；XLE/XSTL/XCL/SPV/CKV = 3/46/21/47/48 | 逻辑坐标为竖屏 684×1216 |
 | 屏电源 | SY7636A | I2C | **只读**，不得写 VCOM/VLDO/放电/延时/VCOMCTL |
-| 电源管理 | CW32L010（自定义 I2C 协议，地址 0x2A） | I2C；INT 经 FCA9555 P0.2 | 固件 1.0.8 / 协议 1.1；VCOM 存在这里 |
+| 电源管理 | CW32L010（自定义 I2C 协议，地址 0x2A） | I2C；INT 经 FCA9555 P0.2 | README 写固件 1.0.8，实测板上为 1.0.9；协议 1.1；VCOM 存在这里 |
 | 触摸 | CST836U，两点 | I2C；INT GPIO43 | 触摸不就绪时 `app_main` 直接返回，UI 不启动 |
 | 加速度 | SC7A20H | I2C；INT1 GPIO1 | 设备坐标 Xd=-Yc, Yd=-Xc, Zd=-Zc |
 | IO 扩展 | FCA9555 | I2C；INT# GPIO41（浅睡唤醒源） | Port-0：P0.0 MODE, P0.1 XOE, P0.2 CW_INT, P0.3 SY_EN, P0.4 VCOM_EN, P0.5 PGOOD, P0.6 SD_CD, P0.7 TP_RST；期望 CFG0 = 0x64 |
 | TF 卡 | 1-bit SDMMC | CLK/CMD/D0 = 38/42/44 | 挂载点 `/sdcard`；字体目录 `/sdcard/assets/fonts`、`/sdcard/fonts` |
 | 蜂鸣器 | 无源，GPIO2 | PWM / 1-bit | 三种驱动路径 CLASSIC / HF / DIRECT_1BIT |
 | I2C 总线 | SCL 40 / SDA 39，400 kHz | Kconfig 菜单 "Read Pico board configuration" 可改 | |
-| 按键 | 屏下三个触摸键区 KEY1/KEY2/KEY3 + 电源键（PMU） | — | KEY2 = 整屏 GC16；KEY3 = 菜单把手；电源键短按 = 锁屏 |
-| 调试口 | USB Serial/JTAG（VID 303A, PID 1001） | Windows 显示为 "USB 串行设备 (COMx)" | 端口号因机器而异，记在 `docs/HANDOFF.local.md` |
+| 按键 | 屏下三个触摸键区 KEY1/KEY2/KEY3 + 电源键（PMU） | — | KEY2 = 整屏 GC16；KEY3 = 菜单把手；电源键短按 = 锁屏。**没有 BOOT / RESET 物理键** |
+| 调试口 | USB Serial/JTAG（VID 303A, PID 1001） | Windows 显示为 "USB 串行设备 (COMx)" | 端口号因机器而异，记在 `docs/HANDOFF.local.md`。烧写由 esptool `--before default_reset` 自动进下载模式，不需要按键 |
 
 ---
 
 ## 3. 环境搭建 / Environment
 
-### 3.1 三条路径对比
+### 3.1 四条路径对比
 
-| 路径 | IDF 版本 | 能烧写? | 适用 |
-| --- | --- | --- | --- |
-| **本机安装 ESP-IDF v6.1** | 钉死 v6.1 | 是（直连 COM 口） | 日常开发首选 |
-| **devcontainer**（[.devcontainer/](../.devcontainer/)） | `espressif/idf:${DOCKER_TAG=latest}` —— **未钉死** | Windows 下需 usbipd-win 转发 USB，否则只能在容器里编、在宿主机烧 | 只想编译 / 不想污染本机 |
-| **CI**（[.github/workflows/build.yml](../.github/workflows/build.yml)） | 容器 `espressif/idf:v6.1` | 否 | 编译回归（用 `sdkconfig.ci`） |
+| 路径 | IDF 版本 | 能烧写? | 适用 | 实测状态 |
+| --- | --- | --- | --- | --- |
+| **本机安装 ESP-IDF v6.1** | 钉死 v6.1 | 是（直连 COM 口，`idf.py flash monitor` 一条龙） | 日常开发首选 | 未实测 |
+| **纯 `docker run` 编译**（§3.3） | `espressif/idf:v6.1` | 否；产物在宿主 `build/`，用 §3.4 从宿主烧 | 不想装 IDF、不想折腾 devcontainer | **已实测通过** |
+| **devcontainer**（[.devcontainer/](../.devcontainer/)） | `devcontainer.json` 里 `build.args.DOCKER_TAG` 钉 v6.1 | 否（Windows 下容器看不到 COM 口）；同上从宿主烧 | 想在容器里用 IDF 扩展 / 调试 | 启动踩坑已解决（§13），编译路径同 docker run |
+| **CI**（[.github/workflows/build.yml](../.github/workflows/build.yml)） | 容器 `espressif/idf:v6.1` | 否 | 编译回归（用 `sdkconfig.ci`） | 由 GitHub 跑 |
 
 **必须 v6.1**：`components/read_pico/read_pico_flash_hpm.c` 依赖 v6 才有的 `esp_flash_chips/spi_flash_override.h`；[dependencies.lock](../dependencies.lock) 记录 `idf 6.1.0`。
 
-> 注意 / Gap：devcontainer 的 Dockerfile 默认拉 `latest`，与 CI/README 的 v6.1 不一致。进入容器后先 `idf.py --version` 核对；如需固定，构建时传 `--build-arg DOCKER_TAG=v6.1`（或在 `devcontainer.json` 的 `build.args` 里加 `"DOCKER_TAG": "v6.1"`）。
+**`latest` 不等于 v6.1**。实测 `espressif/idf:latest` 是 master 快照：编译在 `components/epdiy/src/output_lcd/lcd_driver.c` 报 `lcd_ll_select_clk_src` / `lcd_ll_set_group_clock_coeff` 参数类型不匹配，而且会把 `dependencies.lock` 里的 `idf` 版本改写成 `6.2.0`。看到这两个现象任何一个 = 你的 IDF 不是 v6.1。
 
-### 3.2 本机 Windows 安装（推荐）
+### 3.2 本机 Windows 安装
 
 1. 用 [ESP-IDF Windows Installer](https://dl.espressif.com/dl/esp-idf/) 或 VS Code 扩展 `espressif.esp-idf-extension` 安装 **v6.1**，目标 esp32s3。
 2. 打开 "ESP-IDF 6.1 PowerShell" 或在 VS Code 里用扩展的终端（会自动 `export.ps1`）。
@@ -85,32 +86,77 @@ This document is for **first-time human developers and AI agents**. After readin
 
 本机工具链、容器、串口号等机器相关状态写进 `docs/HANDOFF.local.md` 的"环境备注"，不写进本文。
 
-### 3.3 devcontainer
+### 3.3 容器编译（docker run / devcontainer）
 
-- VS Code：`Dev Containers: Reopen in Container`。容器名 "ESP-IDF QEMU"，`--privileged`，预装 `espressif.esp-idf-extension` 与 `espressif.esp-idf-web`。
-- 容器内 `export.sh` 已写进 `~/.bashrc`，直接 `idf.py`。
-- **Windows 宿主 + 容器烧写**：
-  - 方案 A：[usbipd-win](https://github.com/dorssel/usbipd-win) 把 VID 303A 设备 attach 进 WSL2/容器，再 `idf.py -p /dev/ttyACM0 flash monitor`。
-  - 方案 B：容器里只 `idf.py build`；宿主机装 `pip install esptool`，然后
-    ```powershell
-    cd build
-    python -m esptool --chip esp32s3 -p COMx -b 460800 --before default_reset --after hard_reset write_flash @flash_args
-    ```
-    （`flash_args` 由 IDF 生成，包含 bootloader / 分区表 / app 的地址与文件名。尚未实测，标 `待验证`。）
-  - 方案 C：`espressif.esp-idf-web` 扩展走浏览器 WebSerial 烧写。
+**最短路径（已实测）**——在仓库根目录的 PowerShell 里：
 
-### 3.4 串口识别（Windows）
+```powershell
+docker pull espressif/idf:v6.1
+docker run --rm -v ${PWD}:/workspaces/read_pico_firmware -w /workspaces/read_pico_firmware espressif/idf:v6.1 `
+  bash -lc '. /opt/esp/idf/export.sh >/dev/null 2>&1; idf.py --version; idf.py set-target esp32s3; idf.py build'
+```
+
+- 第一次 pull 体积大；全量 build 约 786 个编译步骤，耐心等到 `Project build complete`。中途看进度：另开终端 `docker ps` 找容器名，`docker logs --tail 50 <name>`。
+- 产物落在宿主 `build/`：`bootloader/bootloader.bin`、`partition_table/partition-table.bin`、`Read_Pico.bin`（app，约 1.9 MB）以及 `flash_args`。
+- 容器 build 的副作用（Windows 检出）：`dependencies.lock` 会以 LF 写回，`git status` 显示 `M`。用 `git diff --ignore-cr-at-eol -- dependencies.lock` 确认无内容差异后 `git checkout -- dependencies.lock`。若内容真变了（如版本被改成 6.2.0），说明用错了镜像，回退并换 v6.1。
+- 网络：`docker pull` 报 `TLS handshake timeout` / `failed to fetch oauth token` 是 Docker Hub 链路问题，配置代理后重试，不是镜像不存在。
+
+**devcontainer**：`Dev Containers: Reopen in Container`。容器名 "ESP-IDF QEMU"，`--privileged`，预装 `espressif.esp-idf-extension` 与 `espressif.esp-idf-web`；`export.sh` 已写进 `~/.bashrc`，直接 `idf.py`。Windows + Docker Desktop + WSL 下的启动失败排障见 §13。进入后先 `idf.py --version` 核对 v6.1。
+
+**容器里能不能直接烧？** Windows 宿主下不能：容器看不到 COM 口。选项：
+- **方案 B（已实测）**：容器只编，宿主用 esptool 烧，见 §3.4。
+- 方案 A（未实测）：[usbipd-win](https://github.com/dorssel/usbipd-win) 把 VID 303A 设备 attach 进 WSL2，容器里 `idf.py -p /dev/ttyACM0 flash monitor`。
+- 方案 C（未实测）：`espressif.esp-idf-web` 扩展走浏览器 WebSerial。
+
+### 3.4 宿主烧写与监视（无 idf.py）—— 已实测
+
+前提：宿主 Python 有 `esptool`（实测 v5.4.0）和 `pyserial`：`pip install esptool pyserial`。
+
+```powershell
+cd build
+python -m esptool --chip esp32s3 -p COMx -b 460800 --before default-reset --after hard-reset write-flash '@flash_args'
+cd ..
+python -m serial.tools.miniterm COMx 115200     # Ctrl+] 退出，看开机日志
+```
+
+**PowerShell 里 `@flash_args` 必须加引号**。裸写 `@flash_args` 会被 PowerShell 当成 splatting 语法展开成空，esptool 报 `Missing argument '<address> <filename>...'`；实测踩过。bash / cmd 不需要引号。esptool v5 的选项已改连字符（`default-reset` / `hard-reset` / `write-flash`），旧的下划线写法仍能用但会刷 Deprecated 警告。
+
+**必须用 `@flash_args`，不要手写地址。** `flash_args` 由 IDF 生成，内容形如：
+
+```
+--flash-mode dio --flash-freq 80m --flash-size 16MB
+0x0 bootloader/bootloader.bin
+0x8000 partition_table/partition-table.bin
+0x10000 Read_Pico.bin
+```
+
+`Read_Pico.bin` 只是 app，**必须落在 0x10000**。把它写到 `0x0` 会覆盖 bootloader、分区表、NVS、phy_init，设备不再启动——而墨水屏会保留上一帧画面，看起来"没坏"。这个错误已经在实测中发生过一次，用上面的命令全量重写后恢复（§13.2）。想要单文件烧写，先 `idf.py merge-bin` 生成合并镜像再写 0x0。
+
+实测踩坑：
+- 端口写 `COMx`，**不要写 `\\.\COMx`**。后者在 esptool 5.x 下报 `Failed to get VID/PID` + `Write timeout`，很容易被误判成"没进下载模式"。
+- 本板**没有 BOOT / RESET 按键**。USB Serial/JTAG 由 `--before default-reset` 自动拉进下载模式，不需要按任何键。连不上先换端口写法、再拔插 USB。
+- 只读握手检查：`python -m esptool --chip esp32s3 -p COMx --after no-reset chip-id`。能连上并打印 MAC（S3 没有 chip id，esptool 会改读 MAC，这是正常的）才继续 `write-flash`。
+- esptool 报 `Hash of data verified` 只说明字节写对了，**不等于设备能启动**。烧完必须看串口。"真机已验证"的最低证据是下面三行都出现：
+  ```
+  I (...) boot: Loaded app from partition at offset 0x10000
+  I (...) app_init: ESP-IDF:          v6.1
+  I (...) app_loop: UI ready on 概览 Overview
+  ```
+  中间还应看到 `read_pico: I2C scan: 4 device(s)`（CST836U / SC7A20H / FCA9555 / CW32）和 `panel VCOM loaded from PMU`。没看串口只能写"已烧写未验证启动"。
+- `--after hard-reset` 会让 USB Serial/JTAG 重新枚举，端口消失约 1 s 再回来；miniterm 要在烧完后立即开，最早几行 ROM 日志可能看不到，不影响判据。想重演开机日志，跑一次 `python -m esptool -p COMx --before default-reset --after hard-reset read-mac` 等于按一次复位，接着用 pyserial 重试打开 `COMx` 读 10 s 即可（agent 无法用交互式 miniterm 时用这条路）。
+
+### 3.5 串口识别（Windows）
 
 ```powershell
 [System.IO.Ports.SerialPort]::GetPortNames()
 Get-CimInstance Win32_PnPEntity | Where-Object { $_.PNPDeviceID -match 'VID_303A' } | Select-Object Name, PNPDeviceID, Status
 ```
 
-期望看到 `USB 串行设备 (COMx)` + `USB JTAG/serial debug unit`，PNPDeviceID 含 `VID_303A&PID_1001`。
+期望看到 `USB 串行设备 (COMx)` + `USB JTAG/serial debug unit`，PNPDeviceID 含 `VID_303A&PID_1001`。设备在跑固件时串口读缓冲会有日志字节（`BytesToRead > 0`），可作为"真实连通而非仅枚举"的证据。
 
-> agent 提示：沙箱化终端可能无法访问 WMI / Docker 命名管道 / MSIX 打包版 pwsh。设备枚举、Docker 操作请在非沙箱终端执行，或让人类执行后把结果贴进 `HANDOFF.local.md`。
+> agent 提示：沙箱化终端可能无法访问 WMI / Docker 命名管道 / MSIX 打包版 pwsh 与 `WindowsApps\python.exe` 垫片。设备枚举、Docker、esptool 请在非沙箱终端执行（或用 conda / 完整路径的 python），或让人类执行后把结果贴进 `HANDOFF.local.md`。
 
-### 3.5 唤醒后 USB 不识别（官方排障顺序）
+### 3.6 唤醒后 USB 不识别（官方排障顺序）
 
 1. 换一根 USB Type-A **数据线**重试。
 2. 再做一次睡眠 → 唤醒重试。
@@ -120,7 +166,7 @@ Get-CimInstance Win32_PnPEntity | Where-Object { $_.PNPDeviceID -match 'VID_303A
 
 ## 4. 编译 / 烧写 / 监视 / Build, flash, monitor
 
-### 4.1 标准命令
+### 4.1 标准命令（本机有 idf.py）
 
 ```bash
 idf.py set-target esp32s3        # 首次或换目标；会生成 sdkconfig（已 gitignore）
@@ -129,7 +175,9 @@ idf.py -p COMx flash monitor     # Ctrl+] 退出 monitor
 idf.py size                       # CI 也跑这一步
 ```
 
-烧写会**覆盖**设备出厂应用固件。分区表 [partitions_16M.csv](../partitions_16M.csv)：nvs 0x9000/0x5000、phy_init 0xE000/0x1000、factory app 0x10000/2 MB、spiffs 0x500000/5 MB（当前代码未挂载 spiffs，仅预留）。
+`idf.py flash` 内部就是 `esptool write_flash @flash_args`，三段镜像各归其位。没有 idf.py 的宿主走 §3.4。
+
+烧写会**覆盖**设备出厂应用固件（含 NVS 里的睡眠模式 / 字体选择 / 自检结果；VCOM 在 PMU 里，不受影响）。分区表 [partitions_16M.csv](../partitions_16M.csv)：nvs 0x9000/0x5000、phy_init 0xE000/0x1000、factory app 0x10000/2 MB、spiffs 0x500000/5 MB（当前代码未挂载 spiffs，仅预留）。
 
 ### 4.2 CI 等价编译（只验证能不能编过）
 
@@ -367,8 +415,11 @@ flowchart TD
 | --- | --- |
 | `未编译` | 只改了文件，没跑 build |
 | `已编译 ci` | `-DSDKCONFIG_DEFAULTS=sdkconfig.ci` 通过 |
-| `已编译 defaults` | 默认配置 build 通过（还未上板） |
-| `真机已验证` | 必须附：板型 RDP-G01-W、IDF 版本、串口、供电（USB/电池）、验证了哪些页/操作、未覆盖项 |
+| `已编译 defaults` | 默认配置 build 通过（还未上板）。写明在哪里编的：本机 IDF / docker run / devcontainer |
+| `已烧写未验证启动` | esptool `Hash of data verified` 了，但**没开串口看开机日志**。必须附烧写命令原文（尤其地址）。不得写成"真机已验证" |
+| `真机已验证` | 必须附：板型 RDP-G01-W、IDF 版本、串口、供电（USB/电池）、串口里看到的开机日志片段、验证了哪些页/操作、未覆盖项 |
+
+墨水屏会保留上一帧，"屏幕还显示着内容"不是设备在跑的证据。只有串口日志或能响应触摸/按键才算。
 
 ### 11.2 PR 规范（[CONTRIBUTING.md](../CONTRIBUTING.md) + `.github/PULL_REQUEST_TEMPLATE.md`）
 
@@ -377,7 +428,10 @@ flowchart TD
 - 保留 SPDX 与第三方声明；不含凭据/私有 ID（PMU UID、MAC 等不要贴进文档）。
 - PR 不含 `docs/HANDOFF.local.md`（已 gitignore）、不含任何"本机观察"（串口号、本机路径、fork 远端名）。
 - 三份 README 一起改。
-- 提交信息沿用仓库现有风格：`type: summary`（如 `docs: standardize product naming…`），type ∈ feat / fix / docs / refactor / chore / ci。
+- 提交信息沿用仓库现有风格：`type: summary`（如 `docs: standardize product naming…`），type ∈ feat / fix / docs / refactor / chore / ci。正文可中英双语。
+- **git 身份**：`user.name` / `user.email` 未配置时会报 `Author identity unknown`。由人类自己填（GitHub 用户名 + `<id>+<user>@users.noreply.github.com`）；agent **不得从 `git log` 推断身份**——最近提交的作者很可能是上游维护者，已经错过一次。
+- 推送前 `git remote -v` + `git push --dry-run`，确认目标是自己的 fork（`origin`）而不是 `upstream`。
+- 容器 build 后只因 EOL 变脏的 `dependencies.lock` 不要提交（§3.3）。
 
 ---
 
@@ -419,9 +473,10 @@ Read AGENTS.md, then docs/ONBOARDING.md, then docs/HANDOFF.md. Do not duplicate 
 1. 读 [AGENTS.md](../AGENTS.md)。
 2. 读本文 §5、§6、§9、§12（已经熟悉可只看 §9、§12）。
 3. 看 `docs/HANDOFF.local.md`。**不存在** → 本机无进行中任务，跳过后面几步正常开工。存在 → 读**最新一条**：目标、已做、未做、验证等级、Frozen 触碰情况。
+   - 账本最新条目比 `git status` / `build/` 时间戳 / 终端历史旧，说明前任没写交接。先从这些证据**重建**一条（标注 "由 <你> 从 … 重建，非当事人所写"），再继续。不要假装那段历史不存在。
 4. 跑 `git status --short` 和 `git diff --stat`，对照账本的"涉及文件"。不一致 → 先在账本追加一条"接手时发现的差异"，不要擅自 `git checkout -- .`、`git stash` 或删除不明文件。
 5. 打开任务涉及的每个文件，重新读一次文件头的 Frozen 段。
-6. 如果账本声称"已编译"，且你的环境能编，**重新编译一次**再继续；声称"真机已验证"的内容不要重复烧写，除非你改了它。
+6. 如果账本声称"已编译"，且你的环境能编，**重新编译一次**再继续；声称"真机已验证"的内容不要重复烧写，除非你改了它。声称"已烧写未验证启动"的，先开串口看一眼再决定要不要重烧。
 7. 在账本顶部追加"接手"条目（agent 名 + 时间 + 简述），再开工。
 
 ### 12.4 交接方（即将离开的 agent / 人）的检查单
@@ -433,6 +488,7 @@ Read AGENTS.md, then docs/ONBOARDING.md, then docs/HANDOFF.md. Do not duplicate 
 - [ ] 没有留下只存在于聊天/agent memory 的关键决定——全部落到 HANDOFF 或代码注释。
 - [ ] 没有提交/暂存 `sdkconfig`、`build/`、`.vscode/`、`managed_components/`、`docs/HANDOFF.local.md`。
 - [ ] 若持有串口（monitor 未退出），已 `Ctrl+]` 释放。写明设备当前状态（在跑哪个固件、是否在睡眠/锁屏、是否需要重新烧）。
+- [ ] 若本次烧过写，账本里贴了**烧写命令原文**（含地址 / `@flash_args`）和串口里看到的开机日志片段；没看串口就如实写"已烧写未验证启动"。
 - [ ] 下一步写成可直接执行的动作（"在 `app_xxx.c` 的 `on_touch` 里处理 KEY1 翻页" 而不是 "继续做"）。
 - [ ] 未解决的疑问单列，并注明你倾向的答案与理由。
 
@@ -464,22 +520,53 @@ Read AGENTS.md, then docs/ONBOARDING.md, then docs/HANDOFF.md. Do not duplicate 
 
 - 沙箱化终端可能拿不到串口、WMI、Docker 管道。碰到就写进账本让人类或非沙箱会话执行，不要反复重试同一命令。
 - 需要人工目视的验证（屏幕残影、蜂鸣声、灯）由人类完成并回填账本；agent 不得声称"真机已验证"。
+- **烧写前必须读 `build/flash_args`**，用 `@flash_args` 或逐条照抄它的地址；不得自己"记得"一个地址。烧完必须开串口看启动，不能拿 esptool 的 verified 当成功。
+- 报错要先区分"工具用法错"和"硬件状态错"。实测中 esptool 的 `Write timeout` 是端口写法 `\\.\COMx` 导致，却被当成"未进下载模式"让人类去按不存在的 BOOT 键。先查本文 §3.4 / §13，再让人类动手。
 - 不确定的产品决策（尤其 Frozen）不要猜——在账本"未决问题"里列出，并给出倾向。
+- 不推断 git 身份，不改全局 git 配置；让人类自己填（§11.2）。
 - 只改任务要求的东西。看到"可以顺手优化"的地方，记进账本的建议区，不动手。
 - 尊重 AGENTS.md 里"不要为注释去改它"一类的显式禁令，即使工具建议你格式化整个目录。
+- 会话结束前写账本不是可选项。实测中有一次完成了编译 + 烧写却没留条目，接手者只能从终端历史重建。
 
 ---
 
 ## 13. 排障速查 / Troubleshooting
 
+### 13.1 环境与工具（实测遇到过的都在这）
+
+| 现象 | 原因 / 处理 |
+| --- | --- |
+| 编译在 `components/epdiy/src/output_lcd/lcd_driver.c` 报 `lcd_ll_select_clk_src` / `lcd_ll_set_group_clock_coeff` 参数不匹配 | IDF 不是 v6.1（多半是 `espressif/idf:latest`）。换 `v6.1` 镜像；不要去改 epdiy |
+| `spi_flash_override.h` 找不到 | IDF 不是 v6.x。`idf.py --version` |
+| 容器 build 后 `dependencies.lock` 变 `M` | `git diff --ignore-cr-at-eol` 为空 → 只是 EOL，`git checkout -- dependencies.lock`。若 `version: 6.1.0` 变成别的 → 镜像错了，回退并换 v6.1 |
+| `docker pull` 报 `TLS handshake timeout` / `failed to fetch oauth token` | Docker Hub 链路问题，配代理后重试 |
+| devcontainer 启动失败，日志里有 `--mount type=bind,source=\\wsl.localhost\<distro>\mnt\wslg\runtime-dir\wayland-0` 和 `stat /run/guest-services/distro-services/<distro>.sock: no such file` 或 `timed out waiting for /mnt/wslg/runtime-dir/wayland-0` | VS Code 想把 WSL 的 Wayland socket 挂进容器，Docker Desktop 挂不了 tmpfs。用户设置加 `"dev.containers.mountWaylandSocket": false`，然后 Rebuild and Reopen。镜像本身没问题，不用重建 |
+| devcontainer 日志里 `code: 137` / `No such container` | 是 `up` 失败后 CLI `docker rm -f` 的后续现象，不是 OOM；看上一行 |
+| `git commit` 报 `Author identity unknown` | 人类配 `user.name` / `user.email`（§11.2）；agent 不要从 log 猜 |
+| 终端里中文提交信息乱码 | 控制台代码页问题（`chcp 65001` 或设 `$OutputEncoding`），文件本身是 UTF-8，不用改 |
+| agent 沙箱里 `python` 报 `拒绝访问` / `参数错误` | 解析到了 `WindowsApps\python.exe` MSIX 垫片。用 conda / 完整路径的 python，或非沙箱执行 |
+
+### 13.2 烧写与串口
+
+| 现象 | 原因 / 处理 |
+| --- | --- |
+| esptool 报 `Missing argument '<address> <filename>...'` | PowerShell 把裸 `@flash_args` 当 splatting 吞了。写 `'@flash_args'` |
+| esptool 刷 `Deprecated: Choice 'default_reset'` 警告 | esptool v5 改用连字符：`default-reset` / `hard-reset` / `write-flash`。仅警告，不影响结果 |
+| esptool `Failed to get VID/PID of a device on \\.\COMx` + `Write timeout` | 端口写法。用 `COMx`，不要 `\\.\COMx`。不是下载模式问题，本板没有 BOOT 键 |
+| esptool `Connecting...` 一直不动 | 拔插 USB 重试；确认没开着 monitor / miniterm；先跑 `chip-id` 做只读握手 |
+| 烧写 `could not open port` | 其他 monitor / 串口工具占用；或设备在深睡——先按电源键 |
+| 唤醒后 PC 看不到 COM 口 | §3.6 官方三步 |
+| 烧完屏幕还是旧画面、串口没日志 | 墨水屏保留上一帧，设备可能根本没启动。查烧写命令的地址：`Read_Pico.bin` 是不是被写到了 `0x0` |
+| **把 `Read_Pico.bin` 写到了 `0x0`**（bootloader / 分区表 / NVS 已被覆盖，屏幕无响应） | 恢复：`cd build; python -m esptool --chip esp32s3 -p COMx -b 460800 --before default-reset --after hard-reset write-flash '@flash_args'`，三段镜像重新归位。实测一次即恢复。NVS 内容（睡眠模式 / 字体 / 自检结果）丢失回默认；VCOM 在 PMU，不受影响。烧完看串口确认 §3.4 的三行判据 |
+
+### 13.3 固件运行
+
 | 现象 | 先看 |
 | --- | --- |
-| `spi_flash_override.h` 找不到 | IDF 不是 v6.x。`idf.py --version` |
+| 开机日志 `W i2c.common: GPIO 39/40 is not usable, maybe conflict with others` | IDF 对 JTAG 引脚复用的例行警告，每次开机都有；I2C 普查随后正常即可忽略 |
 | 开机 `do_system_init_fn` abort | 有人开了 PSRAM 温度调优；检查 `sdkconfig.defaults` 与本地 `sdkconfig` 差异，`idf.py fullclean` 后重配 |
 | 开机图之后不进菜单，日志 `No touch controller, UI cannot run` | 触摸未就绪，`app_main` 直接返回（明确设计）。查 I2C 普查日志、TP_RST（FCA9555 P0.7）、INT GPIO43 |
 | 开机停在一个三位数字页 | 这是 `vcom_setup` 出厂标定拦截，PMU 里没有 VCOM。不要在产品页加旁路 |
-| 唤醒后 PC 看不到 COM 口 | §3.5 官方三步 |
-| 烧写 `could not open port` | 其他 monitor / 串口工具占用；或设备在深睡——先按电源键 |
 | 中文显示成缺字方块 | 新字串没进 `builtin.ttf`，跑 `tools/gen_builtin_font.py` |
 | 刷新后屏边缘留边 | 页面切换用了 PAGE 而不是 FULL；给该页加 `enter_full = true` 或返回 `APP_REDRAW_FULL` |
 | 刷新出现横条、随后自动变白 | `EPD_DRAW_EMPTY_LINE_QUEUE` 保护触发，pclk 已降 12 MHz；检查是否有别的核在抢 PSRAM 带宽 |
