@@ -47,6 +47,10 @@ void ui_draw_menu_page(uint8_t* framebuffer, const app_desc_t* current, int leaf
 /// 命中条目时返回它在注册表里的下标，翻页返回 UI_MENU_HIT_PREV / NEXT。
 /// Returns the registry index on a row hit, or UI_MENU_HIT_PREV / NEXT for paging.
 int ui_menu_hit_test(uint16_t x, uint16_t y, int leaf);
+/// 叶内行矩形；无效行返回 false。/ Rectangle for a local row; false for invalid rows.
+bool ui_menu_row_rect(int leaf, int row, EpdRect* out);
+/// 重画按下态或原态，保留当前项边框。/ Redraw pressed or original row, retaining the current-page border.
+void ui_draw_menu_row_pressed(uint8_t* framebuffer, const app_desc_t* current, int leaf, int row, bool pressed);
 int ui_menu_leaf_count(void);
 int ui_menu_leaf_for_app(const app_desc_t* app);
 

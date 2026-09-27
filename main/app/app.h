@@ -9,6 +9,12 @@
  * Shared page contract. Each page is an app_desc_t in its own main/apps/ file.
  * Draw, hit-test, poll and page state stay there. app_loop.c only dispatches
  * these callbacks; adding a page does not touch the loop.
+ *
+ * 冻结：手势回调替代旧触摸回调；三键接管页须保留强刷与菜单出口。
+ * Frozen: Gesture callbacks replace legacy touch callbacks. Pages owning keys
+ * must retain full refresh and menu exits.
+ * 冻结：返回恢复最近切页来源，菜单来源保留菜单位置。
+ * Frozen: Return restores the latest page origin, preserving its menu position.
  */
 
 #pragma once
@@ -46,6 +52,7 @@ typedef enum {
 } app_redraw_t;
 
 typedef struct app_desc_s app_desc_t;
+typedef struct ui_gesture_event_s ui_gesture_event_t;
 
 typedef struct {
     EpdiyHighlevelState* hl;
@@ -72,6 +79,11 @@ typedef struct {
     /// 页面想跳到别的页时填这里，主循环会在本轮末尾切过去。
     /// / Request a page switch; the loop applies it at the end of the tick.
     const struct app_desc_s* request_app;
+    /// 本轮末打开菜单；切页请求优先。/ Open the menu at tick end; page requests take priority.
+    bool request_menu;
+    /// 返回最近切页来源；菜单来源直接恢复菜单，无历史打开当前所属菜单；优先于其它请求。
+    /// Return to the latest page origin and its menu; no history opens the current menu leaf. Overrides other requests.
+    bool request_return;
 } app_ctx_t;
 
 struct app_desc_s {
@@ -84,20 +96,31 @@ struct app_desc_s {
     /// true = 进页走 APP_REDRAW_FULL（均衡配置下整屏 GC16）。内容和上一页差别大的页面用，避免差分刷留边。
     /// / true = enter with APP_REDRAW_FULL so a differential update does not leave a seam.
     bool enter_full;
+    /// 菜单关闭时接管三键，页面必须提供强刷和菜单入口。
+    /// Own all three keys outside the menu; provide full refresh and menu exits.
+    bool owns_keys;
     /// 进页/离页。on_enter 里做上电、唤醒传感器、拉一次数据这类副作用。
     /// / Enter/exit. on_enter powers up, wakes sensors, takes a first sample.
     void (*on_enter)(app_ctx_t* ctx);
     void (*on_exit)(app_ctx_t* ctx);
+    /// TF 挂载失效：停止并等待后台任务、关闭文件；主循环随后回退字体并重绘，菜单打开时也通知。
+    /// On TF mount loss, join background work and close files before font fallback/redraw; also called behind menus.
+    void (*on_media_lost)(app_ctx_t* ctx);
     /// 纯绘制，不做 I2C 写、蜂鸣这类副作用，整屏强刷才能安全复用它。
     /// / Paint only. No I2C writes or buzzer. KEY2 full redraw reuses this.
     void (*render)(app_ctx_t* ctx, uint8_t* fb);
     /// 自定义推屏。返回 true 表示页面已经刷过。
     /// / Custom present. Return true if the page updated the display.
     bool (*present)(app_ctx_t* ctx, app_redraw_t redraw);
+    /// 设置后独占触摸派发，替代 on_touch。/ Exclusive gesture dispatch replaces on_touch.
+    app_redraw_t (*on_gesture)(app_ctx_t* ctx, const ui_gesture_event_t* event);
     app_redraw_t (*on_touch)(app_ctx_t* ctx, const cst836u_touch_t* touch);
-    /// key 是 UI_KEY_1。KEY2 整屏强刷、KEY3 开关演示菜单，都由主循环统一处理。
-    /// / key is UI_KEY_1. KEY2 full redraw and KEY3 menu handle are global.
+    /// 默认只收 UI_KEY_1；owns_keys 页面在菜单外接收三键。
+    /// / Only KEY1 normally; owns_keys pages receive all three keys outside the menu.
     app_redraw_t (*on_key)(app_ctx_t* ctx, int key);
+    /// 可选：owns_keys 页面同键持续按住500ms触发一次，按下回调仍先执行；滑出/中断取消。
+    /// Optional: fire once after a 500ms same-key hold on owns_keys pages; press still fires first, leaving/interruption cancels.
+    app_redraw_t (*on_key_long)(app_ctx_t* ctx, int key);
     /// 每轮都调，页面自己判断到不到刷新间隔。
     /// / Called every tick; the page decides if its interval has elapsed.
     app_redraw_t (*on_tick)(app_ctx_t* ctx);

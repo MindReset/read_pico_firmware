@@ -23,6 +23,8 @@
 #define NVS_KEY_WAKE "lwake"
 #define NVS_KEY_BOOT "lboot"
 #define NVS_KEY_PICKUP "pickup"
+#define NVS_KEY_BOOK_PX "bk_px"
+#define NVS_KEY_BOOK_SHAKE "bk_shake"
 #define FONT_PATH_MAX 160
 
 static app_sleep_mode_t s_sleep = APP_SLEEP_DEEP;
@@ -30,6 +32,12 @@ static char s_font[FONT_PATH_MAX];
 static uint8_t s_last_wake;
 static uint8_t s_last_boot;
 static bool s_pickup_wake;
+static uint8_t s_book_px = 48;
+static bool s_book_shake;
+
+static uint8_t valid_book_px(uint8_t px) {
+    return px >= 36 && px <= 72 && (px - 36) % 4 == 0 ? px : 48;
+}
 
 void app_settings_init(void) {
     esp_err_t err = nvs_flash_init();
@@ -58,6 +66,9 @@ void app_settings_init(void) {
     if (nvs_get_u8(h, NVS_KEY_BOOT, &boot) == ESP_OK) s_last_boot = boot;
     uint8_t pickup = 0;
     if (nvs_get_u8(h, NVS_KEY_PICKUP, &pickup) == ESP_OK) s_pickup_wake = pickup != 0;
+    uint8_t book_px = 48, book_shake = 0;
+    if (nvs_get_u8(h, NVS_KEY_BOOK_PX, &book_px) == ESP_OK) s_book_px = valid_book_px(book_px);
+    if (nvs_get_u8(h, NVS_KEY_BOOK_SHAKE, &book_shake) == ESP_OK) s_book_shake = book_shake != 0;
     nvs_close(h);
     ESP_LOGI(
         TAG, "sleep mode %s, font %s",
@@ -139,4 +150,25 @@ void app_settings_set_font_path(const char* path) {
     nvs_set_str(h, NVS_KEY_FONT, s_font);
     nvs_commit(h);
     nvs_close(h);
+}
+
+uint8_t app_settings_book_px(void) {
+    return s_book_px;
+}
+
+void app_settings_set_book_px(uint8_t px) {
+    px = valid_book_px(px);
+    if (s_book_px == px) return;
+    s_book_px = px;
+    nvs_put_u8(NVS_KEY_BOOK_PX, px);
+}
+
+bool app_settings_book_shake(void) {
+    return s_book_shake;
+}
+
+void app_settings_set_book_shake(bool on) {
+    if (s_book_shake == on) return;
+    s_book_shake = on;
+    nvs_put_u8(NVS_KEY_BOOK_SHAKE, on ? 1 : 0);
 }

@@ -37,3 +37,11 @@ void app_settings_set_last_boot(uint8_t reason);
 /// 浅睡拿起唤醒。默认关；有加速度计也不会自动开。/ Light-sleep pickup wake. Defaults off; an accelerometer does not turn it on.
 bool app_settings_pickup_wake(void);
 void app_settings_set_pickup_wake(bool on);
+/// 阅读默认字号，36..72、步长 4，默认 48。/ Default reading size, 36..72 in steps of 4, initially 48.
+uint8_t app_settings_book_px(void);
+/// 无效字号恢复 48。/ Invalid sizes fall back to 48.
+void app_settings_set_book_px(uint8_t px);
+/// 实验性晃动翻页，默认关闭。/ Experimental shake page turn, off by default.
+bool app_settings_book_shake(void);
+/// 保存实验性晃动翻页开关。/ Persist the experimental shake page-turn switch.
+void app_settings_set_book_shake(bool on);

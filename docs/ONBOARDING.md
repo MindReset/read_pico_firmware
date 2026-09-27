@@ -263,11 +263,12 @@ flowchart TD
 
 1. 读 CST836U → 去抖 → 区分屏内触摸 / 屏下三键区（`ui_menu.h`：`UI_KEY_AREA_TOP` 1300，pitch 160，中心 x=80/240/400）。
 2. 按键路由（全局，不交给页面）：
-   - **KEY2**：无条件整屏 GC16 重画当前页或当前菜单页（复用页面 `render()`，所以 `render()` 必须纯）。
-   - **KEY3 / 右下"把手"**：切换全屏一级菜单（打开时定位到当前页所在的菜单叶）。
+   - **KEY2**：除菜单关闭时 `owns_keys` 页面自行接管外，整屏 GC16 重画当前页或当前菜单页（复用页面 `render()`，所以 `render()` 必须纯）。
+   - **KEY3 / 右下"把手"**：KEY3 在菜单关闭且 `owns_keys` 时交给页面；其余情况与把手均切换全屏一级菜单（打开时定位到当前页所在的菜单叶）。
    - **菜单打开时的 KEY1**：菜单上一叶；菜单里的"上一页/下一页"触摸区翻叶；点条目切页。
    - **菜单关闭时的 KEY1** → 页面 `on_key(UI_KEY_1)`（页面自己决定含义，通常是翻页）；屏内触摸 → `on_touch()`。
-3. `request_app` 非空 → 本轮末 `switch_to()`：`on_exit` → `on_enter` → `enter_full ? FULL : PAGE`。
+3. 手势页使用 `on_gesture` 替代 `on_touch`；主循环在全局中断/重绘边界发 CANCEL。菜单条目按下高亮、同项抬起切页，滑出取消。
+4. `request_app` / `request_menu` 在 `on_tick` 后统一消费（切页优先）；输入已有请求则跳过旧页 tick。`request_app` 非空 → `switch_to()`：`on_exit` → `on_enter` → `enter_full ? FULL : PAGE`。
 4. `rails_idle_check`：屏电源轨空闲 8 s（`RAILS_IDLE_TIMEOUT_MS`）断电。
 5. 电源键短按 → `enter_lock_and_sleep()`，除非当前页 `holds_pmu`。开机后 2 s 内忽略（`APP_LOCK_IGNORE_BOOT_MS`）。
 6. TF 卡字体延迟加载重试（每 3 s）。
@@ -282,7 +283,7 @@ flowchart TD
 | --- | --- | --- |
 | `render(ctx)` | 只画 fb | I2C 写、蜂鸣、睡眠、改设置（KEY2 会随时复用它） |
 | `on_enter` / `on_exit` | 上电/掉电传感器、拉首帧数据 | — |
-| `on_touch` / `on_key` / `on_tick` | 任何副作用 | 直接推屏（用返回值让主循环推） |
+| `on_touch` / `on_gesture` / `on_key` / `on_tick` | 任何副作用 | 直接推屏（用返回值让主循环推） |
 | `present` | 自定义推屏；返回 true = 已刷完 | — |
 | `area_hint` | 返回 `APP_REDRAW_AREA` 时的局部矩形 | — |
 
@@ -441,7 +442,7 @@ flowchart TD
 
 开发者会混用多种 agent（Copilot、Claude、Cursor、Gemini、Codex……）和多次会话。**任何 agent 的私有记忆、聊天记录、会话摘要都不是仓库状态**——它们随会话丢失。能跨 agent 存活的只有：**工作区里的文件**。其中规则与协议入库共享，任务状态留在本机、不入库。
 
-### 12.1 四层文件各管什么
+### 12.1 文件职责与交付边界 / File ownership and delivery boundary
 
 | 文件 | 管什么 | 谁改 | 变化频率 | 入库? |
 | --- | --- | --- | --- | --- |
@@ -449,6 +450,11 @@ flowchart TD
 | [docs/ONBOARDING.md](ONBOARDING.md)（本文） | 背景、环境、流程、操作手册、交接约定 | 任何人，发现过期就修 | 中 | 是 |
 | [docs/HANDOFF.md](HANDOFF.md) | 交接**协议与模板** | 维护者，走 PR | 低 | 是 |
 | `docs/HANDOFF.local.md` | **当前机器上进行中任务的状态账本** | 每个 agent / 人在每次交接点更新 | 高，每次会话 | **否**（`.gitignore`） |
+| `docs/local/` | 内部计划、过程审查、检查点和验收记录 / Internal plans, reviews, checkpoints and acceptance records | 当前执行者 | 按需 | **否**（`.gitignore`） |
+| [docs/CHANGELOG.md](CHANGELOG.md) | 按版本简述功能变化 / Brief user-visible changes by version | 功能维护者 | 随版本 | 是 |
+
+对外交付功能实现、可复跑测试、功能说明和必要维护契约；Git保留实现历史，内部过程记录不代替版本管理，也不进入功能提交。只有需要交接未完功能或责任时，按HANDOFF协议提供必要摘要。
+Deliver implementation, reproducible tests, feature documentation and necessary maintenance contracts. Git retains implementation history; internal process records stay local. Use the handoff protocol for unfinished functionality or responsibility when needed.
 
 账本不入库的理由：条目里是某台机器、某个人、某次会话的临时状态（串口号、本机工具链、半成品、agent 名）。靠 `.gitignore` 兜底，而不是靠"提 PR 前记得剔掉"。需要跨机器交接时，把最新条目贴到 PR 描述 / draft PR / issue 评论。
 
@@ -589,3 +595,12 @@ Read AGENTS.md, then docs/ONBOARDING.md, then docs/HANDOFF.md. Do not duplicate 
 ---
 
 *本文属于仓库文档，发现与代码不一致请直接修正并在 PR 中说明。/ This file lives with the code; fix it when it drifts.*
+
+### 图书与传书的契约扩展 / Book and transfer contract extensions
+
+`owns_keys` 只在菜单关闭时接管三键；图书工具条提供强刷，中键长按或把手打开演示菜单。传书组件不依赖页面；由 `app_transfer` 注入存储根、限额、容量回调。文件提交、删除或进度清理重试后通过书源 revision 请求下次进图书时重扫；文件变更回调只清对应路径进度。传书与阅读互斥，停止HTTP并等待退出后才切图书页，进度API由调用端串行化。
+`owns_keys` captures three keys outside the menu; Books provides toolbar refresh; holding the middle key or using the handle opens the demo menu. Transfer receives storage policy from its page. File commits, deletions and metadata retries invalidate the shelf through a storage revision; an injected callback clears progress only for the affected path. Transfer and reading are exclusive; HTTP is stopped and joined before entering Books, serializing progress API callers.
+
+
+传书页通过 `display_set_bulk_io` 在页内提高扫描预填余量，退出恢复默认；大文件进度用低频FOLLOW DU，结束/离页清残影。欠载恢复必须保留目标前缓冲，不能调用 `epd_hl_set_all_white` 丢掉整页。相关回归：`tools/run_display_host_test.sh`。
+Transfer scopes additional scan prefill via `display_set_bulk_io`, restoring defaults on exit. Bulk progress uses infrequent FOLLOW DU with completion/exit cleanup. Underrun recovery must preserve the target front buffer; clearing it with `epd_hl_set_all_white` loses the page. Regression: `tools/run_display_host_test.sh`.

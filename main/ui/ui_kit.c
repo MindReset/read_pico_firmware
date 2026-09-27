@@ -18,6 +18,36 @@
 #define UI_SEL_INSET 4
 #define UI_SEL_RING 3
 
+// 先用宽整数裁剪，再合并，避免异常坐标加法溢出。/ Clip using wide integers before union to avoid overflow on invalid coordinates.
+static EpdRect clip_refresh_rect(EpdRect r) {
+    if (r.width <= 0 || r.height <= 0) return (EpdRect){0};
+    int64_t x0 = r.x, y0 = r.y;
+    int64_t x1 = x0 + r.width, y1 = y0 + r.height;
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (x1 > UI_LOCK_WIDTH) x1 = UI_LOCK_WIDTH;
+    if (y1 > UI_LOCK_HEIGHT) y1 = UI_LOCK_HEIGHT;
+    if (x0 >= x1 || y0 >= y1) return (EpdRect){0};
+    return (EpdRect){ .x = (int)x0, .y = (int)y0, .width = (int)(x1 - x0), .height = (int)(y1 - y0) };
+}
+
+EpdRect ui_rect_union(EpdRect a, EpdRect b) {
+    a = clip_refresh_rect(a); b = clip_refresh_rect(b);
+    if (a.width <= 0 || a.height <= 0) return b;
+    if (b.width <= 0 || b.height <= 0) return a;
+    int x0 = a.x < b.x ? a.x : b.x, y0 = a.y < b.y ? a.y : b.y;
+    int x1 = a.x + a.width > b.x + b.width ? a.x + a.width : b.x + b.width;
+    int y1 = a.y + a.height > b.y + b.height ? a.y + a.height : b.y + b.height;
+    return (EpdRect){ .x = x0, .y = y0, .width = x1 - x0, .height = y1 - y0 };
+}
+
+void ui_draw_pressed_round_rect(uint8_t* framebuffer, EpdRect rect, int radius) {
+    if (!framebuffer || rect.width <= 0 || rect.height <= 0) return;
+    // 背景先于文字绘制，文字由调用方保持原来的黑色。/ Paint the background before text; the caller keeps text black.
+    ui_fill_round_rect(framebuffer, rect, radius, UI_GRAY_LIGHT);
+    ui_draw_selected_round_rect(framebuffer, rect, radius);
+}
+
 void ui_text(
     uint8_t* framebuffer, int x, int y_top, int px, const char* text,
     enum EpdFontFlags align, bool inverted

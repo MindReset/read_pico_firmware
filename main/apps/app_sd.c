@@ -325,7 +325,7 @@ static app_redraw_t on_touch(app_ctx_t* ctx, const cst836u_touch_t* touch) {
         s_read_t0_ms = ctx->now_ms;
         draw_now(ctx, &info, status_now());
         ttf_font_unload();
-        ttf_font_init();
+        ttf_font_open_builtin();
         esp_err_t err = read_pico_sd_remount();
         s_probe_pending = err == ESP_ERR_NOT_FINISHED;
         s_last_probe_ms = 0;

@@ -16,6 +16,9 @@ This directory is a trimmed fork of epdiy v2.0.0: only the ESP32-S3 LCD render
 path and the display definition for this board are kept. Local changes are
 listed above.
 
+- output_lcd/render_lcd.c：扫描未消费完即结束时中止相位，汇合生产者后清理行队列，防止下一相位死锁。
+  Abort incomplete scan phases and clear queues after joining producers to prevent next-phase deadlock.
+
 The full text of the GNU Lesser General Public License version 3 is available at
 https://www.gnu.org/licenses/lgpl-3.0.txt and applies to all files in this
 directory unless a file states otherwise. 上游文件头部的版权声明保持原样。
