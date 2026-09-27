@@ -177,9 +177,7 @@ idf.py size                       # CI 也跑这一步
 
 `idf.py flash` 内部就是 `esptool write_flash @flash_args`，三段镜像各归其位。没有 idf.py 的宿主走 §3.4。
 
-烧写会**覆盖**设备出厂应用固件。标准 `@flash_args` 只写 bootloader、分区表和 app，不擦除 NVS 里的睡眠模式 / 字体选择 / 自检结果；`erase-flash` 才会清空这些设置。VCOM 在 PMU 里，不受影响。分区表 [partitions_16M.csv](../partitions_16M.csv)：nvs 0x9000/0x5000、phy_init 0xE000/0x1000、factory app 0x10000/4 MB、storage FAT 0x410000/5 MB（供图书阅读器惰性挂载）。分区表变化后必须按 §3.4 用 `@flash_args` 全量烧写。
-
-Flashing replaces the application firmware. Standard `@flash_args` writes the bootloader, partition table, and app without erasing NVS settings; `erase-flash` clears those settings. PMU VCOM is unaffected. The table keeps NVS and PHY offsets, expands the factory app to 4 MB, and reserves a 5 MB FAT `storage` partition at 0x410000 for lazy book storage mounting. Flash all images through `@flash_args` after a partition-table change.
+烧写会**覆盖**设备出厂应用固件，但按当前 `flash_args` 不会写入 NVS；睡眠模式 / 字体选择 / 自检结果会保留。VCOM 在 PMU 里，不受影响。分区表 [partitions_16M.csv](../partitions_16M.csv)：nvs 0x9000/0x5000、phy_init 0xE000/0x1000、factory app 0x10000/2 MB、spiffs 0x500000/5 MB（当前代码未挂载 spiffs，仅预留）。
 
 ### 4.2 CI 等价编译（只验证能不能编过）
 
