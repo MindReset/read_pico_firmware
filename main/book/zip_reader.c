@@ -20,10 +20,12 @@
 
 #define PSRAM (MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)
 #define NAME_MAX_BYTES 1024U
-#define DIRECTORY_MAX (2U * 1024U * 1024U)
+#define DIRECTORY_MAX (8U * 1024U * 1024U)
+#define DIRECTORY_WINDOW 65536U
 
 typedef struct {
-    char* name;
+    uint32_t name_pos, hash;
+    uint16_t name_len;
     uint32_t offset, packed, unpacked, crc;
     uint16_t method, flags;
 } zip_entry_t;
@@ -33,6 +35,7 @@ struct zip_reader {
     zip_entry_t* entries;
     uint32_t size, directory;
     uint16_t count;
+    char name_scratch[NAME_MAX_BYTES + 1];
 };
 
 static uint16_t u16(const uint8_t* p) { return (uint16_t)(p[0] | ((uint16_t)p[1] << 8)); }
@@ -40,6 +43,21 @@ static uint32_t u32(const uint8_t* p) { return (uint32_t)u16(p) | ((uint32_t)u16
 static bool read_at(zip_reader_t* z, uint32_t pos, void* dst, size_t size) {
     return pos <= z->size && size <= z->size - pos &&
         fseek(z->file, (long)pos, SEEK_SET) == 0 && fread(dst, 1, size, z->file) == size;
+}
+
+static uint32_t name_hash(const char* name, size_t len) {
+    uint32_t hash = UINT32_C(2166136261);
+    while (len--) hash = (hash ^ (uint8_t)*name++) * UINT32_C(16777619);
+    return hash;
+}
+static int entry_compare(const void* a, const void* b) {
+    uint32_t x = ((const zip_entry_t*)a)->hash, y = ((const zip_entry_t*)b)->hash;
+    return (x > y) - (x < y);
+}
+static bool entry_name(const zip_reader_t* z, const zip_entry_t* entry, char* out) {
+    if (!read_at((zip_reader_t*)z, entry->name_pos, out, entry->name_len)) return false;
+    out[entry->name_len] = 0;
+    return true;
 }
 
 // ZIP64 扩展即使没有哨兵值也拒绝；扩展字段必须完整。
@@ -67,7 +85,7 @@ static uint32_t zip_crc32(const uint8_t* data, size_t len) {
 void zip_close(zip_reader_t* z) {
     if (!z) return;
     if (z->file) fclose(z->file);
-    if (z->entries) for (unsigned i = 0; i < z->count; ++i) free(z->entries[i].name);
+
     free(z->entries);
     free(z);
 }
@@ -100,44 +118,75 @@ esp_err_t zip_open(const char* path, zip_reader_t** out) {
     const uint8_t* eocd = tail + end;
     err = ESP_ERR_NOT_SUPPORTED;
     if (u16(eocd + 4) || u16(eocd + 6) || u16(eocd + 8) != u16(eocd + 10) ||
-        u16(eocd + 10) > ZIP_ENTRY_MAX || u32(eocd + 12) == UINT32_MAX || u32(eocd + 16) == UINT32_MAX) goto fail;
+        u32(eocd + 12) == UINT32_MAX || u32(eocd + 16) == UINT32_MAX) goto fail;
     z->count = u16(eocd + 10);
+    err = ESP_ERR_INVALID_SIZE;
+    if (z->count > ZIP_ENTRY_MAX) goto fail;
     z->directory = u32(eocd + 16);
     uint32_t dir_size = u32(eocd + 12), eocd_pos = tail_pos + end;
     err = ESP_ERR_INVALID_SIZE;
     if (dir_size > DIRECTORY_MAX || z->directory > eocd_pos || dir_size != eocd_pos - z->directory) goto fail;
     free(tail); tail = NULL;
+    // 固定窗口扫描目录，三万条记录也不复制整张目录。/ Scan with a fixed window even for thirty thousand entries.
+    tail = heap_caps_malloc(DIRECTORY_WINDOW, PSRAM);
+    if (!tail) { err = ESP_ERR_NO_MEM; goto fail; }
+    uint32_t window_pos = UINT32_MAX;
+    size_t window_len = 0;
     if (z->count) {
         z->entries = heap_caps_calloc(z->count, sizeof(*z->entries), PSRAM);
         if (!z->entries) { err = ESP_ERR_NO_MEM; goto fail; }
     }
     uint32_t pos = z->directory;
     for (unsigned i = 0; i < z->count; ++i) {
-        uint8_t h[46];
         err = ESP_ERR_INVALID_SIZE;
-        if (pos > eocd_pos || eocd_pos - pos < sizeof(h) || !read_at(z, pos, h, sizeof(h)) || u32(h) != UINT32_C(0x02014b50)) goto fail;
+        if (pos > eocd_pos || eocd_pos - pos < 46U) goto fail;
+        if (window_pos == UINT32_MAX || pos - window_pos + 46U > window_len) {
+            window_pos = pos;
+            window_len = eocd_pos - pos < DIRECTORY_WINDOW ? eocd_pos - pos : DIRECTORY_WINDOW;
+            if (!read_at(z, pos, tail, window_len)) goto fail;
+        }
+        const uint8_t* h = tail + (pos - window_pos);
+        if (u32(h) != UINT32_C(0x02014b50)) goto fail;
         zip_entry_t* entry = &z->entries[i];
         entry->flags = u16(h + 8); entry->method = u16(h + 10);
         entry->crc = u32(h + 16); entry->packed = u32(h + 20); entry->unpacked = u32(h + 24); entry->offset = u32(h + 42);
         uint16_t name_len = u16(h + 28), extra_len = u16(h + 30), comment_len = u16(h + 32);
-        uint32_t record_len = sizeof(h) + (uint32_t)name_len + extra_len + comment_len;
+        uint32_t record_len = 46U + (uint32_t)name_len + extra_len + comment_len;
         err = ESP_ERR_NOT_SUPPORTED;
         if ((entry->flags & ~UINT16_C(0x080e)) || u16(h + 34) ||
-            (entry->method != 0 && entry->method != 8) || entry->packed > ZIP_INPUT_MAX || entry->unpacked > ZIP_OUTPUT_MAX) goto fail;
+            (entry->method != 0 && entry->method != 8)) goto fail;
         err = ESP_ERR_INVALID_SIZE;
+        if (entry->packed > ZIP_INPUT_MAX || entry->unpacked > ZIP_OUTPUT_MAX) goto fail;
         if (!name_len || name_len > NAME_MAX_BYTES || record_len > eocd_pos - pos ||
             entry->offset >= z->directory || z->directory - entry->offset < 30 ||
             entry->packed > z->directory - entry->offset - 30 ||
             (entry->method == 0 && entry->packed != entry->unpacked)) goto fail;
-        entry->name = heap_caps_malloc((size_t)name_len + 1, PSRAM);
-        if (!entry->name) { err = ESP_ERR_NO_MEM; goto fail; }
-        if (!read_at(z, pos + 46, entry->name, name_len) || memchr(entry->name, 0, name_len)) goto fail;
-        entry->name[name_len] = 0;
-        for (unsigned j = 0; j < i; ++j) if (!strcmp(entry->name, z->entries[j].name)) goto fail;
-        if (!extras_valid(z, pos + 46 + name_len, extra_len)) goto fail;
+        entry->name_pos = pos + 46;
+        entry->name_len = name_len;
+        if (pos - window_pos + 46U + name_len > window_len) {
+            window_pos = pos;
+            window_len = eocd_pos - pos < DIRECTORY_WINDOW ? eocd_pos - pos : DIRECTORY_WINDOW;
+            if (!read_at(z, pos, tail, window_len)) goto fail;
+            h = tail;
+        }
+        if (memchr(h + 46, 0, name_len)) goto fail;
+        entry->hash = name_hash((const char*)h + 46, name_len);
+        if (!extras_valid(z, pos + 46U + name_len, extra_len)) goto fail;
         pos += record_len;
     }
     if (pos != eocd_pos) goto fail;
+    if (z->count > 1) qsort(z->entries, z->count, sizeof(*z->entries), entry_compare);
+    for (unsigned i = 1; i < z->count; ++i) {
+        const zip_entry_t* a = &z->entries[i];
+        char name[NAME_MAX_BYTES + 1];
+        if (a->hash != z->entries[i - 1].hash) continue;
+        if (!entry_name(z, a, name)) goto fail;
+        for (unsigned j = i; j && z->entries[j - 1].hash == a->hash; --j) {
+            if (!entry_name(z, &z->entries[j - 1], z->name_scratch)) goto fail;
+            if (!strcmp(name, z->name_scratch)) goto fail;
+        }
+    }
+    free(tail);
     *out = z;
     return ESP_OK;
 fail:
@@ -147,9 +196,26 @@ fail:
 }
 
 int zip_find(const zip_reader_t* z, const char* name) {
-    if (z && name) for (unsigned i = 0; i < z->count; ++i) if (!strcmp(z->entries[i].name, name)) return (int)i;
+    if (!z || !name) return -1;
+    uint32_t hash = name_hash(name, strlen(name));
+    size_t lo = 0, hi = z->count;
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo) / 2;
+        if (z->entries[mid].hash < hash) lo = mid + 1; else hi = mid;
+    }
+    char candidate[NAME_MAX_BYTES + 1];
+    for (; lo < z->count && z->entries[lo].hash == hash; ++lo)
+        if (entry_name(z, &z->entries[lo], candidate) && !strcmp(candidate, name)) return (int)lo;
     return -1;
 }
+
+const char* zip_entry_name(const zip_reader_t* z, int index) {
+    if (!z || index < 0 || index >= z->count) return NULL;
+    char* name = ((zip_reader_t*)z)->name_scratch;
+    return entry_name(z, &z->entries[index], name) ? name : NULL;
+}
+
+size_t zip_entry_count(const zip_reader_t* z) { return z ? z->count : 0; }
 
 size_t zip_entry_size(const zip_reader_t* z, int index) {
     return z && index >= 0 && index < z->count ? z->entries[index].unpacked : 0;
@@ -165,11 +231,13 @@ esp_err_t zip_extract(zip_reader_t* z, int index, void* dst, size_t cap) {
         u32(h + 18) == UINT32_MAX || u32(h + 22) == UINT32_MAX) return ESP_ERR_INVALID_SIZE;
     uint16_t name_len = u16(h + 26), extra_len = u16(h + 28);
     uint32_t prefix = 30U + name_len + extra_len;
-    if (name_len != strlen(entry->name) || prefix > z->directory - entry->offset ||
+    if (name_len != entry->name_len || prefix > z->directory - entry->offset ||
         entry->packed > z->directory - entry->offset - prefix) return ESP_ERR_INVALID_SIZE;
     if (!(entry->flags & 8) && (u32(h + 14) != entry->crc || u32(h + 18) != entry->packed || u32(h + 22) != entry->unpacked)) return ESP_ERR_INVALID_SIZE;
     uint8_t name[NAME_MAX_BYTES];
-    if (!read_at(z, entry->offset + 30, name, name_len) || memcmp(name, entry->name, name_len) ||
+    const char* expected_name = zip_entry_name(z, index);
+    if (!expected_name) return ESP_FAIL;
+    if (!read_at(z, entry->offset + 30, name, name_len) || memcmp(name, expected_name, name_len) ||
         !extras_valid(z, entry->offset + 30 + name_len, extra_len)) return ESP_ERR_INVALID_SIZE;
     uint32_t data_pos = entry->offset + prefix;
     uint8_t empty_output;

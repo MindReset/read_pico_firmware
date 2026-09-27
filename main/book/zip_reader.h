@@ -5,15 +5,15 @@
  * EPUB 使用的只读、有界 ZIP 条目访问。
  * Read-only, bounded ZIP entry access for EPUB.
  *
- * 冻结：最多 512 条目、每条输出 2 MiB；不写文件、不支持加密或 ZIP64。
- * Frozen: at most 512 entries and 2 MiB output per entry; no writes, encryption or ZIP64.
+ * 冻结：长篇书籍允许最多 32768 条目、每条输出 4 MiB；不写文件、不支持加密或 ZIP64。
+ * Frozen: allow long books up to 32768 entries and 4 MiB output per entry; no writes, encryption or ZIP64.
  */
 #pragma once
 #include <stddef.h>
 #include "esp_err.h"
 
-#define ZIP_ENTRY_MAX 512
-#define ZIP_OUTPUT_MAX (2U * 1024U * 1024U)
+#define ZIP_ENTRY_MAX 32768
+#define ZIP_OUTPUT_MAX (4U * 1024U * 1024U)
 #define ZIP_INPUT_MAX (ZIP_OUTPUT_MAX + 65536U)
 
 /// 持有文件与 PSRAM 目录；由 zip_close 释放。/ Owns the file and PSRAM directory; released by zip_close.
@@ -24,6 +24,10 @@ esp_err_t zip_open(const char* path, zip_reader_t** out);
 void zip_close(zip_reader_t* reader);
 /// 按精确路径查找，未找到返回 -1。/ Find an exact path, returning -1 if absent.
 int zip_find(const zip_reader_t* reader, const char* name);
+/// 返回验证后的条目数量。/ Return the validated entry count.
+size_t zip_entry_count(const zip_reader_t* reader);
+/// 借用目录路径，下次查询路径或解压前有效；无效索引返回 NULL。/ Borrow entry path until the next path query or extraction; invalid indices return NULL.
+const char* zip_entry_name(const zip_reader_t* reader, int index);
 /// 返回解压大小，无效索引返回 0；合法条目也可能为空。/ Return output size, or zero for an invalid index or empty entry.
 size_t zip_entry_size(const zip_reader_t* reader, int index);
 /// 解压并校验 CRC；调用方持有 dst，不补 NUL。失败后缓冲内容未定义。

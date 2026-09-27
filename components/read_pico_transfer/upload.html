@@ -19,7 +19,12 @@ body{font:17px/1.6 system-ui,sans-serif;max-width:680px;margin:40px auto;padding
 <p id="info" role="status">正在查询存储空间…</p>
 <input id="files" aria-label="选择图书" type="file" accept=".txt,.epub" multiple>
 <br><button id="send" disabled>开始上传</button><button id="cancel" disabled>取消当前及剩余队列</button>
-<p class="hint">在设备上停止或离开传书页会中断当前上传；未完成文件不会替换旧书。</p>
+<section><h2>上传字体</h2>
+<p id="fontInfo" class="hint">正在查询字体上传条件…</p>
+<input id="fontFiles" aria-label="选择 TTF 字体" type="file" accept=".ttf" multiple disabled>
+<br><button id="sendFonts" disabled>上传字体</button>
+<p class="hint">请选择有权使用的完整中文 TrueType TTF 字体。上传成功后停止传书，在设备“字体”页选用。字体替换需确认，传书期间设备使用内置字体。</p></section>
+<p class="hint">在设备上停止或离开传书页会中断当前上传；未完成或校验失败的文件不会替换原文件。</p>
 <p id="progressText" role="status"></p><progress id="progress" value="0" max="1"></progress>
 <ul id="results" aria-live="polite"></ul>
 <section><hr><h2>当前存储的图书</h2><p id="scope"></p>
@@ -42,16 +47,59 @@ body{font:17px/1.6 system-ui,sans-serif;max-width:680px;margin:40px auto;padding
 <script>
 const $=id=>document.getElementById(id);let policy,busy=false,cancelled=false,activeXHR=null,page=0,pages=0;
 const size=n=>n>=1048576?(n/1048576).toFixed(2)+' MB':Math.ceil(n/1024)+' KB';
-async function info(){const r=await fetch('/info',{cache:'no-store'});if(!r.ok)throw Error('无法查询存储空间');policy=await r.json();$('info').textContent=(policy.mode==='sta'?'已有 WiFi':'设备热点')+' · 上传到'+(policy.is_flash?'内置存储':'TF 卡')+' · 剩余 '+size(policy.free_bytes)+' · 单文件'+(policy.file_limit?'上限 '+size(policy.file_limit):'不限大小');$('network').hidden=policy.mode!=='ap';$('saved').textContent=policy.wifi_configured?'已保存：'+policy.wifi_ssid:'尚未保存网络';}
-function lock(value){busy=value;$('send').disabled=$('files').disabled=$('searchButton').disabled=$('previous').disabled=$('next').disabled=value;$('cancel').disabled=!value;document.querySelectorAll('[data-mutate]').forEach(b=>b.disabled=value);if(!value){$('previous').disabled=page<=0;$('next').disabled=page+1>=pages;}}
+async function info(){
+  const r=await fetch('/info',{cache:'no-store'});if(!r.ok)throw Error('无法查询存储空间');policy=await r.json();
+  $('info').textContent=(policy.mode==='sta'?'已有 WiFi':'设备热点')+' · 图书上传到'+(policy.is_flash?'内置存储':'TF 卡')+' · 剩余 '+size(policy.free_bytes)+' · 图书单文件'+(policy.file_limit?'上限 '+size(policy.file_limit):'不限大小');
+  $('fontInfo').textContent=policy.fonts_enabled?'字体保存到 TF 卡 '+policy.font_root+' · 单文件上限 '+size(policy.font_limit):'字体需要 TF 卡；请挂载后重新进入传书。';
+  $('fontFiles').disabled=$('sendFonts').disabled=busy||!policy.fonts_enabled;
+  $('network').hidden=policy.mode!=='ap';$('saved').textContent=policy.wifi_configured?'已保存：'+policy.wifi_ssid:'尚未保存网络';
+}
+function lock(value){busy=value;$('send').disabled=$('files').disabled=$('searchButton').disabled=$('previous').disabled=$('next').disabled=value;$('fontFiles').disabled=$('sendFonts').disabled=value||!policy?.fonts_enabled;$('cancel').disabled=!value;document.querySelectorAll('[data-mutate]').forEach(b=>b.disabled=value);if(!value){$('previous').disabled=page<=0;$('next').disabled=page+1>=pages;}}
 function button(parent,label,action){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.mutate='1';b.disabled=busy;b.onclick=action;parent.append(b);return b;}
 async function request(url,options){const response=await fetch(url,options);let body;try{body=await response.json();}catch(e){throw Error('设备响应无法解析，请检查连接后重试');}return {status:response.status,body};}
 function cleanupButton(row,name){button(row,'重试清理阅读进度',async()=>{if(busy)return;lock(true);try{const r=await request('/books?name='+encodeURIComponent(name)+'&action=retry_progress',{method:'POST'});if(r.status!==200)throw Error(r.body.error||'清理失败');row.textContent=name+'：阅读进度已清理';}catch(e){const note=document.createElement('small');note.textContent=e.message;row.append(note);}finally{lock(false);}});}
 async function loadBooks(){if(new TextEncoder().encode($('search').value).length>64)throw Error('搜索词最多64字节，请缩短后重试');const r=await request('/books?page='+page+'&q='+encodeURIComponent($('search').value));if(r.status!==200)throw Error(r.body.error||'无法读取图书列表');const data=r.body;pages=data.pages;if(page&&page>=pages){page=0;return loadBooks();}$('scope').textContent='仅管理当前上传目标：'+data.root_label+'（'+data.root+'）。另一存储的图书不在此列表中。';$('listState').textContent='共 '+data.total+' 本 · 第 '+(pages?page+1:0)+' / '+pages+' 页';$('books').replaceChildren();for(const item of data.items){const row=document.createElement('li'),title=document.createElement('span'),detail=document.createElement('small');title.textContent=item.name;detail.textContent=size(item.size)+' · '+item.size+' 字节 · '+data.root_label;row.append(title,detail);button(row,'删除',()=>removeBook(item,row));$('books').append(row);}$('previous').disabled=busy||page<=0;$('next').disabled=busy||page+1>=pages;}
 async function removeBook(item,row){if(busy||!confirm('永久删除当前存储中的图书？\n\n'+item.name+'\n'+size(item.size)+'\n\n此操作不可撤销。'))return;lock(true);try{const r=await request('/books?name='+encodeURIComponent(item.name),{method:'DELETE'});if(r.body.progress_cleanup_failed){const notice=document.createElement('li');notice.textContent=item.name+'：'+r.body.error;$('results').append(notice);cleanupButton(notice,r.body.name||item.name);}else if(r.status!==200)throw Error(r.body.error||'删除失败');page=0;await info();await loadBooks();}catch(e){const note=document.createElement('small');note.textContent=e.message;row.append(note);}finally{lock(false);}}
-function upload(file,overwrite){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();activeXHR=xhr;let last=0;xhr.open('PUT','/upload?name='+encodeURIComponent(file.name)+(overwrite?'&overwrite=1':''));xhr.upload.onprogress=e=>{const now=Date.now();if(now-last<250&&e.loaded!==e.total)return;last=now;$('progress').max=e.total||file.size;$('progress').value=e.loaded;$('progressText').textContent=file.name+' · '+size(e.loaded)+' / '+size(e.total||file.size)+(e.loaded===e.total?' · 等待设备保存…':'');};xhr.onload=()=>{activeXHR=null;try{resolve({status:xhr.status,body:JSON.parse(xhr.responseText)});}catch(e){reject(Error('设备响应无法解析，请检查是否已保存'));}};xhr.onerror=()=>{activeXHR=null;reject(Error('网络中断，请检查连接后重试'));};xhr.onabort=()=>{activeXHR=null;reject(Error('已取消；若设备已完成提交，请检查图书列表'));};xhr.send(file);});}
-async function run(items){if(busy)return;cancelled=false;lock(true);for(let i=0;i<items.length;i++){const {file,row}=items[i];if(cancelled){row.textContent=file.name+'：未上传（队列已取消）';button(row,'重试此文件',()=>run([{file,row}]));continue;}row.textContent=file.name+'：检查文件…';try{await info();if(cancelled)throw Error('已取消');if(!file.size)throw Error('文件为空');if(policy.file_limit&&file.size>policy.file_limit)throw Error('超过单文件上限');if(file.size>policy.free_bytes)throw Error('剩余空间不足（替换也须暂存完整新文件）');const existing=await request('/books?name='+encodeURIComponent(file.name));let overwrite=false;if(existing.status===200){overwrite=confirm('同名图书已存在：\n\n'+file.name+'\n\n确定：替换并清除旧阅读进度\n取消：跳过此文件');if(!overwrite){row.textContent=file.name+'：已跳过';continue;}}else if(existing.status!==404)throw Error(existing.body.error||'无法检查图书');if(cancelled)throw Error('已取消');row.textContent=file.name+'：上传中（'+(i+1)+' / '+items.length+'）';let r=await upload(file,overwrite);if(r.status===409&&!cancelled){if(confirm('图书刚刚发生变化：'+file.name+'\n确定替换？取消则跳过。'))r=await upload(file,true);else{row.textContent=file.name+'：已跳过';continue;}}if(r.body.progress_cleanup_failed){row.textContent=file.name+'：'+r.body.error+(r.body.warning?' · '+r.body.warning:'');cleanupButton(row,r.body.name||file.name);}else if(r.status!==200)throw Error(r.body.error||'上传失败');else row.textContent=file.name+'：已保存'+(r.body.warning?' · '+r.body.warning:'');}catch(e){row.textContent=file.name+'：'+e.message;button(row,'重试此文件',()=>run([{file,row}]));}}$('progressText').textContent=cancelled?'队列已取消，请检查已完成项目。':'上传队列已结束，请查看每本书的结果。';try{page=0;await info();await loadBooks();}catch(e){$('listState').textContent=e.message;}lock(false);}
-$('send').onclick=()=>{const files=[...$('files').files];if(!files.length)return;const items=files.map(file=>{const row=document.createElement('li');row.textContent=file.name+'：排队中';$('results').append(row);return {file,row};});run(items);};
+function upload(file,overwrite,kind='book'){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();activeXHR=xhr;let last=0;xhr.open('PUT',(kind==='font'?'/fonts':'/upload')+'?name='+encodeURIComponent(file.name)+(overwrite?'&overwrite=1':''));xhr.upload.onprogress=e=>{const now=Date.now();if(now-last<250&&e.loaded!==e.total)return;last=now;$('progress').max=e.total||file.size;$('progress').value=e.loaded;$('progressText').textContent=file.name+' · '+size(e.loaded)+' / '+size(e.total||file.size)+(e.loaded===e.total?' · 等待设备保存…':'');};xhr.onload=()=>{activeXHR=null;try{resolve({status:xhr.status,body:JSON.parse(xhr.responseText)});}catch(e){reject(Error('设备响应无法解析，请检查是否已保存'));}};xhr.onerror=()=>{activeXHR=null;reject(Error('网络中断，请检查连接后重试'));};xhr.onabort=()=>{activeXHR=null;reject(Error('已取消；若设备已完成提交，请检查保存结果'));};xhr.send(file);});}
+async function run(items){
+  if(busy)return;cancelled=false;lock(true);
+  for(let i=0;i<items.length;i++){
+    const {file,row,kind='book'}=items[i],font=kind==='font';
+    const retry=()=>run([{file,row,kind}]);
+    if(cancelled){row.textContent=file.name+'：未上传（队列已取消）';button(row,'重试此文件',retry);continue;}
+    row.textContent=file.name+'：检查文件…';
+    try{
+      await info();if(cancelled)throw Error('已取消');
+      if(font&&!policy.fonts_enabled)throw Error('字体需要 TF 卡，请挂载后重新进入传书');
+      if(!(font?/\.ttf$/i:/\.(txt|epub)$/i).test(file.name))throw Error(font?'字体仅支持 TTF':'图书仅支持 TXT / EPUB');
+      if(!file.size)throw Error('文件为空');
+      const limit=font?policy.font_limit:policy.file_limit;
+      if(limit&&file.size>limit)throw Error('超过单文件上限');
+      if(file.size>policy.free_bytes)throw Error('剩余空间不足（替换也须暂存完整新文件）');
+      const existing=await request((font?'/fonts':'/books')+'?name='+encodeURIComponent(file.name));
+      let overwrite=false;
+      if(existing.status===200){
+        overwrite=confirm('同名'+(font?'字体':'图书')+'已存在：\n\n'+file.name+'\n\n确定：'+(font?'替换字体':'替换并清除旧阅读进度')+'\n取消：跳过此文件');
+        if(!overwrite){row.textContent=file.name+'：已跳过';continue;}
+      }else if(existing.status!==404)throw Error(existing.body.error||'无法检查文件');
+      if(cancelled)throw Error('已取消');
+      row.textContent=file.name+'：上传中（'+(i+1)+' / '+items.length+'）';
+      let r=await upload(file,overwrite,kind);
+      if(r.status===409&&!cancelled){
+        if(confirm('文件刚刚发生变化：'+file.name+'\n确定替换？取消则跳过。'))r=await upload(file,true,kind);
+        else{row.textContent=file.name+'：已跳过';continue;}
+      }
+      if(r.body.progress_cleanup_failed){row.textContent=file.name+'：'+r.body.error+(r.body.warning?' · '+r.body.warning:'');cleanupButton(row,r.body.name||file.name);}
+      else if(r.status!==200)throw Error(r.body.error||'上传失败');
+      else row.textContent=file.name+'：已保存'+(font?'；停止传书后在设备“字体”页选用':'')+(r.body.warning?' · '+r.body.warning:'');
+    }catch(e){row.textContent=file.name+'：'+e.message;button(row,'重试此文件',retry);}
+  }
+  $('progressText').textContent=cancelled?'队列已取消，请检查已完成项目。':'上传队列已结束，请查看每个文件的结果。';
+  try{page=0;await info();await loadBooks();}catch(e){$('listState').textContent=e.message;}lock(false);
+}
+function queueFiles(id,kind){const files=[...$(id).files];if(!files.length)return;const items=files.map(file=>{const row=document.createElement('li');row.textContent=file.name+'：排队中';$('results').append(row);return {file,row,kind};});run(items);}
+$('send').onclick=()=>queueFiles('files','book');
+$('sendFonts').onclick=()=>queueFiles('fontFiles','font');
 $('cancel').onclick=()=>{cancelled=true;if(activeXHR)activeXHR.abort();};
 $('searchForm').onsubmit=e=>{e.preventDefault();if(busy)return;page=0;loadBooks().catch(e=>$('listState').textContent=e.message);};
 $('previous').onclick=()=>{if(busy||page<=0)return;--page;loadBooks().catch(e=>$('listState').textContent=e.message);};

@@ -8,6 +8,7 @@
 # 冻结：仅验证解析与平台替身，不替代 ROM 或真机验收。
 # Frozen: Test parsing and platform shims only, never substitute for ROM or device acceptance.
 set -euo pipefail
+export UBSAN_OPTIONS=halt_on_error=1
 cd "$(dirname "$0")/.."
 mkdir -p build/book-tests
 
@@ -24,7 +25,7 @@ build/book-tests/epub-html
 # Link TXT and EPUB together so dispatch changes retain the existing source behavior.
 cc "${flags[@]}" "${includes[@]}" tools/book_source_host_test.c \
     main/book/book_source.c main/book/book_txt.c main/book/gbk.c \
-    main/book/book_epub.c main/book/zip_reader.c main/book/html_text.c \
+    main/book/book_epub.c main/book/zip_reader.c main/book/html_text.c main/book/book_image.c main/book/vendor/tjpgd.c \
     -lz -o build/book-tests/epub-source
 shopt -s nullglob
 fixtures=(build/book-fixtures/books/*.txt build/book-fixtures/books/*.epub)

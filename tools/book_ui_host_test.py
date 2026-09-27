@@ -44,6 +44,9 @@ unit = r'''
 #include <unistd.h>
 #include <stdatomic.h>
 #define ESP_OK 0
+#define ESP_ERR_NO_MEM 1
+#define ESP_ERR_NOT_FOUND 2
+#define ESP_ERR_INVALID_SIZE 3
 #define MALLOC_CAP_SPIRAM 1
 #define MALLOC_CAP_8BIT 2
 #define ESP_LOGI(...) ((void)0)
@@ -93,11 +96,31 @@ typedef struct delete_retry {shelf_entry_t entry;struct delete_retry* next;} del
 static delete_retry_t* s_delete_retries;
 static char s_latest_path[288],test_last_path[288];
 static bool s_save_failed;
-static char s_path[288];
+static char s_path[288], s_resume_path[288];
+#define BOOK_STORE_PATH_MAX 288
+static unsigned test_open_calls;
+static char test_open_path[288];
+static bool open_book(app_ctx_t* ctx,const char* path){(void)ctx;test_open_calls++;strcpy(test_open_path,path);return true;}
 static char* s_text;
 static int s_unsaved,s_px=48;
 static uint32_t s_file_size=1000;
 static size_t s_chapter,s_page;
+typedef struct {char* image_src;bool image_repeated;uint16_t image_first_chapter;bool image_title;} blk_t;
+static blk_t* s_blocks;
+static size_t s_block_count;
+static bool s_image_open;
+static uint8_t* s_image_pixels;
+static uint16_t s_image_width,s_image_height;
+static size_t s_image_block=SIZE_MAX;
+static const char* s_image_error;
+static char s_image_origin[224];
+static int test_image_loads,test_image_error;
+static int book_chapter_load_image(size_t chapter,const char* ref,uint8_t** pixels,uint16_t* width,uint16_t* height){(void)chapter;assert(ref);++test_image_loads;*pixels=NULL;*width=*height=0;if(test_image_error)return test_image_error;*pixels=malloc(4);assert(*pixels);*width=*height=2;return ESP_OK;}
+static int book_chapter_title(size_t chapter,char* out,size_t cap){snprintf(out,cap,"Fixture chapter %zu",chapter);return ESP_OK;}
+static void lock_draw(void){}
+static void unlock_draw(void){}
+static void loading_detail(app_ctx_t* ctx,const char* text,const char* detail){(void)ctx;(void)text;(void)detail;}
+static void free_image(void);
 static int test_save_error,test_last_error,test_save_calls,test_last_calls;
 static size_t book_layout_page_count(void){return 3;}
 static size_t book_layout_page_start_offset(size_t page){return page*100;}
@@ -127,14 +150,22 @@ static void read_pico_sd_start_probe(void){}
 static void sensor_set(app_ctx_t* ctx,bool on){(void)ctx;(void)on;}
 static void vTaskDelete(void* p){(void)p;}
 static void vSemaphoreDelete(void* p){(void)p;}
-static app_redraw_t turn_page(app_ctx_t* ctx,int dir){(void)ctx;(void)dir;return APP_REDRAW_NONE;}
+static unsigned test_turns;
+static app_redraw_t turn_page(app_ctx_t* ctx,int dir){(void)ctx;(void)dir;++test_turns;return APP_REDRAW_NONE;}
+typedef enum {UI_GESTURE_PRESS,UI_GESTURE_TAP,UI_GESTURE_LONG_PRESS,UI_GESTURE_SWIPE_L,UI_GESTURE_SWIPE_R,UI_GESTURE_SWIPE_U,UI_GESTURE_SWIPE_D,UI_GESTURE_CANCEL} ui_gesture_type_t;
+typedef struct {ui_gesture_type_t type;uint16_t x0,y0,x,y;} ui_gesture_event_t;
+static EpdRect body_rect(void){return(EpdRect){40,24,604,1000};}
+static int control_at(app_ctx_t* ctx,uint16_t x,uint16_t y,EpdRect* rect){(void)ctx;*rect=(EpdRect){48,100,588,88};return ui_rect_hit(*rect,x,y)?1000:-1;}
+static app_redraw_t open_image(app_ctx_t* ctx,size_t block);
+static app_redraw_t action_at(app_ctx_t* ctx,uint16_t x,uint16_t y){(void)x;(void)y;return open_image(ctx,0);}
+static app_redraw_t paint_control(app_ctx_t* ctx,EpdRect rect){(void)ctx;(void)rect;return APP_REDRAW_AREA;}
 static int test_delete_error,test_forget_error,test_notify_count,test_delete_calls;
 static bool test_removed,test_mixed;
 static int book_store_delete(const char* path,bool* removed){(void)path;test_delete_calls++;*removed=test_removed;return test_mixed ? (strstr(path,"book001") ? -1 : 0) : test_delete_error;}
 static int book_progress_forget(const char* path){for(book_progress_watch_t* w=test_watches;w;w=w->next)if(!strcmp(w->path,path))atomic_store(&w->invalidated,true);return test_forget_error;}
 static void book_store_notify_changed(void){test_notify_count++;}
 static unsigned book_store_revision(void){return (unsigned)test_notify_count;}
-static void free_book(void){s_text=NULL;s_path[0]=0;}
+static void free_book(void){s_text=NULL;s_path[0]=0;free_image();}
 static char test_wrapped[512];
 #define UI_PX_CAPTION 28
 #define UI_MARGIN 40
@@ -144,10 +175,45 @@ static int ttf_text_width_px(int px,const char* text){int width=0;for(;*text;tex
 static void ui_text(uint8_t* fb,int x,int y,int px,const char* text,int align,bool inv){(void)fb;(void)x;(void)y;(void)px;(void)align;(void)inv;assert(strlen(test_wrapped)+strlen(text)<sizeof(test_wrapped));strcat(test_wrapped,text);}
 '''
 for name in ("copy_text", "shelf_matches", "compare_books", "sort_shelf", "shelf_reserve", "delete_retry_find", "delete_retry_reserve", "delete_retry_discard", "scan_shelf",
-             "pending_find", "pending_reserve", "pending_restore", "pending_discard", "pending_mark_latest", "pending_drop_invalidated", "pending_flush", "save_progress", "retry_progress", "layout_name", "manage_panel", "manage_rect", "batch_rect", "leaves", "selected_count", "clear_selection", "toggle_selection", "select_page", "search_keys", "search_begin", "refresh_search_matches", "search_finish", "search_action", "refresh_capacity", "manage_apply", "manage_action", "batch_apply", "batch_action", "on_key", "draw_wrapped_name", "on_enter", "book_on_exit"):
+             "pending_find", "pending_reserve", "pending_restore", "pending_discard", "pending_mark_latest", "pending_drop_invalidated", "pending_flush", "save_progress", "retry_progress", "layout_name", "manage_panel", "manage_rect", "batch_rect", "leaves", "selected_count", "clear_selection", "toggle_selection", "select_page", "search_keys", "search_begin", "refresh_search_matches", "search_finish", "search_action", "refresh_capacity", "manage_apply", "manage_action", "batch_apply", "batch_action", "resume_choice", "free_image", "close_image", "open_image", "gesture_event", "on_key", "draw_wrapped_name", "on_enter", "book_on_exit"):
     unit += function(name) + "\n"
 unit += r'''
 int main(void) {
+    app_ctx_t image_ctx={0};
+    blk_t image_blocks[]={{.image_src="first.png",.image_repeated=true,.image_first_chapter=2},{.image_src="second.jpg"}};
+    s_blocks=image_blocks;s_block_count=2;s_chapter=9;s_page=6;s_view=READING;
+    ui_gesture_event_t image_event={.type=UI_GESTURE_PRESS,.x0=300,.y0=150,.x=300,.y=150};
+    assert(gesture_event(&image_ctx,&image_event)==APP_REDRAW_NONE && test_image_loads==0);
+    image_event.type=UI_GESTURE_SWIPE_L;image_event.x=236;
+    gesture_event(&image_ctx,&image_event);assert(test_turns==1 && test_image_loads==0 && !s_image_open);
+    image_event.type=UI_GESTURE_TAP;image_event.x=300;
+    assert(gesture_event(&image_ctx,&image_event)==APP_REDRAW_PAGE && test_image_loads==1 && s_image_open);
+    assert(s_image_pixels && strstr(s_image_origin,"第 3 节") && s_page==6 && s_chapter==9);
+    image_event.type=UI_GESTURE_SWIPE_L;image_event.x=236;
+    assert(gesture_event(&image_ctx,&image_event)==APP_REDRAW_NONE && test_turns==1 && s_image_open);
+    assert(on_key(&image_ctx,UI_KEY_3)==APP_REDRAW_PAGE && !s_image_open && test_turns==1 && s_page==6);
+    assert(open_image(&image_ctx,0)==APP_REDRAW_PAGE && test_image_loads==1);
+    image_event.type=UI_GESTURE_TAP;image_event.x=300;
+    assert(gesture_event(&image_ctx,&image_event)==APP_REDRAW_PAGE && !s_image_open && s_page==6);
+    test_image_error=ESP_ERR_NOT_FOUND;
+    assert(open_image(&image_ctx,1)==APP_REDRAW_PAGE && s_image_open && !s_image_pixels && s_image_error && test_image_loads==2);
+    assert(on_key(&image_ctx,UI_KEY_1)==APP_REDRAW_PAGE && !s_image_open && test_turns==1);
+    test_image_error=0;assert(open_image(&image_ctx,1)==APP_REDRAW_PAGE && s_image_pixels && test_image_loads==3);
+    free_image();assert(!s_image_open && !s_image_pixels && s_image_block==SIZE_MAX);
+    image_blocks[0].image_title=true;
+    assert(open_image(&image_ctx,0)==APP_REDRAW_PAGE && !s_image_origin[0]);
+    free_image();
+    s_view=SHELF;
+    app_ctx_t resume_ctx={0};
+    strcpy(s_resume_path,"/sdcard/books/large.epub");
+    assert(on_key(&resume_ctx,UI_KEY_1)==APP_REDRAW_PAGE && test_open_calls==0 && !s_resume_path[0]);
+    strcpy(s_resume_path,"/sdcard/books/large.epub");
+    assert(on_key(&resume_ctx,UI_KEY_3)==APP_REDRAW_PAGE && test_open_calls==1 && !s_resume_path[0]);
+    assert(!strcmp(test_open_path,"/sdcard/books/large.epub"));
+    assert(resume_choice(&resume_ctx,true)==APP_REDRAW_NONE && test_open_calls==1);
+    strcpy(s_resume_path,"/sdcard/books/large.epub");
+    assert(on_key(&resume_ctx,UI_KEY_2)==APP_REDRAW_PAGE && resume_ctx.request_menu && !s_resume_path[0] && test_open_calls==1);
+
     shelf_entry_t a={.search_match=true,.name="Same.txt",.path="/sdcard/books/A/Same.txt"};
     shelf_entry_t b={.search_match=true,.name="Same.txt",.path="/sdcard/books/B/Same.txt"};
     assert(compare_books(&a,&b)<0);

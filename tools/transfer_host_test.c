@@ -66,7 +66,60 @@ static int change_callback(const char *path) {
     assert(path[0]); snprintf(cleaned_path, sizeof(cleaned_path), "%s", path);
     ++cleanup_calls; return cleanup_failure;
 }
+static int receive_font(void *ctx, char *buf, size_t n) { return (int)fread(buf, 1, n, ctx); }
+
+static void test_font_uploads(void) {
+    char name[121];
+    assert(decode_font_name("Chinese%20Font.TTF", name));
+    assert(!strcmp(name, "Chinese Font.TTF"));
+    assert(!decode_name("font.ttf", name) && !decode_font_name("book.epub", name));
+    assert(!decode_font_name("font.otf", name) && !decode_font_name("font.ttc", name));
+    assert(!decode_font_name("..%2Ffont.ttf", name) && !decode_font_name("%2Ffont.ttf", name));
+    assert(!decode_font_name("bad%00.ttf", name));
+    assert(temporary_basename("Font.TTF.part", ".part", name));
+    assert(temporary_basename("Font.TTF.rename-backup", ".rename-backup", name));
+
+    char root[] = "/tmp/transfer-font-XXXXXX", path[288], part[296], backup[320];
+    assert(mkdtemp(root));
+    snprintf(path, sizeof(path), "%s/Font.ttf", root);
+    snprintf(part, sizeof(part), "%s.part", path);
+    snprintf(backup, sizeof(backup), "%s.rename-backup", path);
+    assert(valid_ttf("main/assets/builtin.ttf"));
+    FILE *source = fopen("main/assets/builtin.ttf", "rb"); assert(source);
+    assert(!fseek(source, 0, SEEK_END)); size_t size = (size_t)ftell(source); rewind(source);
+    char *buf = malloc(16384); assert(buf);
+    file_result_t op = upload_managed(path, part, size, TRANSFER_FONT_MAX, UINT64_MAX, false,
+        buf, 16384, receive_font, source, NULL, NULL);
+    assert(op.status == 200 && op.changed && valid_ttf(path) && !cleanup_calls);
+    struct stat before, after; assert(!stat(path, &before));
+    remaining = 32;
+    op = upload_managed(path, part, 32, TRANSFER_FONT_MAX, UINT64_MAX, false, buf, 16384, receive, NULL, NULL, NULL);
+    assert(op.status == 409 && remaining == 32);
+    op = upload_managed(path, part, 32, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive, NULL, NULL, NULL);
+    assert(op.status == 422 && !op.changed && valid_ttf(path) && access(part, F_OK));
+    assert(!stat(path, &after) && before.st_size == after.st_size);
+    remaining = 40000; receive_calls = 0; fail_after = 2;
+    op = upload_managed(path, part, 40000, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive, NULL, NULL, NULL);
+    assert(op.status == 408 && !op.changed && valid_ttf(path) && access(part, F_OK));
+    fail_after = 0;
+    op = upload_managed(path, part, TRANSFER_FONT_MAX + 1U, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive, NULL, NULL, NULL);
+    assert(op.status == 413 && !op.changed);
+    op = upload_managed(path, part, size, TRANSFER_FONT_MAX, 0, true, buf, 16384, receive_font, source, NULL, NULL);
+    assert(op.status == 507 && !op.changed);
+    rewind(source); fatfs_replace = true;
+    op = upload_managed(path, part, size, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive_font, source, NULL, NULL);
+    assert(op.status == 200 && op.changed && valid_ttf(path) && access(backup, F_OK));
+    fatfs_replace = false;
+    assert(!fclose(source)); free(buf);
+    assert(!rename(path, backup)); write_fixture(part, "unfinished");
+    unsigned removed = 0, restored = 0;
+    assert(!cleanup_interrupted(root, &removed, &restored));
+    assert(removed == 1 && restored == 1 && valid_ttf(path) && access(part, F_OK));
+    unlink(path); rmdir(root);
+}
+
 int main(void) {
+    test_font_uploads();
     char alias_root[] = "/tmp/transfer-alias-XXXXXX", canonical[448], requested[448];
     assert(mkdtemp(alias_root));
     snprintf(canonical, sizeof(canonical), "%s/Book.txt", alias_root);

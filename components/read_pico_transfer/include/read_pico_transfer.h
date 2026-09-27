@@ -4,8 +4,8 @@
  *
  * 双模式传书生命周期和跨任务状态；存储策略由调用方注入。
  * AP/STA transfer lifecycle and cross-task status; caller supplies storage policy.
- * 冻结：仅接收 TXT/EPUB；不依赖页面或图书实现。
- * Frozen: accept TXT/EPUB only; no page or book implementation dependency.
+ * 冻结：图书 TXT/EPUB；完整字体部署使用独立 TF 目录的 TTF；不依赖页面或图书实现。
+ * Frozen: TXT/EPUB books and complete TTF fonts in a separate TF directory; no page or book implementation dependency.
  * 冻结：热点网页或停服后的设备触屏可配网；已有WiFi模式不接受远程修改凭据。
  * Frozen: AP webpage or stopped-service device UI may provision; STA rejects remote credential changes.
  */
@@ -35,6 +35,7 @@ typedef enum {
 typedef struct {
     read_pico_transfer_mode_t mode; ///< 网络模式，默认热点 / Network mode, default AP
     const char *root_dir; ///< 已挂载根目录，start 内复制 / Mounted root, copied by start
+    const char *font_dir; ///< 可选 TF 字体目录；调用方须暂停 SD 字体读取至 stop 返回 / Optional TF font directory; caller must suspend SD font reads until stop returns
     bool is_flash; ///< 内置存储标志 / Internal storage flag
     size_t file_limit; ///< 单文件上限，零表示不限 / Per-file limit, zero means unlimited
     uint64_t (*free_bytes_cb)(void *ctx); ///< 查询可用字节 / Query available bytes

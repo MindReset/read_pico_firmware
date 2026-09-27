@@ -47,6 +47,17 @@ int main(void) {
     t = parse("  <div><div> </div></div><br><hr> ", "");
     assert(t.count == 0);
     html_text_free(&t);
+    t = parse("<img src='cover.jpg'/>", "[图片]");
+    assert(t.blocks[0].image_src && !strcmp(t.blocks[0].image_src,"cover.jpg"));
+    assert(t.count == 1 && !t.blocks[0].heading);
+    html_text_free(&t);
+    t = parse("<h1>Before<IMG src='x>y'>After</h1><p>end</p>", "Before\n[图片]\nAfter\nend");
+    assert(t.count == 4 && t.blocks[0].heading && !t.blocks[1].heading && t.blocks[2].heading);
+    html_text_free(&t);
+    t = parse("<svg><image href='cover.jpg'/></svg><xhtml:img/><svg:image/></img>", "[图片]\n[图片]\n[图片]");
+    html_text_free(&t);
+    t = parse("<head><img/></head><script>'<img/>'</script><style><img/></style><!-- <img/> --><p>ok</p>", "ok");
+    html_text_free(&t);
     t = parse("a &unknown; &amp b < 3", "a &unknown; &amp b < 3");
     html_text_free(&t);
     t = parse("&#0; &#xD800; &#x110000;", "� � �");
@@ -74,6 +85,9 @@ int main(void) {
     for (int i = 0; i < 2; ++i) {
         html_test_fail_after = i;
         assert(html_to_blocks("<p>test</p>", 11, &t) == ESP_ERR_NO_MEM);
+        assert(!t.utf8 && !t.blocks);
+        html_test_fail_after = i;
+        assert(html_to_blocks("<img/>", 6, &t) == ESP_ERR_NO_MEM);
         assert(!t.utf8 && !t.blocks);
     }
     html_test_fail_after = -1;

@@ -41,6 +41,8 @@ idf_component_register(
         "book/book_source.c"
         "book/book_txt.c"
         "book/book_epub.c"
+        "book/book_image.c"
+        "book/vendor/tjpgd.c"
         "book/zip_reader.c"
         "book/html_text.c"
         "book/book_layout.c"

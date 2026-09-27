@@ -15,6 +15,7 @@ SCAN_DIRS = [
     ROOT / "main/ui",
     ROOT / "main/app",
     ROOT / "main/apps",
+    ROOT / "main/book",
     ROOT / "main/factory",
     ROOT / "main/assets",
     ROOT / "main/app_main.c",
@@ -92,6 +93,25 @@ def unique_text(*parts: str) -> str:
     return "".join(sorted(out, key=lambda c: ord(c)))
 
 
+def rename_subset(font) -> None:
+    # 子集属于修改版，使用自有字体名并保留原版权和 OFL 元数据。
+    # Subsets are modified versions: use our own family name and retain copyright and OFL metadata.
+    names = {1: "Read Pico UI", 3: "Read Pico UI 1.0", 4: "Read Pico UI", 6: "ReadPicoUI",
+             16: "Read Pico UI", 18: "Read Pico UI", 21: "Read Pico UI", 25: "ReadPicoUI"}
+    for record in list(font["name"].names):
+        if record.nameID in names:
+            font["name"].setName(names[record.nameID], record.nameID, record.platformID, record.platEncID, record.langID)
+    if "fvar" in font:
+        for instance in font["fvar"].instances:
+            name_id = instance.postscriptNameID
+            if name_id == 0xffff:
+                continue
+            for record in list(font["name"].names):
+                if record.nameID == name_id:
+                    value = re.sub(r"[^A-Za-z0-9-]", "", record.toUnicode().replace("ChillDuanSans", "ReadPicoUI"))
+                    font["name"].setName(value, name_id, record.platformID, record.platEncID, record.langID)
+
+
 def subset_variable(src: Path, text: str, dest: Path) -> int:
     from fontTools.subset import Subsetter, Options
     from fontTools.ttLib import TTFont
@@ -108,6 +128,7 @@ def subset_variable(src: Path, text: str, dest: Path) -> int:
     subsetter = Subsetter(options=options)
     subsetter.populate(text=text)
     subsetter.subset(font)
+    rename_subset(font)
     dest.parent.mkdir(parents=True, exist_ok=True)
     font.save(dest)
     font.close()
@@ -132,6 +153,7 @@ def subset_regular(src: Path, text: str, dest: Path) -> int:
     subsetter = Subsetter(options=options)
     subsetter.populate(text=text)
     subsetter.subset(vf)
+    rename_subset(vf)
     dest.parent.mkdir(parents=True, exist_ok=True)
     vf.save(dest)
     vf.close()
@@ -140,6 +162,7 @@ def subset_regular(src: Path, text: str, dest: Path) -> int:
 
 def default_src() -> Path:
     for path in (
+        ROOT / "sdcard/fonts/ChillDuanSansVF.ttf",
         ROOT / "ChillDuanSansVF.ttf",
         ROOT / "tools/fonts/ChillDuanSansVF.ttf",
     ):

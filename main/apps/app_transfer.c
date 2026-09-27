@@ -20,6 +20,8 @@
  * User-requested URL QR follows network readiness; AP switches one code between joining and browsing, discarding stale codes on changes.
  * Lost media stops and joins reception and clears capacity/QR; never switch storage beneath an active request.
  */
+// 整个传书页暂停 SD 字体并使用内置字库；HTTP 停止后才恢复读取。
+// Use the built-in font and suspend SD font opens for this page; resume only after HTTP stops.
 #include <stdio.h>
 #include <string.h>
 
@@ -42,6 +44,7 @@ static book_store_root_t s_root;
 static read_pico_transfer_status_t s_status;
 static bool s_start_pending, s_settle, s_any_changed;
 static bool s_media_lost;
+static esp_err_t s_font_error;
 static int s_pressed = -1;
 static read_pico_transfer_mode_t s_mode = READ_PICO_TRANSFER_MODE_AP;
 static bool s_session_started;
@@ -385,8 +388,8 @@ static void draw_status(uint8_t* fb) {
     char line[160];
     if (s_media_lost) snprintf(line, sizeof(line), "重新进入传书可使用内置存储");
     else if (s_mode == READ_PICO_TRANSFER_MODE_AP)
-        snprintf(line, sizeof(line), "已连接 %u 台 · 已完成 %u 本", s_status.sta_count, s_status.done_count);
-    else snprintf(line, sizeof(line), "同网浏览器上传 · 已完成 %u 本", s_status.done_count);
+        snprintf(line, sizeof(line), "已连接 %u 台 · 已完成 %u 个文件", s_status.sta_count, s_status.done_count);
+    else snprintf(line, sizeof(line), "同网浏览器上传 · 已完成 %u 个文件", s_status.done_count);
     ui_text(fb, area.x, area.y + 64, UI_PX_CAPTION, line, EPD_DRAW_ALIGN_LEFT, false);
     snprintf(line, sizeof(line), "%s", s_status.cur_name);
     while (*line && ttf_text_width_px(UI_PX_CAPTION, line) > area.width) {
@@ -420,7 +423,7 @@ static void render(app_ctx_t* ctx, uint8_t* fb) {
     if (s_view == TRANSFER_PASSWORD) { draw_password(fb); return; }
     (void)ctx;
     ui_clear_page(fb);
-    ui_draw_header(fb, "传书 Transfer", "选择接入方式，用手机浏览器上传 txt / epub");
+    ui_draw_header(fb, "传书 Transfer", "浏览器上传图书或 TTF 字体");
     for (int i = 0; i < 2; ++i) {
         EpdRect r = control_rect(i);
         if (s_pressed == i) ui_draw_pressed_round_rect(fb, r, UI_BTN_RADIUS);
@@ -464,6 +467,9 @@ static void render(app_ctx_t* ctx, uint8_t* fb) {
 
 static void on_enter(app_ctx_t* ctx) {
     (void)ctx;
+    // 先关闭卡上字库，再开放替换；主循环的字体重试也会被暂停。
+    // Close the card font before allowing replacement; event-loop font retries are suspended too.
+    s_font_error = ttf_font_suspend_sd(true);
     display_set_bulk_io(true);
     s_media_lost = false;
     memset(&s_status, 0, sizeof(s_status));
@@ -516,6 +522,7 @@ static void transfer_on_exit(app_ctx_t* ctx) {
     clear_password();
     s_scan_pending = false;
     stop_session();
+    ttf_font_suspend_sd(false);
     display_set_bulk_io(false);
     guard_draw_result(ctx->hl, update_display_white(ctx->hl));
     if (s_any_changed) book_store_notify_changed();
@@ -528,11 +535,13 @@ static app_redraw_t on_tick(app_ctx_t* ctx) {
     if (s_view != TRANSFER_HOME) return network_ui_tick(ctx);
     if (s_start_pending) {
         s_start_pending = false;
-        esp_err_t err = book_store_upload_root(&s_root);
+        if (s_font_error != ESP_OK) s_font_error = ttf_font_suspend_sd(true);
+        esp_err_t err = s_font_error == ESP_OK ? book_store_upload_root(&s_root) : s_font_error;
         if (err == ESP_OK) {
             s_media_lost = false;
             s_free = book_store_free_bytes(&s_root);
             read_pico_transfer_cfg_t cfg = {.mode = s_mode, .root_dir = s_root.path, .is_flash = s_root.is_flash,
+                .font_dir = s_root.is_flash ? NULL : "/sdcard/fonts",
                 .file_limit = book_store_file_limit(&s_root), .free_bytes_cb = free_bytes, .free_bytes_ctx = &s_root, .file_changed_cb = book_progress_forget};
             err = read_pico_transfer_start(&cfg);
             s_session_started = err == ESP_OK;

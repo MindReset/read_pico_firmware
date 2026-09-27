@@ -29,7 +29,7 @@ extern "C" {
 // 页内手势及局部定稿阈值，真机调优时同步 INTERACTION.md。
 // Page gesture and region-settling thresholds; update INTERACTION.md when tuning on hardware.
 #define UI_LONG_PRESS_MS 500
-#define UI_SWIPE_MIN_PX 120
+#define UI_SWIPE_MIN_PX 64
 #define UI_TOUCH_SLOP_PX 24
 #define UI_SETTLE_IDLE_MS 2000
 #define UI_SETTLE_DU_MAX 6
