@@ -11,6 +11,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p build/book-tests
 
+python tools/gen_book_fixtures.py
 python tools/test_zip_reader.py
 python tools/test_book_epub.py
 
