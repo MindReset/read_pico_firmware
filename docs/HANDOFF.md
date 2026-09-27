@@ -52,3 +52,11 @@ This file holds **only the protocol and the template** and is safe to merge upst
 - 不要在本文件里写任何具体任务状态。看到有人写了，移到 `HANDOFF.local.md`。
 - 不要把 `HANDOFF.local.md` 从 `.gitignore` 里拿掉，也不要 `git add -f` 它。
 - 其他 agent 的入口文件（`CLAUDE.md`、`.cursorrules` 等）如需提到交接，只写一行指向本文件，不复制模板。
+
+## 内部记录与对外交接 / Internal records and external handoff
+
+计划、检查点、过程审查与验收结果保存在被忽略的 `docs/local/`；本机当前状态仍由 `HANDOFF.local.md` 提供入口。正式功能说明不能依赖这些本地文件，版本变化只在 `docs/CHANGELOG.md` 轻量记录。
+Keep plans, checkpoints, review records and acceptance results in ignored `docs/local/`, with current local state linked from `HANDOFF.local.md`. Published feature documentation must be self-contained; keep version changes brief in `docs/CHANGELOG.md`.
+
+需要把未完功能或维护责任交给他人时，按本协议提供最小摘要：功能边界、当前实现、未完成事项、必要验证结论及下一步。通过PR描述或约定的交接渠道传递，不把完整内部计划、聊天、调试日志或过程账本加入产品提交。
+When handing unfinished functionality or maintenance responsibility to someone else, provide a minimal summary of scope, implementation, remaining work, relevant validation and next steps. Use the PR description or agreed handoff channel rather than committing full internal plans, conversations or debug logs.

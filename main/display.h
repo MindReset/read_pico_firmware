@@ -41,6 +41,9 @@ extern "C" {
 void rails_keepalive(void);
 void rails_idle_check(int64_t now_ms);
 
+/// 大量文件I/O期间增加扫描预填，调用方离开时恢复。/ Increase scan prefill during bulk file I/O; caller restores on exit.
+void display_set_bulk_io(bool active);
+
 enum EpdDrawError update_display_mode(EpdiyHighlevelState* hl, enum EpdDrawMode mode);
 enum EpdDrawError update_display_from_white(EpdiyHighlevelState* hl);
 enum EpdDrawError update_display_from_white_with(

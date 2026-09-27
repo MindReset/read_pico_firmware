@@ -407,6 +407,9 @@ static app_redraw_t pick(int index) {
     } else {
         const ttf_font_item_t* item = ttf_font_item(index - 1);
         if (item == NULL) return APP_REDRAW_NONE;
+        read_pico_sd_info_t sd = {0};
+        read_pico_sd_get_info(&sd);
+        if (!sd.present || !sd.mounted) return APP_REDRAW_FULL;
         app_settings_set_font_path(item->path);
         esp_err_t err = ttf_font_open(item->path);
         if (err != ESP_OK) {

@@ -33,3 +33,16 @@ CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 CONFIG_COMPILER_OPTIMIZATION_PERF=y
 # 1ms tick：EPD 上电流程里按毫秒轮询 PGOOD，100Hz 的 tick 会把每次等待放大到 10ms
 CONFIG_FREERTOS_HZ=1000
+# 长文件名以 UTF-8 交给界面与 fopen；磁盘 LFN 保持 UTF-16，不需要增加 CP936 表。
+# Pass long filenames to UI and fopen as UTF-8; on-disk LFN stays UTF-16 without a CP936 table.
+CONFIG_FATFS_LFN_HEAP=y
+CONFIG_FATFS_API_ENCODING_UTF_8=y
+
+# 传书热点；优先把网络缓冲放PSRAM，避免占用显示所需内部内存。
+# Transfer AP prefers PSRAM network buffers, preserving internal display memory.
+CONFIG_ESP_WIFI_SOFTAP_SUPPORT=y
+CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+CONFIG_ESP_WIFI_IRAM_OPT=n
+CONFIG_ESP_WIFI_RX_IRAM_OPT=n
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+CONFIG_HTTPD_MAX_URI_LEN=1024

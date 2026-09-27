@@ -19,6 +19,12 @@
 #include "esp_timer.h"
 
 static const char* TAG = "read_pico";
+static bool s_bulk_io;
+
+void display_set_bulk_io(bool active) {
+    s_bulk_io = active;
+    ESP_LOGI(TAG, "bulk I/O scan margin %s", active ? "on" : "off");
+}
 
 // HV 轨道空闲多久才断电。断电要等 500ms 放电，再上电又要几十毫秒，
 // 所以连续操作期间一直保持常开，只有真的没人动才关掉省电并卸掉 VCOM。
@@ -47,6 +53,9 @@ void rails_idle_check(int64_t now_ms) {
 static void use_scan_for(const EpdWaveform* waveform, enum EpdDrawMode mode) {
     const bool fast = (mode & 0xF) == MODE_DU && waveform == &E0470_FOLLOW_WAVEFORM;
     read_pico_epd_use_scan(fast ? READ_PICO_EPD_SCAN_FAST : READ_PICO_EPD_SCAN_FULL);
+    // 高层刷新保持整屏扫描；两条63行可用队列在第127行入队前启动。
+    // High-level updates scan the full panel; two 63-slot queues start before line 127 is enqueued.
+    epd_lcd_set_prefill_lines(s_bulk_io ? 127 : (fast ? 64 : 32));
 }
 
 // 自上次 GC16 以来的差分刷（DU/GL16）次数。
@@ -177,8 +186,9 @@ void guard_draw_result(EpdiyHighlevelState* hl, enum EpdDrawError result) {
     use_scan_for(&E0470_WAVEFORM, MODE_GC16);
     epd_poweron();
     epd_clear();
-    epd_hl_set_all_white(hl);
-    epd_hl_update_screen(hl, MODE_GC16, 25);
+    // 清物理屏后仅重置旧帧基准，保留目标页；否则局部刷新会留下整页白屏。
+    // Reset only the old-frame baseline after clearing; preserving the target prevents blank pages after partial updates.
+    epd_hl_update_screen_from_white(hl, MODE_GC16, 25);
     s_soft_refreshes = 0;
     rails_keepalive();
     ESP_LOGW(TAG, "line queue underrun, pclk back to %d MHz", DISPLAY_PCLK_SAFE_MHZ);

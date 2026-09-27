@@ -26,6 +26,14 @@ extern "C" {
 #define UI_LOCK_WIDTH 684
 #define UI_LOCK_HEIGHT 1216
 
+// 页内手势及局部定稿阈值，真机调优时同步 INTERACTION.md。
+// Page gesture and region-settling thresholds; update INTERACTION.md when tuning on hardware.
+#define UI_LONG_PRESS_MS 500
+#define UI_SWIPE_MIN_PX 120
+#define UI_TOUCH_SLOP_PX 24
+#define UI_SETTLE_IDLE_MS 2000
+#define UI_SETTLE_DU_MAX 6
+
 // 字号是字形的像素高。这块屏像素密度接近手机，正文低于 36px 在正常观看距离就看
 // 不清了，所以正文取 40px；一行只放一组标签和数值，40px 也铺得开 604 的内容宽度。
 // 字段特别多的地方用 _SM 那一档走双列紧凑行，靠对齐和分隔线保证可读，而不是缩字号。
@@ -115,6 +123,9 @@ void ui_draw_round_rect(
 /// 选中：外框保留，内缩一圈加粗，不整块填黑，减轻残影。
 /// Selected: keep the outer frame and thicken an inset ring; do not fill solid black, which ghosts.
 void ui_draw_selected_round_rect(uint8_t* framebuffer, EpdRect rect, int radius);
+/// 先画按压灰底及内缩粗边，再由调用方画正常黑字；勿覆盖已绘制文字。
+/// Paint pressed gray fill and inset thick border before the caller draws normal black text; never overlay existing text.
+void ui_draw_pressed_round_rect(uint8_t* framebuffer, EpdRect rect, int radius);
 void ui_draw_choice_round_rect(
     uint8_t* framebuffer, EpdRect rect, int radius, bool on
 );
@@ -124,6 +135,9 @@ void ui_fill_round_rect(
     uint8_t* framebuffer, EpdRect rect, int radius, uint8_t color
 );
 EpdRect ui_inset_rect(EpdRect r, int d);
+/// 合并刷新区域；空矩形视为无区域，结果裁到逻辑屏幕内。
+/// Union refresh regions; empty rectangles contribute nothing, and the result is clipped to the logical screen.
+EpdRect ui_rect_union(EpdRect a, EpdRect b);
 
 bool ui_rect_hit(EpdRect rect, uint16_t x, uint16_t y);
 /// 等分网格：cols 列、从 y0 起按行高 h + UI_GAP 向下排。绘制和命中共用。

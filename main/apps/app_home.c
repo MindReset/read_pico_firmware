@@ -322,7 +322,14 @@ static void draw_status_page(uint8_t* fb) {
         snprintf(line, sizeof(line), "%s", desc->version);
         y = ui_draw_row(fb, y, "主机 Host", line);
         snprintf(line, sizeof(line), "%s %s", desc->date, desc->time);
-        y = ui_draw_row(fb, y, "构建 Build", line);
+        const char* build_label = "构建 UTC 时间";
+        int build_px = UI_PX_VALUE;
+        while (build_px > 20 && ttf_text_width_px(build_px, build_label) +
+               ttf_text_width_px(build_px, line) + UI_PAD > ui_content_width()) --build_px;
+        ui_text_vc(fb, UI_MARGIN, y + UI_ROW_H / 2, build_px, build_label, EPD_DRAW_ALIGN_LEFT, false);
+        ui_text_vc(fb, ui_content_right(), y + UI_ROW_H / 2, build_px, line, EPD_DRAW_ALIGN_RIGHT, false);
+        ui_hairline(fb, y + UI_ROW_H - 1, UI_MARGIN, ui_content_width(), UI_GRAY_LIGHT);
+        y += UI_ROW_H;
         if (pmu->identity_ok) {
             snprintf(
                 line, sizeof(line), "%u.%u.%u",

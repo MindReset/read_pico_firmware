@@ -63,6 +63,12 @@ static void IRAM_ATTR handle_lcd_frame_done(RenderContext_t* ctx) {
     epd_lcd_frame_done_cb(NULL, NULL);
     epd_lcd_line_source_cb(NULL, NULL);
 
+    // 扫描先于供数结束时解除生产者等待，禁止残留行进入下一相位。
+    // Release producers if scan ends before consumption; never carry stale lines into the next phase.
+    if (ctx->lines_consumed < ctx->lines_total) {
+        ctx->error |= EPD_DRAW_EMPTY_LINE_QUEUE;
+    }
+
     BaseType_t task_awoken = pdFALSE;
     xSemaphoreGiveFromISR(ctx->frame_done, &task_awoken);
 
@@ -85,6 +91,15 @@ void lcd_do_update(RenderContext_t* ctx) {
 
         for (int i = 0; i < NUM_RENDER_THREADS; i++) {
             xSemaphoreTake(ctx->feed_done_smphr[i], portMAX_DELAY);
+        }
+
+        // DMA 回调和生产者均已停止后再清队列，由调用方执行欠载恢复。
+        // Reset only after DMA callbacks and producers stop; let the caller recover from underrun.
+        if (ctx->error) {
+            for (int i = 0; i < NUM_RENDER_THREADS; i++) {
+                lq_reset(&ctx->line_queues[i]);
+            }
+            break;
         }
 
         ctx->current_frame++;
@@ -193,14 +208,9 @@ lcd_calculate_frame(RenderContext_t* ctx, int thread_id) {
     LineQueue_t* lq = &ctx->line_queues[thread_id];
     int l = 0;
 
-    // if there is an error, start the frame but don't feed data.
-    if (ctx->error) {
-        memset(ctx->line_threads, 0, ctx->lines_total);
-        epd_lcd_line_source_cb((line_cb_func_t)&retrieve_line_isr, ctx);
-        epd_lcd_start_frame();
-        ESP_LOGW("epd_lcd", "draw frame draw initiated, but an error flag is set: %X", ctx->error);
-        return;
-    }
+    // 另一生产者可能已启动并报告欠载；不得再次启动同一帧。
+    // The other producer may have started and underrun already; never start the frame twice.
+    if (ctx->error) return;
 
     // line must be able to hold 2-pixel-per-byte or 1-pixel-per-byte data
     memset(input_line, 0x00, ctx->display_width);

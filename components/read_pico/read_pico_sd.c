@@ -29,8 +29,30 @@
 
 static const char* TAG = "sd_card";
 static sdmmc_card_t* card;
-static volatile int probe_state;
+static int probe_state;
+static portMUX_TYPE state_lock = portMUX_INITIALIZER_UNLOCKED;
+static bool media_invalidated;
 static read_pico_sd_info_t cached_info;
+
+// 失效只影响快照，消费者释放句柄前不得卸载卡。/ Invalidation changes snapshots only; consumers must close handles before unmount.
+static void observe_media_locked(bool present) {
+    if (!present && (cached_info.mounted || probe_state == 1)) media_invalidated = true;
+    cached_info.present = present;
+    if (!present || media_invalidated) {
+        memset(&cached_info, 0, sizeof(cached_info));
+        cached_info.present = present;
+        cached_info.error = present ? ESP_ERR_INVALID_STATE : ESP_ERR_NOT_FOUND;
+    }
+}
+
+static void publish_info(const read_pico_sd_info_t* info) {
+    bool present = read_pico_sd_present();
+    portENTER_CRITICAL(&state_lock);
+    cached_info = *info;
+    observe_media_locked(present);
+    probe_state = 2;
+    portEXIT_CRITICAL(&state_lock);
+}
 
 static void fill_info(read_pico_sd_info_t* info, esp_err_t mount_err) {
     memset(info, 0, sizeof(*info));
@@ -88,7 +110,7 @@ static esp_err_t mount_card(bool format_if_failed) {
 
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = format_if_failed,
-        .max_files = 4,
+        .max_files = 8,
         .allocation_unit_size = 16 * 1024,
     };
 
@@ -127,8 +149,7 @@ static void probe_task(void* arg) {
     info.present = read_pico_sd_present();
     if (!info.present) {
         info.error = ESP_ERR_NOT_FOUND;
-        cached_info = info;
-        probe_state = 2;
+        publish_info(&info);
         ESP_LOGI(TAG, "SD_CD absent, skip mount");
         vTaskDelete(NULL);
         return;
@@ -145,8 +166,7 @@ static void probe_task(void* arg) {
             (unsigned long long)(info.free_bytes / (1024 * 1024))
         );
     }
-    cached_info = info;
-    probe_state = 2;
+    publish_info(&info);
     if (info.needs_format) {
         ESP_LOGW(TAG, "SD present but no FAT, ask user to format");
     }
@@ -154,29 +174,34 @@ static void probe_task(void* arg) {
 }
 
 esp_err_t read_pico_sd_start_probe(void) {
-    if (probe_state == 1) return ESP_ERR_NOT_FINISHED;
-    if (probe_state == 2) {
-        if (cached_info.mounted) return ESP_OK;
-        if (!cached_info.present) return ESP_ERR_NOT_FOUND;
-        return cached_info.error != ESP_OK ? cached_info.error : ESP_FAIL;
-    }
-
-    memset(&cached_info, 0, sizeof(cached_info));
-    cached_info.present = read_pico_sd_present();
-    if (!cached_info.present) {
-        cached_info.error = ESP_ERR_NOT_FOUND;
+    bool present = read_pico_sd_present();
+    portENTER_CRITICAL(&state_lock);
+    observe_media_locked(present);
+    esp_err_t err = ESP_OK;
+    if (probe_state == 1) err = ESP_ERR_NOT_FINISHED;
+    else if (media_invalidated) err = cached_info.error;
+    else if (probe_state == 2) err = cached_info.mounted ? ESP_OK :
+        cached_info.error != ESP_OK ? cached_info.error : ESP_FAIL;
+    else if (!present) {
         probe_state = 2;
-        ESP_LOGI(TAG, "SD_CD absent, skip mount");
-        return ESP_ERR_NOT_FOUND;
+        err = ESP_ERR_NOT_FOUND;
+    } else {
+        memset(&cached_info, 0, sizeof(cached_info));
+        cached_info.present = true;
+        cached_info.error = ESP_ERR_NOT_FINISHED;
+        probe_state = 1;
     }
-    cached_info.error = ESP_ERR_NOT_FINISHED;
-    probe_state = 1;
+    bool start = err == ESP_OK && probe_state == 1;
+    portEXIT_CRITICAL(&state_lock);
+    if (!start) return err;
     BaseType_t created = xTaskCreate(
         probe_task, "sd_probe", 4096, NULL, 5, NULL
     );
     if (created != pdPASS) {
+        portENTER_CRITICAL(&state_lock);
         probe_state = 0;
         cached_info.error = ESP_ERR_NO_MEM;
+        portEXIT_CRITICAL(&state_lock);
         return ESP_ERR_NO_MEM;
     }
     return ESP_ERR_NOT_FINISHED;
@@ -184,35 +209,58 @@ esp_err_t read_pico_sd_start_probe(void) {
 
 esp_err_t read_pico_sd_get_info(read_pico_sd_info_t* info) {
     if (info == NULL) return ESP_ERR_INVALID_ARG;
+    bool present = read_pico_sd_present();
+    portENTER_CRITICAL(&state_lock);
+    observe_media_locked(present);
     *info = cached_info;
-    if (probe_state == 0) return ESP_ERR_INVALID_STATE;
-    if (probe_state == 1) return ESP_ERR_NOT_FINISHED;
-    return info->error;
+    esp_err_t err = !present || media_invalidated ? info->error :
+        probe_state == 0 ? ESP_ERR_INVALID_STATE :
+        probe_state == 1 ? ESP_ERR_NOT_FINISHED : info->error;
+    portEXIT_CRITICAL(&state_lock);
+    return err;
+}
+
+// 驱动操作期间占用忙状态，不在临界区执行 I/O。/ Reserve busy state across driver I/O outside the critical section.
+static bool begin_operation(void) {
+    portENTER_CRITICAL(&state_lock);
+    bool ready = probe_state != 1;
+    if (ready) probe_state = 1;
+    portEXIT_CRITICAL(&state_lock);
+    return ready;
 }
 
 esp_err_t read_pico_sd_remount(void) {
-    if (probe_state == 1) return ESP_ERR_NOT_FINISHED;
+    if (!begin_operation()) return ESP_ERR_NOT_FINISHED;
     close_card();
+    portENTER_CRITICAL(&state_lock);
     memset(&cached_info, 0, sizeof(cached_info));
+    media_invalidated = false;
     probe_state = 0;
+    portEXIT_CRITICAL(&state_lock);
     return read_pico_sd_start_probe();
 }
 
 esp_err_t read_pico_sd_sync(void) {
-    if (probe_state == 1) return ESP_ERR_NOT_FINISHED;
-    if (card == NULL) return ESP_OK;
+    if (!begin_operation()) return ESP_ERR_NOT_FINISHED;
     close_card();
-    cached_info.mounted = false;
+    read_pico_sd_info_t info = { .error = ESP_ERR_INVALID_STATE };
+    publish_info(&info);
     return ESP_OK;
 }
 
 esp_err_t read_pico_sd_format(void) {
-    if (probe_state == 1) return ESP_ERR_NOT_FINISHED;
+    read_pico_sd_info_t current;
+    (void)read_pico_sd_get_info(&current);
+    portENTER_CRITICAL(&state_lock);
+    bool invalid = media_invalidated;
+    bool busy = probe_state == 1;
+    if (!invalid && !busy) probe_state = 1;
+    portEXIT_CRITICAL(&state_lock);
+    if (invalid) return current.present ? ESP_ERR_INVALID_STATE : ESP_ERR_NOT_FOUND;
+    if (busy) return ESP_ERR_NOT_FINISHED;
     if (!read_pico_sd_present()) {
-        cached_info.present = false;
-        cached_info.mounted = false;
-        cached_info.error = ESP_ERR_NOT_FOUND;
-        probe_state = 2;
+        read_pico_sd_info_t info = { .error = ESP_ERR_NOT_FOUND };
+        publish_info(&info);
         return ESP_ERR_NOT_FOUND;
     }
 
@@ -233,7 +281,6 @@ esp_err_t read_pico_sd_format(void) {
         fill_info(&info, ESP_OK);
         ESP_LOGI(TAG, "formatted %s", info.name);
     }
-    cached_info = info;
-    probe_state = 2;
+    publish_info(&info);
     return err;
 }
