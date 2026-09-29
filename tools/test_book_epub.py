@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import zipfile
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -38,11 +39,11 @@ def main():
     with tempfile.TemporaryDirectory(prefix='book-epub-') as temp:
         work = Path(temp)
         exe = work / 'test'
-        subprocess.run(['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '-g', '-fsanitize=address,undefined',
+        subprocess.run(['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '-g', '-fsanitize=address,undefined', '-DBOOK_HEAP_TRACK', '-Wl,--wrap=free',
                         '-I' + str(ROOT / 'tools/book_epub_stubs'), '-I' + str(ROOT / 'tools/zip_host_stubs'),
                         '-I' + str(ROOT / 'main/book'), str(ROOT / 'tools/book_epub_host_test.c'),
                         str(ROOT / 'main/book/book_epub.c'), str(ROOT / 'main/book/zip_reader.c'),
-                        str(ROOT / 'main/book/html_text.c'), '-lz', '-o', str(exe)], check=True)
+                        str(ROOT / 'main/book/html_text.c'), str(ROOT / 'main/book/book_image.c'), str(ROOT / 'main/book/vendor/tjpgd.c'), str(ROOT / 'tools/book_heap_track.c'), '-lz', '-o', str(exe)], check=True)
         cases = []
 
         def case(name, edit=None):
@@ -65,9 +66,30 @@ def main():
         case('bad_nul', replace_opf('</package>', '\0</package>'))
         case('bad_xml', replace_opf('</manifest>', '</wrong>'))
         case('bad_multiroot', replace_opf('</package>', '</package><extra/>'))
-        case('bad_spine_limit', replace_opf('<itemref idref="c1"/>', '<itemref idref="c1"/>' * 513))
+        spine = ''.join(f'<itemref idref="c{i}"/>' for i in range(1, 5))
+        case('good_spine_2048', replace_opf(spine, '<itemref idref="c1"/>' * 2048))
+        case('good_spine_limit', replace_opf(spine, '<itemref idref="c1"/>' * 32768))
+        case('bad_spine_limit', replace_opf(spine, '<itemref idref="c1"/>' * 32769))
+        def large_book(files, count=1486):
+            items = ''.join(f'<item id="large{i}" href="../text/large{i}.xhtml" media-type="application/xhtml+xml"/>' for i in range(count))
+            refs = ''.join(f'<itemref idref="large{i}"/>' for i in range(count))
+            files['OPS/pkg/book.opf'] = f'<package><manifest>{items}</manifest><spine>{refs}</spine></package>'
+            for i in range(count):
+                files[f'OPS/text/large{i}.xhtml'] = f'<html><body><p>Chapter {i}</p></body></html>'
+        case('good_large', large_book)
+        case('good_many', lambda files: large_book(files, 30000))
+        def titled_many(files):
+            large_book(files, 30000)
+            files['OPS/pkg/book.opf'] = files['OPS/pkg/book.opf'].replace('</manifest>', '<item id="nav" href="../toc/nav.xhtml" media-type="application/xhtml+xml" properties="nav"/></manifest>')
+            links = ''.join(f'<a href="../text/large{i}.xhtml">Chapter {i}</a>' for i in range(30000))
+            files['OPS/toc/nav.xhtml'] = f'<html><nav epub:type="toc">{links}</nav></html>'
+        case('good_many_titled', titled_many)
+        case('good_manifest_limit', replace_opf('</manifest>', ''.join(f'<item id="extra{i}" href="extra{i}" media-type="image/png"/>' for i in range(32762)) + '</manifest>'))
+        case('bad_manifest_limit', replace_opf('</manifest>', ''.join(f'<item id="extra{i}" href="extra{i}" media-type="image/png"/>' for i in range(32763)) + '</manifest>'))
         case('bad_container', lambda f: f.__setitem__('META-INF/container.xml', '<container><rootfile full-path="../../escape.opf"/></container>'))
         subprocess.run([str(exe)] + [str(p) for p in sorted((ROOT / 'build/book-fixtures/books').glob('*.epub'))] + [str(p) for p in cases], check=True)
+        if len(sys.argv) > 1:
+            subprocess.run([str(exe), '--inspect'] + sys.argv[1:], check=True)
 
 
 if __name__ == '__main__':

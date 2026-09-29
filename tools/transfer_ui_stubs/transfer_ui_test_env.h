@@ -64,6 +64,8 @@ static inline void ui_text(uint8_t* f,...) {(void)f;}
 static inline void ui_text_vc(uint8_t* f,...) {(void)f;}
 static inline void epd_fill_rect(EpdRect r,...) {(void)r;}
 static inline int ttf_text_width_px(int px,const char* s) {return (int)strlen(s)*px/2;}
+static bool test_font_suspended;
+static inline int ttf_font_suspend_sd(bool suspend) {test_font_suspended=suspend;return ESP_OK;}
 static inline void display_set_bulk_io(bool b) {(void)b;}
 static inline int update_display_area_with(void* p,...) {(void)p;return 0;}
 static inline int update_display_white(void* p) {(void)p;return 0;}
@@ -80,7 +82,7 @@ static inline int app_count(void) {return 0;}
 static inline const app_desc_t* app_at(int i) {(void)i;return NULL;}
 typedef enum {READ_PICO_TRANSFER_MODE_AP,READ_PICO_TRANSFER_MODE_STA} read_pico_transfer_mode_t;
 typedef enum {READ_PICO_TRANSFER_STOPPED,READ_PICO_TRANSFER_STARTING,READ_PICO_TRANSFER_READY,READ_PICO_TRANSFER_UPLOADING,READ_PICO_TRANSFER_ERROR} read_pico_transfer_state_t;
-typedef struct {read_pico_transfer_mode_t mode;const char* root_dir;bool is_flash;size_t file_limit;uint64_t(*free_bytes_cb)(void*);void* free_bytes_ctx;int(*file_changed_cb)(const char*);} read_pico_transfer_cfg_t;
+typedef struct {read_pico_transfer_mode_t mode;const char* root_dir;const char* font_dir;bool is_flash;size_t file_limit;uint64_t(*free_bytes_cb)(void*);void* free_bytes_ctx;int(*file_changed_cb)(const char*);} read_pico_transfer_cfg_t;
 typedef struct {read_pico_transfer_mode_t mode;read_pico_transfer_state_t state;bool wifi_configured,network_ready;char ssid[33],wifi_ssid[33],url[64],cur_name[121];unsigned sta_count,done_count,changed_count;size_t cur_bytes,cur_total;int last_error;} read_pico_transfer_status_t;
 #define READ_PICO_TRANSFER_PASSWORD "readpico"
 static read_pico_transfer_status_t test_status;
@@ -96,7 +98,7 @@ static int test_stop_count;
 static inline void read_pico_transfer_stop(void) { ++test_stop_count; }
 static inline void read_pico_transfer_get_status(read_pico_transfer_status_t* s) {*s=test_status;}
 static inline int read_pico_transfer_get_saved_wifi(char* s,bool* c) {strcpy(s,test_configured?"saved":"");*c=test_configured;return 0;}
-static inline int read_pico_transfer_start(const read_pico_transfer_cfg_t* c) {if (!c->file_changed_cb || c->file_changed_cb("/flash/books/test.txt")) return ESP_FAIL;return 0;}
+static inline int read_pico_transfer_start(const read_pico_transfer_cfg_t* c) {if (!test_font_suspended || !c->file_changed_cb || c->file_changed_cb("/flash/books/test.txt")) return ESP_FAIL;return 0;}
 static inline void read_pico_transfer_service_poll(void) {}
 static inline int read_pico_transfer_save_wifi(const char* s,const char* p) {(void)p;test_save_count++;snprintf(test_saved_ssid,33,"%s",s);return test_save_error;}
 static inline int read_pico_transfer_scan_wifi(read_pico_transfer_network_t* out,size_t* count) {*count=test_scan_error?0:test_scan_count;for(size_t i=0;i<*count;i++){out[i]=(read_pico_transfer_network_t){.supported=true,.requires_password=true};snprintf(out[i].ssid,33,"network%u",(unsigned)i);}if(*count)snprintf(out[0].ssid,33,"中文家庭网络");return test_scan_error;}

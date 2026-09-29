@@ -53,7 +53,7 @@ def main():
         run("read", archive(payload, stream=True), expected=payload)
         run("read", archive(payload, comment=b"x" * 65535), expected=payload)
         run("read", archive(b"x" * (2 * 1024 * 1024)), expected=b"x" * (2 * 1024 * 1024))
-        run("reject-open", archive(b"x" * (2 * 1024 * 1024 + 1)))
+        run("reject-open", archive(b"x" * (4 * 1024 * 1024 + 1)))
         good = archive(payload)
         cd = good.index(b"PK\x01\x02")
         eocd = good.rindex(b"PK\x05\x06")
@@ -87,11 +87,11 @@ def main():
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w"): pass
         run("empty", buffer.getvalue())
-        for count in (512, 513):
+        for count in (512, 513, 2048, 2049, 4096, 4097, 32768, 32769):
             buffer = io.BytesIO()
             with zipfile.ZipFile(buffer, "w") as z:
                 for i in range(count): z.writestr(f"entry{i}.txt", b"")
-            run("empty" if count == 512 else "reject-open", buffer.getvalue())
+            run("empty" if count <= 32768 else "reject-open", buffer.getvalue())
         # ZIP64 扩展不依赖哨兵值也必须拒绝。/ Reject ZIP64 extras even without sentinel sizes.
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w") as z:
@@ -106,6 +106,13 @@ def main():
                 z.writestr("entry.txt", b"one")
                 z.writestr("entry.txt", b"two")
         run("reject-open", buffer.getvalue())
+        # FNV-1a 冲突仍按完整路径区分。/ Distinguish full paths despite an FNV-1a collision.
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as z:
+            z.writestr("costarring", b"first")
+            z.writestr("liquid", b"second")
+        run("read", buffer.getvalue(), name="costarring", expected=b"first")
+        run("read", buffer.getvalue(), name="liquid", expected=b"second")
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as z:
             z.writestr("正文/第一章.xhtml", payload)

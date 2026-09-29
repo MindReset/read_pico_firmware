@@ -2,8 +2,8 @@
  * SPDX-FileCopyrightText: 2026 mindreset
  * SPDX-License-Identifier: Apache-2.0
  *
- * 中文：单遍提取章节文字，折叠空白并保留非空块和标题标记。
- * English: Extract chapter text in one pass, collapsing whitespace and preserving nonempty blocks and headings.
+ * 中文：单遍提取章节文字，折叠空白并保留非空块、标题和图片占位。
+ * English: Extract chapter text in one pass, preserving nonempty blocks, headings and image placeholders.
  *
  * 冻结：不执行脚本、不加载资源；输出有界，失败释放全部临时分配。
  * Frozen: Never execute scripts or load resources; bound output and release temporary allocations on failure.
@@ -42,8 +42,14 @@ static bool name_equal(const char* name, const char* expected) {
 void html_text_free(html_text_t* text) {
     if (!text) return;
     free(text->utf8);
-    free(text->blocks);
+    html_blocks_free(text->blocks, text->count);
     *text = (html_text_t){0};
+}
+
+void html_blocks_free(blk_t* blocks, size_t count) {
+    if (!blocks) return;
+    for (size_t i = 0; i < count; ++i) { free(blocks[i].image_src); free(blocks[i].image); }
+    free(blocks);
 }
 
 static esp_err_t reserve_text(writer_t* w, size_t extra) {
@@ -171,6 +177,54 @@ static bool block_tag(const char* name) {
     return false;
 }
 
+static bool image_tag(const char* name) {
+    const char* local = strrchr(name, ':');
+    if (local) name = local + 1;
+    return name_equal(name, "img") || name_equal(name, "image");
+}
+
+// 只保留有界引用；资源解析由 EPUB 后端处理，不在 HTML 转换器内打开文件。
+// Retain a bounded reference only; EPUB resolves resources without file access in the HTML converter.
+static char* image_source(const char* attrs, size_t len) {
+    size_t at = 0;
+    while (at < len) {
+        while (at < len && ascii_space((unsigned char)attrs[at])) ++at;
+        size_t start = at;
+        while (at < len && name_char((unsigned char)attrs[at])) ++at;
+        if (at == start) break;
+        size_t name_len = at - start;
+        bool wanted = (name_len == 3 && !memcmp(attrs + start, "src", 3)) ||
+                      (name_len == 4 && !memcmp(attrs + start, "href", 4)) ||
+                      (name_len == 10 && !memcmp(attrs + start, "xlink:href", 10));
+        while (at < len && ascii_space((unsigned char)attrs[at])) ++at;
+        if (at == len || attrs[at++] != '=') break;
+        while (at < len && ascii_space((unsigned char)attrs[at])) ++at;
+        if (at == len || (attrs[at] != '\'' && attrs[at] != '"')) break;
+        char quote = attrs[at++]; start = at;
+        while (at < len && attrs[at] != quote) ++at;
+        if (at == len) break;
+        size_t end = at++;
+        if (!wanted) continue;
+        char value[512]; size_t used = 0;
+        for (size_t i = start; i < end;) {
+            uint32_t cp;
+            size_t n = attrs[i] == '&' ? entity(attrs + i, end - i, &cp) : 0;
+            if (!n) n = utf8(attrs + i, end - i, &cp);
+            if (!n || cp < 32 || used + 4 >= sizeof(value)) return NULL;
+            i += n;
+            if (cp < 0x80) value[used++] = (char)cp;
+            else if (cp < 0x800) { value[used++] = 0xc0 | (cp >> 6); value[used++] = 0x80 | (cp & 63); }
+            else if (cp < 0x10000) { value[used++] = 0xe0 | (cp >> 12); value[used++] = 0x80 | ((cp >> 6) & 63); value[used++] = 0x80 | (cp & 63); }
+            else { value[used++] = 0xf0 | (cp >> 18); value[used++] = 0x80 | ((cp >> 12) & 63); value[used++] = 0x80 | ((cp >> 6) & 63); value[used++] = 0x80 | (cp & 63); }
+        }
+        if (!used) return NULL;
+        char* result = heap_caps_realloc(NULL, used + 1, PSRAM_CAPS);
+        if (result) { memcpy(result, value, used); result[used] = 0; }
+        return result;
+    }
+    return NULL;
+}
+
 esp_err_t html_to_blocks(const char* html, size_t len, html_text_t* out) {
     if (!out) return ESP_ERR_INVALID_ARG;
     *out = (html_text_t){0};
@@ -227,6 +281,25 @@ esp_err_t html_to_blocks(const char* html, size_t len, html_text_t* out) {
                 }
                 if (!closing && !self_closing && (name_equal(name, "head") || name_equal(name, "style") || name_equal(name, "script"))) {
                     memcpy(skip, name, sizeof(skip));
+                } else if (!closing && image_tag(name)) {
+                    // 图片独立成块；后端可替换占位，原文字节位置保持稳定。
+                    // Isolate images so the backend can replace placeholders without changing text offsets.
+                    err = finish_block(&w);
+                    if (err != ESP_OK) goto fail;
+                    bool heading = w.heading;
+                    w.heading = false;
+                    const char* label = "[图片]";
+                    for (size_t i = 0; label[i];) {
+                        uint32_t cp;
+                        size_t n = utf8(label + i, strlen(label + i), &cp);
+                        err = emit(&w, cp);
+                        if (err != ESP_OK) goto fail;
+                        i += n;
+                    }
+                    err = finish_block(&w);
+                    if (err != ESP_OK) goto fail;
+                    w.text.blocks[w.text.count - 1].image_src = image_source(html + at, end - at);
+                    w.heading = heading;
                 } else if (block_tag(name)) {
                     err = finish_block(&w);
                     if (err != ESP_OK) goto fail;

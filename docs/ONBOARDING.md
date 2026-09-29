@@ -602,3 +602,6 @@ Read AGENTS.md, then docs/ONBOARDING.md, then docs/HANDOFF.md. Do not duplicate 
 
 传书页通过 `display_set_bulk_io` 在页内提高扫描预填余量，退出恢复默认；大文件进度用低频FOLLOW DU，结束/离页清残影。欠载恢复必须保留目标前缓冲，不能调用 `epd_hl_set_all_white` 丢掉整页。相关回归：`tools/run_display_host_test.sh`。
 Transfer scopes additional scan prefill via `display_set_bulk_io`, restoring defaults on exit. Bulk progress uses infrequent FOLLOW DU with completion/exit cleanup. Underrun recovery must preserve the target front buffer; clearing it with `epd_hl_set_all_white` loses the page. Regression: `tools/run_display_host_test.sh`.
+
+TTF 上传使用调用方注入的独立 TF 字体目录；`app_transfer` 进页用 `ttf_font_suspend_sd(true)` 切内置并暂停 SD 字体打开，先停 HTTP 再解除暂停，不能让写入与字形读取并发。TTF 提交前检查结构，上限 32 MiB，字体不调用图书进度清理。部署原件、来源和 OFL 许可见 `sdcard/README.md`，内置修改版使用独立字体名。
+TTF uploads use a separately injected TF font directory. On entry, `app_transfer` calls `ttf_font_suspend_sd(true)` to select the built-in font and suspend SD opens; stop HTTP before resuming, preventing concurrent font replacement and glyph reads. TTF structure is checked before commit, with a 32 MiB cap and no book-progress cleanup. See `sdcard/README.md` for the original font, provenance and OFL; the modified embedded subset has its own font name.

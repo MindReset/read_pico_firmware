@@ -4,8 +4,10 @@
  *
  * 热点与已有WiFi、HTTP接收和临时文件提交；容量策略由页面注入。
  * AP/STA networking, HTTP reception and file commit; page injects capacity policy.
- * 冻结：仅 TXT/EPUB，UTF-8 名字不转写；先验限额，失败清理临时文件。
- * Frozen: TXT/EPUB only, preserve UTF-8 names; check limits first, remove failed parts.
+ * 冻结：图书 TXT/EPUB；为完整字库部署增加独立 TF 字体目录的 TTF 上传。
+ * Frozen: TXT/EPUB books; deploy complete fonts through TTF uploads to a separate TF font directory.
+ * 冻结：UTF-8 名字不转写；先验限额，字体提交前校验，失败清理临时文件。
+ * Frozen: Preserve UTF-8 names; check limits first, validate fonts before commit and remove failed parts.
  * 冻结：热点网页或停服设备触屏可配置网络，不自动切模式；凭据只存单个NVS blob，状态不含密码。
  * Frozen: AP webpage or stopped-service device UI may provision without switching mode; one NVS blob holds secrets outside public status.
  */
@@ -19,6 +21,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include "transfer_font.h"
 
 /* ---- 请求与存储 / Requests and storage ---- */
 static int hex_value(unsigned char c) {
@@ -28,7 +31,7 @@ static int hex_value(unsigned char c) {
     return -1;
 }
 
-static bool decode_name_limit(const char *encoded, char *out, size_t cap) {
+static bool decode_name_type(const char *encoded, char *out, size_t cap, bool font) {
     if (!cap) return false;
     size_t n = 0;
     while (*encoded) {
@@ -45,7 +48,7 @@ static bool decode_name_limit(const char *encoded, char *out, size_t cap) {
     out[n] = 0;
     if (!n || out[0] == '.' || out[0] == ' ' || out[n - 1] == ' ' || strstr(out, "..")) return false;
     const char *ext = strrchr(out, '.');
-    if (!ext || (strcasecmp(ext, ".txt") && strcasecmp(ext, ".epub"))) return false;
+    if (!ext || (font ? strcasecmp(ext, ".ttf") : (strcasecmp(ext, ".txt") && strcasecmp(ext, ".epub")))) return false;
     // 拒绝非规范 UTF-8、代理项与越界码点。/ Reject noncanonical UTF-8, surrogates and out-of-range code points.
     for (size_t i = 0; i < n;) {
         uint32_t cp; unsigned more; unsigned char c = (unsigned char)out[i++];
@@ -65,7 +68,9 @@ static bool decode_name_limit(const char *encoded, char *out, size_t cap) {
     return true;
 }
 
+static bool decode_name_limit(const char *encoded, char *out, size_t cap) { return decode_name_type(encoded, out, cap, false); }
 static bool decode_name(const char *encoded, char out[121]) { return decode_name_limit(encoded, out, 121); }
+static bool decode_font_name(const char *encoded, char out[121]) { return decode_name_type(encoded, out, 121, true); }
 
 static bool raw_book_name(const char *entry, char *name, size_t cap) {
     size_t len = strlen(entry);
@@ -151,7 +156,7 @@ static bool temporary_basename(const char *entry, const char *suffix, char name[
         encoded[i * 3] = '%'; encoded[i * 3 + 1] = digits[c >> 4]; encoded[i * 3 + 2] = digits[c & 15];
     }
     encoded[(len - tail) * 3] = 0;
-    return decode_name(encoded, name);
+    return decode_name(encoded, name) || decode_font_name(encoded, name);
 }
 
 static int cleanup_interrupted(const char *root, unsigned *removed, unsigned *restored) {
@@ -221,6 +226,8 @@ static int receive_file(const char *path, const char *part, size_t total, char *
         if (progress) progress(done);
     }
     if (fclose(f) != 0) error = 507;
+    const char *ext = strrchr(path, '.');
+    if (!error && ext && !strcasecmp(ext, ".ttf") && !valid_ttf(part)) error = 422;
     if (!error) {
         int committed = commit_file(part, path);
         if (committed < 0) error = 507;
@@ -347,6 +354,7 @@ static portMUX_TYPE s_lock = portMUX_INITIALIZER_UNLOCKED;
 static read_pico_transfer_status_t s_status;
 static read_pico_transfer_cfg_t s_cfg;
 static char s_root[160];
+static char s_font_root[160];
 static httpd_handle_t s_http;
 static esp_netif_t *s_netif;
 static esp_event_handler_instance_t s_events, s_ip_events;
@@ -571,15 +579,16 @@ void read_pico_transfer_service_poll(void) {
 
 static esp_err_t respond_error(httpd_req_t *req, int code) {
     ESP_LOGW("transfer", "request failed status=%d", code);
-    const char *status = code == 413 ? "413 Content Too Large" : code == 507 ? "507 Insufficient Storage" :
+    const char *status = code == 422 ? "422 Unprocessable Content" : code == 413 ? "413 Content Too Large" : code == 507 ? "507 Insufficient Storage" :
                          code == 408 ? "408 Request Timeout" : code == 409 ? "409 Conflict" :
                          code == 404 ? "404 Not Found" : code == 500 ? "500 Internal Server Error" : "400 Bad Request";
-    const char *body = code == 413 ? "{\"error\":\"文件超过单文件上限\"}" :
+    const char *body = code == 422 ? "{\"error\":\"字体校验失败，需要完整的 TrueType TTF（不支持 OTF/CFF、TTC 或 WOFF）\"}" :
+                       code == 413 ? "{\"error\":\"文件超过单文件上限\"}" :
                        code == 507 ? "{\"error\":\"存储空间不足或写入失败\"}" :
                        code == 408 ? "{\"error\":\"连接中断或接收超时，请重试\"}" :
-                       code == 409 ? "{\"error\":\"同名图书已存在，请明确选择替换或跳过\",\"conflict\":true}" :
-                       code == 404 ? "{\"error\":\"图书不存在\"}" :
-                       code == 500 ? "{\"error\":\"操作失败，请重试\"}" : "{\"error\":\"文件名或请求无效，仅支持 TXT/EPUB\"}";
+                       code == 409 ? "{\"error\":\"同名文件已存在，请明确选择替换或跳过\",\"conflict\":true}" :
+                       code == 404 ? "{\"error\":\"文件不存在\"}" :
+                       code == 500 ? "{\"error\":\"操作失败，请重试\"}" : "{\"error\":\"文件名或请求无效：图书仅 TXT/EPUB，字体仅 TTF\"}";
     set_error(code == 408 ? ESP_ERR_TIMEOUT : code == 507 ? ESP_FAIL : ESP_ERR_INVALID_ARG);
     httpd_resp_set_status(req, status);
     httpd_resp_set_type(req, "application/json; charset=utf-8");
@@ -606,6 +615,9 @@ static esp_err_t info_handler(httpd_req_t *req) {
     cJSON_AddBoolToObject(json, "wifi_configured", status.wifi_configured);
     cJSON_AddStringToObject(json, "wifi_ssid", status.wifi_ssid);
     cJSON_AddStringToObject(json, "root", s_root);
+    cJSON_AddBoolToObject(json, "fonts_enabled", s_font_root[0] != 0);
+    cJSON_AddStringToObject(json, "font_root", s_font_root);
+    cJSON_AddNumberToObject(json, "font_limit", TRANSFER_FONT_MAX);
     char *body = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
     if (!body) return ESP_ERR_NO_MEM;
@@ -743,7 +755,7 @@ static esp_err_t file_response(httpd_req_t *req, file_result_t result, bool dele
         }
         if (result.storage_cleanup_failed) {
             cJSON_AddBoolToObject(json, "storage_cleanup_failed", true);
-            cJSON_AddStringToObject(json, "warning", "新书已保存，旧书备份清理失败；备份已保留，请勿重复上传");
+            cJSON_AddStringToObject(json, "warning", "文件已保存，旧文件备份清理失败；备份已保留，请勿重复上传");
             ESP_LOGW("transfer", "committed with retained backup");
         }
         return send_json(req, json);
@@ -825,10 +837,13 @@ static esp_err_t books_handler(httpd_req_t *req) {
 static esp_err_t upload_handler(httpd_req_t *req) {
     if (!management_request(req)) return wifi_response(req, "403 Forbidden", "{\"error\":\"请从设备显示的地址打开管理页面\"}");
     char query[512], encoded[361], name[121], path[288], part[296], replace[8];
+    bool font = req->user_ctx != NULL;
+    if (font && !s_font_root[0]) return wifi_response(req, "409 Conflict", "{\"error\":\"字体需要 TF 卡，请挂载后重新进入传书\"}");
     if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
-        httpd_query_key_value(query, "name", encoded, sizeof(encoded)) != ESP_OK || !decode_name(encoded, name))
+        httpd_query_key_value(query, "name", encoded, sizeof(encoded)) != ESP_OK ||
+        !(font ? decode_font_name(encoded, name) : decode_name(encoded, name)))
         return respond_error(req, 400);
-    int resolved = resolve_mutation_path(s_root, name, path, sizeof(path));
+    int resolved = resolve_mutation_path(font ? s_font_root : s_root, name, path, sizeof(path));
     if (resolved) return respond_error(req, resolved);
     snprintf(part, sizeof(part), "%s.part", path);
     bool overwrite = httpd_query_key_value(query, "overwrite", replace, sizeof(replace)) == ESP_OK && !strcmp(replace, "1");
@@ -843,8 +858,9 @@ static esp_err_t upload_handler(httpd_req_t *req) {
     portEXIT_CRITICAL(&s_lock);
     int64_t started = esp_timer_get_time();
     ESP_LOGI("transfer", "receive name=%s bytes=%u", name, (unsigned)req->content_len);
-    file_result_t result = upload_managed(path, part, req->content_len, s_cfg.file_limit,
-        s_cfg.free_bytes_cb(s_cfg.free_bytes_ctx), overwrite, s_buffer, 16384, receive_http, req, upload_progress, s_cfg.file_changed_cb);
+    file_result_t result = upload_managed(path, part, req->content_len, font ? TRANSFER_FONT_MAX : s_cfg.file_limit,
+        s_cfg.free_bytes_cb(s_cfg.free_bytes_ctx), overwrite, s_buffer, 16384, receive_http, req, upload_progress,
+        font ? NULL : s_cfg.file_changed_cb);
     portENTER_CRITICAL(&s_lock);
     s_upload_active = false;
     if (result.changed) { s_status.done_count++; s_status.changed_count++; }
@@ -852,6 +868,25 @@ static esp_err_t upload_handler(httpd_req_t *req) {
     if (result.changed) ESP_LOGI("transfer", "committed name=%s bytes=%u elapsed_ms=%lld", name,
              (unsigned)req->content_len, (esp_timer_get_time() - started) / 1000);
     return file_response(req, result, false, path);
+}
+
+static esp_err_t font_info_handler(httpd_req_t *req) {
+    if (!management_request(req)) return wifi_response(req, "403 Forbidden", "{\"error\":\"请从设备显示的地址打开管理页面\"}");
+    if (!s_font_root[0]) return wifi_response(req, "409 Conflict", "{\"error\":\"字体需要 TF 卡，请挂载后重新进入传书\"}");
+    char query[512], encoded[361], name[121], path[288];
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
+        httpd_query_key_value(query, "name", encoded, sizeof(encoded)) != ESP_OK || !decode_font_name(encoded, name))
+        return respond_error(req, 400);
+    int resolved = resolve_mutation_path(s_font_root, name, path, sizeof(path));
+    if (resolved) return respond_error(req, resolved);
+    struct stat st;
+    if (stat(path, &st)) return respond_error(req, errno == ENOENT ? 404 : 507);
+    if (!S_ISREG(st.st_mode) || st.st_size < 0) return respond_error(req, 400);
+    cJSON *json = cJSON_CreateObject();
+    if (!json) return ESP_ERR_NO_MEM;
+    cJSON_AddStringToObject(json, "name", strrchr(path, '/') + 1);
+    cJSON_AddNumberToObject(json, "size", (double)st.st_size);
+    return send_json(req, json);
 }
 
 /* ---- 生命周期 / Lifecycle ---- */
@@ -883,9 +918,12 @@ void read_pico_transfer_stop(void) {
 
 esp_err_t read_pico_transfer_start(const read_pico_transfer_cfg_t *cfg) {
     if (!cfg || !cfg->root_dir || !cfg->free_bytes_cb || strlen(cfg->root_dir) >= sizeof(s_root) ||
+        (cfg->font_dir && (cfg->is_flash || !cfg->font_dir[0] || strlen(cfg->font_dir) >= sizeof(s_font_root))) ||
         (cfg->mode != READ_PICO_TRANSFER_MODE_AP && cfg->mode != READ_PICO_TRANSFER_MODE_STA)) return ESP_ERR_INVALID_ARG;
     if (s_wifi || s_netif || s_http) return ESP_ERR_INVALID_STATE;
     s_cfg = *cfg; strcpy(s_root, cfg->root_dir); s_cfg.root_dir = s_root;
+    snprintf(s_font_root, sizeof(s_font_root), "%s", cfg->font_dir ? cfg->font_dir : "");
+    s_cfg.font_dir = s_font_root[0] ? s_font_root : NULL;
     portENTER_CRITICAL(&s_lock);
     memset(&s_status, 0, sizeof(s_status)); s_status.state = READ_PICO_TRANSFER_STARTING;
     s_stopping = s_upload_active = false;
@@ -903,6 +941,10 @@ esp_err_t read_pico_transfer_start(const read_pico_transfer_cfg_t *cfg) {
     if (cleanup_interrupted(cfg->root_dir, &removed, &restored)) {
         ESP_LOGW("transfer", "cleanup failed removed=%u restored=%u", removed, restored);
         err = ESP_FAIL; goto fail;
+    }
+    if (s_font_root[0]) {
+        if ((mkdir(s_font_root, 0755) && errno != EEXIST) || stat(s_font_root, &st) || !S_ISDIR(st.st_mode) ||
+            cleanup_interrupted(s_font_root, &removed, &restored)) { err = ESP_FAIL; goto fail; }
     }
     if (removed || restored) ESP_LOGI("transfer", "cleanup removed=%u restored=%u", removed, restored);
     err = esp_netif_init();
@@ -945,13 +987,15 @@ esp_err_t read_pico_transfer_start(const read_pico_transfer_cfg_t *cfg) {
     err = esp_wifi_start(); if (err != ESP_OK) goto fail;
     s_started = true;
     httpd_config_t http = HTTPD_DEFAULT_CONFIG();
-    http.stack_size = 12288; http.max_uri_handlers = 8; http.recv_wait_timeout = 5;
+    http.stack_size = 12288; http.max_uri_handlers = 10; http.recv_wait_timeout = 5;
     http.lru_purge_enable = true;
     err = httpd_start(&s_http, &http); if (err != ESP_OK) goto fail;
     const httpd_uri_t routes[] = {
         { .uri = "/", .method = HTTP_GET, .handler = index_handler },
         { .uri = "/info", .method = HTTP_GET, .handler = info_handler },
         { .uri = "/upload", .method = HTTP_PUT, .handler = upload_handler },
+        { .uri = "/fonts", .method = HTTP_PUT, .handler = upload_handler, .user_ctx = (void *)1 },
+        { .uri = "/fonts", .method = HTTP_GET, .handler = font_info_handler },
         { .uri = "/books", .method = HTTP_GET, .handler = books_handler },
         { .uri = "/books", .method = HTTP_DELETE, .handler = books_handler },
         { .uri = "/books", .method = HTTP_POST, .handler = books_handler },

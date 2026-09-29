@@ -170,6 +170,7 @@ int main(void) {
     assert(on_tick(&ctx) == APP_REDRAW_FULL);
     assert(s_status.changed_count == 1);
     transfer_on_exit(&ctx);
+    assert(!test_font_suspended);
     assert(test_store_changes == 1);
     on_enter(&ctx);
     on_tick(&ctx);
@@ -177,6 +178,7 @@ int main(void) {
     s_free = 123456;
     stops_before = test_stop_count;
     app_transfer.on_media_lost(&ctx);
+    assert(test_font_suspended);
     assert(test_stop_count == stops_before + 1);
     assert(s_media_lost && !s_free && !s_qr_ready && !s_root.path[0]);
     assert(!s_start_pending && !s_session_started && s_view == TRANSFER_HOME);

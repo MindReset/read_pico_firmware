@@ -159,6 +159,7 @@ static uint32_t work_loca_off;
 static uint32_t work_glyf_off;
 static stbtt_fontinfo font_info;
 static bool font_ready;
+static bool sd_suspended; // 字体传输期间仅允许内置字体。/ Only built-in fonts while transferring font files.
 static ttf_size_metrics_t size_metrics[2];
 static int raw_ascent_units;
 static int current_weight = TTF_WGHT_DEF;
@@ -1759,14 +1760,17 @@ static void warm_text_io(int pixel_height, const char* text) {
 }
 
 static int measure_width(int pixel_height, const char* text) {
-    warm_text_io(pixel_height, text);
+    // 字宽只依赖已驻留的 cmap/hmtx；分页不读取轮廓、不生成整章位图。
+    // Resident cmap/hmtx suffice for advances; pagination never reads outlines or rasterizes a chapter.
+    float scale = stbtt_ScaleForPixelHeight(&font_info, (float)pixel_height);
     int width = 0;
     const char* cursor = text;
     while (*cursor != '\0') {
         uint32_t cp = decode_utf8(&cursor);
-        const glyph_entry_t* glyph = get_glyph(cp, pixel_height);
-        if (glyph == NULL) continue;
-        width += glyph->advance_x;
+        int advance = 0, lsb = 0;
+        int gid = stbtt_FindGlyphIndex(&font_info, (int)cp);
+        stbtt_GetGlyphHMetrics(&font_info, gid, &advance, &lsb);
+        width += (int)lroundf(advance * scale);
     }
     return width;
 }
@@ -1924,10 +1928,17 @@ esp_err_t ttf_font_open_builtin(void) {
     return load_opened_font();
 }
 
+esp_err_t ttf_font_suspend_sd(bool suspend) {
+    sd_suspended = suspend;
+    if (suspend && (!font_ready || !ttf_font_is_builtin())) return ttf_font_open_builtin();
+    return ESP_OK;
+}
+
 esp_err_t ttf_font_open(const char* path) {
     if (ttf_font_path_is_builtin(path)) {
         return ttf_font_open_builtin();
     }
+    if (sd_suspended) return ESP_ERR_INVALID_STATE;
 
     char prev[TTF_FONT_PATH_MAX];
     strlcpy(prev, font_path, sizeof(prev));
