@@ -1184,8 +1184,9 @@ static bool apply_gvar_composite(uint8_t* blob, uint32_t len, int gid) {
     }
     if (ncomp == 0) return true;
 
-    // 复合 gvar 点序：4 个幻影点 + 每分量 4 点，前两个是原点 x/y。
-    int n_var = 4 + 4 * ncomp;
+    // 复合 gvar 点序：每个分量占一个点（偏移 x/y），其后是 4 个幻影点。
+    // Composite gvar point order: one point per component (its x/y offset), then 4 phantom points.
+    int n_var = ncomp + 4;
     const uint8_t* data = slice;
     uint32_t data_len = b - a;
     if (data_len < 4) return true;
@@ -1244,19 +1245,15 @@ static bool apply_gvar_composite(uint8_t* blob, uint32_t len, int gid) {
 
         if (pn < 0) {
             for (int i = 0; i < ncomp; i++) {
-                int pi = 4 + 4 * i;
-                if (pi < delta_n) cdx[i] += (float)xdel[pi] * scalar;
-                if (pi + 1 < delta_n) cdy[i] += (float)ydel[pi] * scalar;
+                cdx[i] += (float)xdel[i] * scalar;
+                cdy[i] += (float)ydel[i] * scalar;
             }
         } else {
             for (int i = 0; i < pn; i++) {
-                int pi = pts[i];
-                if (pi < 4) continue;
-                int ci = (pi - 4) / 4;
-                int which = (pi - 4) % 4;
-                if (ci < 0 || ci >= ncomp) continue;
-                if (which == 0) cdx[ci] += (float)xdel[i] * scalar;
-                if (which == 1) cdy[ci] += (float)ydel[i] * scalar;
+                int ci = pts[i];
+                if (ci >= ncomp) continue;
+                cdx[ci] += (float)xdel[i] * scalar;
+                cdy[ci] += (float)ydel[i] * scalar;
             }
         }
     }
@@ -1653,9 +1650,43 @@ static glyph_entry_t* cache_lookup(uint32_t codepoint, int size) {
     return NULL;
 }
 
+// 复合字形头里的包围盒是默认字重的值；变字重后分量变宽，按旧盒子栅格化会被截边。
+// 这里按展开后的实际轮廓重写工作副本里的包围盒。
+// A composite glyph header keeps the default-weight bbox; after variation the wider
+// components would be clipped. Rewrite the working copy's bbox from the expanded outline.
+static void refit_composite_box(int gid) {
+    if (!gvar_ready || current_weight == wght_def) return;
+    int off = stbtt__GetGlyfOffset(&font_info, gid);
+    if (off < 0) return;
+    uint8_t* head = font_info.data + off;
+    if ((int16_t)be16(head) >= 0) return;
+    stbtt_vertex* v = NULL;
+    int n = stbtt_GetGlyphShape(&font_info, gid, &v);
+    if (n > 0) {
+        int x0 = INT16_MAX, y0 = INT16_MAX, x1 = INT16_MIN, y1 = INT16_MIN;
+        for (int i = 0; i < n; i++) {
+            const int px[2] = { v[i].x, v[i].cx };
+            const int py[2] = { v[i].y, v[i].cy };
+            const int k = v[i].type == STBTT_vcurve ? 2 : 1;
+            for (int j = 0; j < k; j++) {
+                if (px[j] < x0) x0 = px[j];
+                if (px[j] > x1) x1 = px[j];
+                if (py[j] < y0) y0 = py[j];
+                if (py[j] > y1) y1 = py[j];
+            }
+        }
+        put_be16(head + 2, (uint16_t)x0);
+        put_be16(head + 4, (uint16_t)y0);
+        put_be16(head + 6, (uint16_t)x1);
+        put_be16(head + 8, (uint16_t)y1);
+    }
+    if (v != NULL) stbtt_FreeShape(&font_info, v);
+}
+
 static glyph_entry_t* rasterize_glyph(uint32_t codepoint, int pixel_height) {
     int gid = stbtt_FindGlyphIndex(&font_info, (int)codepoint);
     if (!pack_glyph_tree(gid)) return NULL;
+    refit_composite_box(gid);
 
     float scale = stbtt_ScaleForPixelHeight(&font_info, (float)pixel_height);
     int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
