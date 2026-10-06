@@ -84,8 +84,16 @@
 #define EPD_SPV GPIO_NUM_47
 #define EPD_CKV GPIO_NUM_48
 
+// VCOM_EN 拉高后到扫描开始的等待，给 VCOM 建立留余量。
+// / Wait after raising VCOM_EN before the scan starts, so VCOM can settle.
+#define VCOM_SETTLE_US 2000
+
 static uint8_t ioe_output;
 static bool rails_on;
+// 轨已上电时 VCOM_EN 跟随 ep_mode，只在扫描期间打开；空闲保轨时 VCOM 长开会把画面慢慢压黑。
+// / With rails up, VCOM_EN follows ep_mode and is on only while scanning; holding VCOM
+// during idle rails slowly drives the image dark.
+static bool vcom_gated;
 static i2c_master_bus_handle_t s_i2c_bus;
 static sy7636a_handle_t s_sy;
 static fca9555_handle_t s_ioe;
@@ -356,9 +364,15 @@ static int board_sy_pgood(void) {
 
 static void board_set_ctrl(epd_ctrl_state_t* state, const epd_ctrl_state_t* const mask) {
     bool changed = false;
+    bool vcom_rise = false;
     if (mask->ep_mode) {
         if (state->ep_mode) ioe_output |= IOE_MODE;
         else ioe_output &= (uint8_t)~IOE_MODE;
+        if (vcom_gated) {
+            vcom_rise = state->ep_mode && !(ioe_output & IOE_SY_VCOM_EN);
+            if (state->ep_mode) ioe_output |= IOE_SY_VCOM_EN;
+            else ioe_output &= (uint8_t)~IOE_SY_VCOM_EN;
+        }
         changed = true;
     }
     if (mask->ep_output_enable) {
@@ -373,6 +387,8 @@ static void board_set_ctrl(epd_ctrl_state_t* state, const epd_ctrl_state_t* cons
         esp_err_t err = ioe_commit();
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "ioe_commit %s", esp_err_to_name(err));
+        } else if (vcom_rise) {
+            esp_rom_delay_us(VCOM_SETTLE_US);
         }
     }
 }
@@ -450,6 +466,7 @@ static void board_poweron(epd_ctrl_state_t* state) {
     state->ep_output_enable = true;
     board_set_ctrl(state, &ctrl_mask);
     rails_on = true;
+    vcom_gated = true;
 
     sy7636a_status_t st;
     if (sy7636a_read(s_sy, &st) == ESP_OK) {
@@ -461,6 +478,7 @@ static void board_poweron(epd_ctrl_state_t* state) {
 }
 
 static void board_poweroff(epd_ctrl_state_t* state) {
+    vcom_gated = false;
     state->ep_output_enable = false;
     state->ep_mode = true;
     epd_ctrl_state_t ctrl_mask = {
