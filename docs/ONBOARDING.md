@@ -303,7 +303,8 @@ flowchart TD
 
 ### 6.5 睡眠与锁屏（[main/sleep.c](../main/sleep.c)、[main/settings.c](../main/settings.c)）
 
-- 模式 `app_sleep_mode_t`：LIGHT 0 / DEEP 1（默认）/ OFF 2。
+- 模式 `app_sleep_mode_t`：LIGHT 0 / DEEP 1 / OFF 2（默认）。
+- 无操作 2 分钟（`APP_AUTO_SLEEP_MS`）走同一条锁屏路径；独占 PMU 的页和传书页不计时。
 - 浅睡：`app_light_sleep_wait()`，唤醒源 IOE INT（GPIO41 低电平）+ 可选拿起（SC7A20H，350 mg / 3 拍，带静默窗口）。
 - 软睡/关机：`app_enter_host_sleep()` 经 PMU 执行，**不返回**。
 - NVS 键（命名空间 `read_pico`）：`sleep`(u8)、`font`(str，空 = 内置)、`lwake`、`lboot`、`pickup`。自检结果在命名空间 `pmu_st` 键 `blob`（magic 0xAA）。

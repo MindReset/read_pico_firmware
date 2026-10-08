@@ -5,14 +5,20 @@
  * 传书页负责两种接入模式生命周期、书源注入与状态展示；HTTP和文件接收属于独立组件。
  * Transfer page owns both network modes, storage injection and status; the component receives files.
  *
- * 冻结：按用户双模式要求提供热点与已有WiFi，离页停止网络；沿用全局锁屏/睡眠策略，不新增协同；深睡/断电会中断传输。
+ * 冻结：按用户双模式要求提供热点与已有WiFi，离页停止网络。
+ * 本页停留期间不计空闲自动休眠，避免等人传文件时热点和接收被掐断。
+ * 决策变更：2 分钟空闲锁屏会把传书流程关掉，用户要求这段流程不能被打断。
+ * 电源键锁屏仍走全局路径，深睡/断电会中断传输。
  * render只画快照；内置存储单文件上限由book_store提供，不格式化TF卡。
  * 上传并发扫描曾欠载，页内增加预填余量；离页停服后恢复，不改波形或像素时钟。
  * 用户要求设备端配网：停服后扫描选网，ASCII密码只在连接保存时写入，离开输入页即清空。
  * 用户验收要求停止后恢复进入传书前的页面或菜单位置；遗忘网络必须确认。
  * 用户要求联网后提供网址二维码；热点用单码切换连接/网页，网络变更清除旧码。
  * 卡失效时停止并汇合接收任务，清除旧容量与二维码；当前请求不得切换存储源。
- * Frozen: user-requested AP/STA modes stop networking on exit; retain global lock/sleep policy without coordination; deep sleep or power loss interrupts transfer.
+ * Frozen: user-requested AP/STA modes stop networking on exit.
+ * Idle auto-sleep does not run while this page is current, so a waiting hotspot and reception stay up.
+ * Decision change: the 2-minute idle lock was closing the transfer flow; the user requires that flow to keep running.
+ * The power key still uses the global lock path, and deep sleep or power loss still interrupts transfer.
  * Render only paints snapshots; book_store defines the flash file limit. Never format the TF card.
  * Concurrent uploads underrun scan queues; increase prefill until service exit without changing waveforms or pixel clocks.
  * User-requested device provisioning scans while stopped; save ASCII passwords only on connect and clear input on leaving the editor.
@@ -646,6 +652,7 @@ static bool present(app_ctx_t* ctx, app_redraw_t redraw) {
 const app_desc_t app_transfer = {
     .on_media_lost = transfer_on_media_lost,
     .title = "传书 Transfer", .detail = "热点或已有 WiFi，浏览器上传", .enter_full = true,
+    .blocks_idle_sleep = true,
     .on_enter = on_enter, .on_exit = transfer_on_exit, .render = render, .present = present,
     .on_tick = on_tick, .on_gesture = on_gesture,
 };

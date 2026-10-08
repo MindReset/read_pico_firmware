@@ -2,9 +2,9 @@
  * SPDX-FileCopyrightText: 2026 mindreset
  * SPDX-License-Identifier: Apache-2.0
  *
- * NVS 读写。打开失败就用深睡默认值，不擦除整个分区。
+ * NVS 读写。打开失败就用关机默认值，不擦除整个分区。
  *
- * NVS load/store. A failed open keeps the deep-sleep default; the
+ * NVS load/store. A failed open keeps the power-off default; the
  * partition is not erased.
  */
 
@@ -27,7 +27,7 @@
 #define NVS_KEY_BOOK_SHAKE "bk_shake"
 #define FONT_PATH_MAX 160
 
-static app_sleep_mode_t s_sleep = APP_SLEEP_DEEP;
+static app_sleep_mode_t s_sleep = APP_SLEEP_OFF;
 static char s_font[FONT_PATH_MAX];
 static uint8_t s_last_wake;
 static uint8_t s_last_boot;
@@ -46,13 +46,13 @@ void app_settings_init(void) {
         err = nvs_flash_init();
     }
     if (err != ESP_OK) {
-        ESP_LOGW(TAG, "nvs init %s, use deep sleep", esp_err_to_name(err));
+        ESP_LOGW(TAG, "nvs init %s, use power off", esp_err_to_name(err));
         return;
     }
 
     nvs_handle_t h;
     if (nvs_open(NVS_NS, NVS_READONLY, &h) != ESP_OK) return;
-    uint8_t raw = APP_SLEEP_DEEP;
+    uint8_t raw = APP_SLEEP_OFF;
     if (nvs_get_u8(h, NVS_KEY_SLEEP, &raw) == ESP_OK && raw <= APP_SLEEP_OFF) {
         s_sleep = (app_sleep_mode_t)raw;
     }
@@ -91,7 +91,7 @@ const char* app_sleep_mode_name(app_sleep_mode_t mode) {
 }
 
 void app_settings_set_sleep_mode(app_sleep_mode_t mode) {
-    if (mode > APP_SLEEP_OFF) mode = APP_SLEEP_DEEP;
+    if (mode > APP_SLEEP_OFF) mode = APP_SLEEP_OFF;
     s_sleep = mode;
     nvs_handle_t h;
     if (nvs_open(NVS_NS, NVS_READWRITE, &h) != ESP_OK) return;

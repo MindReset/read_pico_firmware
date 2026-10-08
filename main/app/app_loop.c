@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * 事件循环。只做和页面无关的事：读触摸并去抖、三个实体键与菜单把手的路由、切页
- * 时调 on_exit/on_enter、按回调返回值决定怎么刷屏、电源键锁屏、SD 卡上的字体延迟
- * 加载。页面自己的状态和刷新节奏都在 main/apps/ 各自的文件里。
+ * 时调 on_exit/on_enter、按回调返回值决定怎么刷屏、电源键锁屏、无操作 2 分钟走
+ * 同一锁屏、SD 卡上的字体延迟加载。页面自己的状态和刷新节奏都在 main/apps/ 各自的文件里。
  *
  * Event loop for page-agnostic work: touch debounce, the three keys and
- * the menu handle, on_exit/on_enter, present, lock, delayed SD font load.
+ * the menu handle, on_exit/on_enter, present, lock, the same lock after
+ * 2 minutes idle, delayed SD font load.
  * Page state and refresh cadence stay in main/apps/; gesture recognition is shared.
  *
  * 冻结：主循环只产出手势、不解释含义；只有 owns_keys 页可接管三键，
@@ -229,6 +230,31 @@ static bool poll_media(app_ctx_t* ctx, const app_desc_t* current,
     return true;
 }
 
+// 电源键和空闲超时共用：收掉手势，走锁屏路径，浅睡回来后重画。
+// Shared by the power key and the idle timeout: cancel input, lock, redraw after light sleep.
+static void lock_and_resume(
+    app_ctx_t* ctx, const app_desc_t* current, ui_gesture_t* gesture,
+    int* held_key, int* menu_pressed, menu_feedback_t* feedback,
+    bool menu_open, int menu_leaf, bool* media_mounted, bool* media_invalidated,
+    int64_t* last_media_poll_ms
+) {
+    *held_key = -1;
+    cancel_gesture(ctx, current, gesture);
+    if (*menu_pressed >= 0) {
+        menu_feedback(ctx, current, menu_leaf, *menu_pressed, false, feedback);
+    }
+    *menu_pressed = UI_MENU_HIT_NONE;
+    enter_lock_and_sleep(ctx->hl, &s_lock_ignore_until_ms, ctx->acc);
+    ctx->now_ms = esp_timer_get_time() / 1000;
+    poll_media(ctx, current, media_mounted, media_invalidated);
+    *last_media_poll_ms = ctx->now_ms;
+    ctx->consumed = true;
+    ctx->pressed = false;
+    ctx->released = false;
+    if (menu_open) present_menu(ctx, current, menu_leaf, feedback);
+    else app_present(ctx, current, APP_REDRAW_PAGE);
+}
+
 void app_loop_run(const app_loop_config_t* config) {
     const app_desc_t* current = config->first_app != NULL
         ? config->first_app
@@ -261,6 +287,7 @@ void app_loop_run(const app_loop_config_t* config) {
     int held_key = -1;
     int64_t held_since_ms = 0;
     int64_t last_lock_poll_ms = 0;
+    int64_t last_input_ms = esp_timer_get_time() / 1000;
     int64_t last_font_retry_ms = 0;
     int64_t last_media_poll_ms = 0;
     bool media_mounted = ttf_font_ready() && !ttf_font_is_builtin();
@@ -286,6 +313,12 @@ void app_loop_run(const app_loop_config_t* config) {
         const bool released = !touch.touched && was_touched;
         debounce_touch(&latest, &touch, released);
         ctx.now_ms = esp_timer_get_time() / 1000;
+        // 触摸、独占 PMU、以及声明不自动休眠的页都算活动。页面自己的轮询刷新不重置。
+        // Touch, PMU-owning pages, and pages that block idle sleep count as activity. A page's own poll does not reset it.
+        if (current->holds_pmu || current->blocks_idle_sleep
+            || (err == ESP_OK && (touch.touched || released))) {
+            last_input_ms = ctx.now_ms;
+        }
         ctx.pressed = pressed;
         ctx.released = released;
         ctx.consumed = false;
@@ -410,9 +443,8 @@ void app_loop_run(const app_loop_config_t* config) {
         ctx.now_ms = esp_timer_get_time() / 1000;
         rails_idle_check(ctx.now_ms);
 
-        // 电源键短按 = 锁屏。自检页要连着占用 PMU，这时不抢它的事件队列。
-        // Short power-key press locks. A page that holds the PMU keeps its event queue.
-        // Short power-key press locks. A page that holds the PMU keeps its event queue.
+        // 电源键短按或空闲超时 = 锁屏。自检页要连着占用 PMU，这时不抢它的事件队列。
+        // Short power-key press or idle timeout locks. A page that holds the PMU keeps its event queue.
         if (read_pico_pmu_ready() && !current->holds_pmu
             && ctx.now_ms - last_lock_poll_ms >= APP_LOCK_POLL_MS) {
             last_lock_poll_ms = ctx.now_ms;
@@ -420,23 +452,22 @@ void app_loop_run(const app_loop_config_t* config) {
                 if (ctx.now_ms < s_lock_ignore_until_ms) {
                     ESP_LOGI(TAG, "ignore boot KEY_SHORT");
                 } else {
-                    held_key = -1;
-                    cancel_gesture(&ctx, current, &gesture);
-                    if (menu_pressed >= 0) menu_feedback(&ctx, current, menu_leaf, menu_pressed, false, &feedback);
-                    menu_pressed = UI_MENU_HIT_NONE;
-                    enter_lock_and_sleep(ctx.hl, &s_lock_ignore_until_ms, ctx.acc);
-                    ctx.now_ms = esp_timer_get_time() / 1000;
-                    poll_media(&ctx, current, &media_mounted, &media_invalidated);
-                    last_media_poll_ms = ctx.now_ms;
-                    ctx.consumed = true;
-                    ctx.pressed = false;
-                    ctx.released = false;
-                    // 醒来还在同一页，重画一次免得留着锁屏图。
-                    // Still the same page; redraw so the lock image does not stay.
-                    // Still the same page; redraw so the lock image does not stay.
-                    if (menu_open) present_menu(&ctx, current, menu_leaf, &feedback);
-                    else app_present(&ctx, current, APP_REDRAW_PAGE);
+                    lock_and_resume(
+                        &ctx, current, &gesture, &held_key, &menu_pressed, &feedback,
+                        menu_open, menu_leaf, &media_mounted, &media_invalidated,
+                        &last_media_poll_ms
+                    );
+                    last_input_ms = ctx.now_ms;
                 }
+            } else if (ctx.now_ms >= s_lock_ignore_until_ms
+                       && ctx.now_ms - last_input_ms >= APP_AUTO_SLEEP_MS) {
+                ESP_LOGI(TAG, "idle lock");
+                lock_and_resume(
+                    &ctx, current, &gesture, &held_key, &menu_pressed, &feedback,
+                    menu_open, menu_leaf, &media_mounted, &media_invalidated,
+                    &last_media_poll_ms
+                );
+                last_input_ms = ctx.now_ms;
             }
         }
 

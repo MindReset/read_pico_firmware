@@ -99,6 +99,9 @@ struct app_desc_s {
     /// 菜单关闭时接管三键，页面必须提供强刷和菜单入口。
     /// Own all three keys outside the menu; provide full refresh and menu exits.
     bool owns_keys;
+    /// true = 停留在本页时不计空闲自动休眠。电源键锁屏仍走全局路径。
+    /// true = idle time does not auto-sleep while this page is current. The power key still locks.
+    bool blocks_idle_sleep;
     /// 进页/离页。on_enter 里做上电、唤醒传感器、拉一次数据这类副作用。
     /// / Enter/exit. on_enter powers up, wakes sensors, takes a first sample.
     void (*on_enter)(app_ctx_t* ctx);
@@ -134,6 +137,9 @@ struct app_desc_s {
 // 锁屏：浅睡按键或拿起回原页；软睡 EN=0，再短按开机；关机 EN=0，长按开机。
 // Lock: light-sleep key or pickup returns to the page; soft sleep drops EN
 // and a short press powers on; power-off drops EN and needs a long press.
+// 无操作满这段时间走同一条锁屏路径，档位仍由睡眠设置决定。
+// Idle this long, then the same lock path; the sleep setting still picks the mode.
+#define APP_AUTO_SLEEP_MS (2 * 60 * 1000)
 #define APP_LOCK_POLL_MS 200
 #define APP_LOCK_IGNORE_BOOT_MS 2000
 #define APP_LOCK_IGNORE_SELFTEST_MS 2000
