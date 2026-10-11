@@ -284,6 +284,9 @@ esp_err_t app_enter_host_sleep(app_sleep_mode_t mode) {
 void enter_lock_and_sleep(
     EpdiyHighlevelState* hl, int64_t* ignore_until_ms, sc7a20h_handle_t acc
 ) {
+    // 乐曲的 32 kHz 采样中断和线圈电流会干扰锁屏整屏刷新，先停再上屏轨。
+    // The score's 32 kHz sample ISR and coil current disturb the lock-face full refresh; stop it before the rails come up.
+    if (read_pico_buzzer_score_busy()) (void)read_pico_buzzer_score_stop();
     uint8_t* framebuffer = epd_hl_get_framebuffer(hl);
     epd_poweron();
     epd_clear();

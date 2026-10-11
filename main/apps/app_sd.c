@@ -298,6 +298,13 @@ static void on_enter(app_ctx_t* ctx) {
     }
 }
 
+// 乐曲的 32 kHz 采样中断会干扰下一页的整屏刷新，离页即停。
+// The score's 32 kHz sample ISR disturbs the next page's full refresh; stop it on exit.
+static void sd_on_exit(app_ctx_t* ctx) {
+    (void)ctx;
+    if (read_pico_buzzer_score_busy()) (void)read_pico_buzzer_score_stop();
+}
+
 static app_redraw_t on_touch(app_ctx_t* ctx, const cst836u_touch_t* touch) {
     read_pico_sd_info_t info = { 0 };
     read_pico_sd_get_info(&info);
@@ -385,6 +392,7 @@ const app_desc_t app_sd = {
     .detail = "存储卡与蜂鸣器 Storage & Buzzer",
     .render = render,
     .on_enter = on_enter,
+    .on_exit = sd_on_exit,
     .on_touch = on_touch,
     .on_tick = on_tick,
 };
