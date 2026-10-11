@@ -40,6 +40,7 @@ void rails_idle_check(int64_t);
 bool read_pico_pmu_ready(void);
 bool read_pico_pmu_take_key_short(void);
 void enter_lock_and_sleep(EpdiyHighlevelState*, int64_t*, void*);
+bool app_lock_powers_down(void);
 const char* app_settings_font_path(void);
 bool ttf_font_path_is_builtin(const char*);
 bool ttf_font_ready(void);

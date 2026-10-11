@@ -22,6 +22,7 @@
 #include "read_pico_init.h"
 #include "read_pico_pmu.h"
 #include "settings.h"
+#include "sleep.h"
 #include "ttf_font.h"
 #include "ui_kit.h"
 #include "vcom_setup.h"
@@ -70,6 +71,7 @@ void app_main(void) {
     app_settings_init();
     const bool vcom_ok = resolve_vcom_at_boot();
     pmu_selftest_bind(hw.sensor);
+    app_sleep_bind(hw.touch, hw.sensor);
     const bool st_resume = pmu_selftest_boot_resume();
 
     if (!images_match_panel()) return;

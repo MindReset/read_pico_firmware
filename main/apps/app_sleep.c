@@ -312,13 +312,12 @@ static void sleep_try(app_ctx_t* ctx) {
     app_sleep_mode_t mode = app_settings_sleep_mode();
     sleep_show_notice(ctx, mode);
     app_lock_wait_key_idle(800);
-    if (mode == APP_SLEEP_LIGHT) {
-        epd_poweroff();
-        app_light_sleep_wait(s_ui.pickup_ok ? ctx->acc : NULL);
-        app_lock_ignore_for(APP_LOCK_IGNORE_BOOT_MS);
-        return;
+    if (mode != APP_SLEEP_LIGHT) {
+        ESP_LOGW(TAG, "host sleep failed: %s, light sleep", esp_err_to_name(app_enter_host_sleep(mode)));
     }
-    app_enter_host_sleep(mode);
+    epd_poweroff();
+    app_light_sleep_wait(s_ui.pickup_ok ? ctx->acc : NULL);
+    app_lock_ignore_for(APP_LOCK_IGNORE_BOOT_MS);
 }
 
 static app_redraw_t sleep_on_hit(app_ctx_t* ctx, int hit) {

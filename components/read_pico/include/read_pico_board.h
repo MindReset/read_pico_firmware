@@ -105,6 +105,12 @@ esp_err_t read_pico_tp_rst(bool high);
 /// call before light sleep and after wake.
 void read_pico_clear_ioe_int(void);
 
+/// 睡前收口 9555：悬空的 Port1 推高；host_off 时 CW_INT 也改输出低，关机期间 INT# 不再被 PMU 事件拉低。浅睡不能用 host_off，按键唤醒要靠 CW_INT。
+/// Park the 9555 before sleep: drive unconnected Port1 high; with host_off, CW_INT turns output-low so PMU events cannot pull INT# while off. Never use host_off for light sleep; key wake needs CW_INT.
+esp_err_t read_pico_ioe_sleep(bool host_off);
+/// 恢复运行时的方向配置并清 INT#。/ Restore running directions and clear INT#.
+esp_err_t read_pico_ioe_wake(void);
+
 #ifdef __cplusplus
 }
 #endif

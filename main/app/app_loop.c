@@ -244,7 +244,12 @@ static void lock_and_resume(
         menu_feedback(ctx, current, menu_leaf, *menu_pressed, false, feedback);
     }
     *menu_pressed = UI_MENU_HIT_NONE;
+    // 要断主机电时先让页面收尾（停网络、关传感器、存进度）；只有下电失败才会回到这里重新进页。
+    // Before the host loses power let the page wind down (network, sensors, progress); re-enter only if power-down failed.
+    const bool powers_down = app_lock_powers_down();
+    if (powers_down && current->on_exit != NULL) current->on_exit(ctx);
     enter_lock_and_sleep(ctx->hl, &s_lock_ignore_until_ms, ctx->acc);
+    if (powers_down && current->on_enter != NULL) current->on_enter(ctx);
     ctx->now_ms = esp_timer_get_time() / 1000;
     poll_media(ctx, current, media_mounted, media_invalidated);
     *last_media_poll_ms = ctx->now_ms;

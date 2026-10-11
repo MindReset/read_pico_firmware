@@ -104,6 +104,8 @@ struct app_desc_s {
     bool blocks_idle_sleep;
     /// 进页/离页。on_enter 里做上电、唤醒传感器、拉一次数据这类副作用。
     /// / Enter/exit. on_enter powers up, wakes sensors, takes a first sample.
+    /// 锁屏走软睡/关机前也调 on_exit；下电失败回来再调 on_enter。
+    /// on_exit also runs before a soft-sleep/off lock; on_enter runs again if power-down fails.
     void (*on_enter)(app_ctx_t* ctx);
     void (*on_exit)(app_ctx_t* ctx);
     /// TF 挂载失效：停止并等待后台任务、关闭文件；主循环随后回退字体并重绘，菜单打开时也通知。

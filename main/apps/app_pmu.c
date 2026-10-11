@@ -34,6 +34,7 @@
 #include "pmu_selftest.h"
 #include "read_pico_pmu.h"
 #include "read_pico_pmu_protocol.h"
+#include "sleep.h"
 #include "soc/rtc_cntl_reg.h"
 #include "ui_kit.h"
 #include "ui_menu.h"
@@ -633,14 +634,9 @@ static void pmu_alarm_set(uint8_t mode, uint32_t secs, const char* note) {
     pmu_note(note);
 }
 
-// 和锁屏关机同一条路：先卸屏轨、刷 SD，再 REQUEST_OFF → SHUTDOWN_READY。/ Same path as lock-then-off: drop panel rails, sync SD, then REQUEST_OFF → SHUTDOWN_READY.
+// 和锁屏关机同一函数：停外设、卸屏轨、刷 SD，再 REQUEST_OFF → SHUTDOWN_READY；只有失败才返回。/ Same function as lock-then-off: park peripherals, drop rails, sync SD, then REQUEST_OFF → SHUTDOWN_READY; returns only on failure.
 static void pmu_host_off(void) {
-    pmu_selftest_prepare_powerdown();
-    if (read_pico_pmu_power_off() != ESP_OK) {
-        pmu_note("关机失败 Off fail");
-        return;
-    }
-    while (true) vTaskDelay(pdMS_TO_TICKS(1000));
+    if (app_enter_host_sleep(APP_SLEEP_OFF) != ESP_OK) pmu_note("关机失败 Off fail");
 }
 
 // 先通知 PMU 主机要重启，再由 ESP 自己复位，不让 PMU 拉 EN。/ Tell the PMU the host will reboot, then ESP resets itself; do not let the PMU pull EN.
