@@ -27,7 +27,7 @@ static int test_close(FILE *f) {
 }
 static int test_rename(const char *from, const char *to) {
     if (fail_restore && strstr(from, ".rename-backup")) { errno = EIO; return -1; }
-    if (strstr(from, ".part")) {
+    if (strstr(from, ".part") || strstr(from, ".pico-upload-")) {
         FILE *old = fopen(to, "rb");
         if (old) { fclose(old); if (fatfs_replace) { errno = EEXIST; return -1; } }
         if (fail_commit) { errno = EIO; return -1; }
@@ -66,60 +66,63 @@ static int change_callback(const char *path) {
     assert(path[0]); snprintf(cleaned_path, sizeof(cleaned_path), "%s", path);
     ++cleanup_calls; return cleanup_failure;
 }
-static int receive_font(void *ctx, char *buf, size_t n) { return (int)fread(buf, 1, n, ctx); }
-
-static void test_font_uploads(void) {
-    char name[121];
-    assert(decode_font_name("Chinese%20Font.TTF", name));
-    assert(!strcmp(name, "Chinese Font.TTF"));
-    assert(!decode_name("font.ttf", name) && !decode_font_name("book.epub", name));
-    assert(!decode_font_name("font.otf", name) && !decode_font_name("font.ttc", name));
-    assert(!decode_font_name("..%2Ffont.ttf", name) && !decode_font_name("%2Ffont.ttf", name));
-    assert(!decode_font_name("bad%00.ttf", name));
-    assert(temporary_basename("Font.TTF.part", ".part", name));
-    assert(temporary_basename("Font.TTF.rename-backup", ".rename-backup", name));
-
-    char root[] = "/tmp/transfer-font-XXXXXX", path[288], part[296], backup[320];
+// 任意文件使用实际接收/提交代码，验证路径、字节和失败后的旧文件保留。
+// General files use the actual receive/commit code to verify paths, bytes and old-file preservation on failure.
+static void test_directory_upload(void) {
+    char root[] = "/tmp/transfer-files-XXXXXX", target[256], temp[256], relative[240], absolute[256], buf[17];
     assert(mkdtemp(root));
-    snprintf(path, sizeof(path), "%s/Font.ttf", root);
-    snprintf(part, sizeof(part), "%s.part", path);
-    snprintf(backup, sizeof(backup), "%s.rename-backup", path);
-    assert(valid_ttf("main/assets/builtin.ttf"));
-    FILE *source = fopen("main/assets/builtin.ttf", "rb"); assert(source);
-    assert(!fseek(source, 0, SEEK_END)); size_t size = (size_t)ftell(source); rewind(source);
-    char *buf = malloc(16384); assert(buf);
-    file_result_t op = upload_managed(path, part, size, TRANSFER_FONT_MAX, UINT64_MAX, false,
-        buf, 16384, receive_font, source, NULL, NULL);
-    assert(op.status == 200 && op.changed && valid_ttf(path) && !cleanup_calls);
-    struct stat before, after; assert(!stat(path, &before));
-    remaining = 32;
-    op = upload_managed(path, part, 32, TRANSFER_FONT_MAX, UINT64_MAX, false, buf, 16384, receive, NULL, NULL, NULL);
-    assert(op.status == 409 && remaining == 32);
-    op = upload_managed(path, part, 32, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive, NULL, NULL, NULL);
-    assert(op.status == 422 && !op.changed && valid_ttf(path) && access(part, F_OK));
-    assert(!stat(path, &after) && before.st_size == after.st_size);
-    remaining = 40000; receive_calls = 0; fail_after = 2;
-    op = upload_managed(path, part, 40000, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive, NULL, NULL, NULL);
-    assert(op.status == 408 && !op.changed && valid_ttf(path) && access(part, F_OK));
-    fail_after = 0;
-    op = upload_managed(path, part, TRANSFER_FONT_MAX + 1U, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive, NULL, NULL, NULL);
-    assert(op.status == 413 && !op.changed);
-    op = upload_managed(path, part, size, TRANSFER_FONT_MAX, 0, true, buf, 16384, receive_font, source, NULL, NULL);
-    assert(op.status == 507 && !op.changed);
-    rewind(source); fatfs_replace = true;
-    op = upload_managed(path, part, size, TRANSFER_FONT_MAX, UINT64_MAX, true, buf, 16384, receive_font, source, NULL, NULL);
-    assert(op.status == 200 && op.changed && valid_ttf(path) && access(backup, F_OK));
-    fatfs_replace = false;
-    assert(!fclose(source)); free(buf);
-    assert(!rename(path, backup)); write_fixture(part, "unfinished");
-    unsigned removed = 0, restored = 0;
-    assert(!cleanup_interrupted(root, &removed, &restored));
-    assert(removed == 1 && restored == 1 && valid_ttf(path) && access(part, F_OK));
-    unlink(path); rmdir(root);
+    assert(sd_decode_relative("books/%E8%B5%84%E6%96%99%20%25%2B%23.bin", relative, false));
+    assert(!strcmp(relative, "books/资料 %+#.bin"));
+    assert(sd_absolute(relative, absolute, sizeof(absolute)) && !strcmp(absolute, "/sdcard/books/资料 %+#.bin"));
+    for (const char **p = (const char *[]){"%2E%2E/x", "books/../x", "%2Fetc/x", "books/%00x", "x%5Cy", "x/", "books//x", "x%3Ay", NULL}; *p; ++p)
+        assert(!sd_decode_relative(*p, relative, false));
+    assert(sd_decode_relative("", relative, true) && !sd_decode_relative("", relative, false));
+    snprintf(target, sizeof(target), "%s/books", root); assert(!mkdir(target, 0700));
+    remaining = 53;
+    file_result_t r = upload_directory_file(root, "books/资料 %+#.bin", 53, 53, false, buf, sizeof(buf), receive, NULL, NULL, change_callback);
+    assert(r.status == 200 && r.changed && remaining == 0 && !cleanup_calls);
+    snprintf(target, sizeof(target), "%s/books/资料 %%+#.bin", root);
+    FILE *f = fopen(target, "rb"); assert(f);
+    for (int i = 0; i < 53; ++i) assert(fgetc(f) == 'a');
+    assert(fgetc(f) == EOF && !fclose(f));
+    r = upload_directory_file(root, "books/资料 %+#.bin", 12, 100, false, buf, sizeof(buf), receive, NULL, NULL, change_callback);
+    assert(r.status == 409 && !r.changed);
+    fail_after = 2; receive_calls = 0; remaining = 53;
+    r = upload_directory_file(root, "books/资料 %+#.bin", 53, 100, true, buf, sizeof(buf), receive, NULL, NULL, change_callback);
+    assert(r.status == 408 && !r.changed); fail_after = 0;
+    struct stat st; assert(!stat(target, &st) && st.st_size == 53);
+    fatfs_replace = 1; remaining = 9;
+    r = upload_directory_file(root, "books/资料 %+#.bin", 9, 100, true, buf, sizeof(buf), receive, NULL, NULL, change_callback);
+    assert(r.status == 200 && r.changed && !stat(target, &st) && st.st_size == 9);
+    fatfs_replace = 0; assert(!remove(target));
+    r = upload_directory_file(root, "../escape", 9, 100, false, buf, sizeof(buf), receive, NULL, NULL, NULL);
+    assert(r.status == 400 && !r.changed);
+    r = upload_directory_file(root, "missing/file", 9, 100, false, buf, sizeof(buf), receive, NULL, NULL, NULL);
+    assert(r.status == 404 && !r.changed);
+    r = upload_directory_file(root, "large.zip", 101, 100, false, buf, sizeof(buf), receive, NULL, NULL, NULL);
+    assert(r.status == 507 && !r.changed);
+    r = upload_directory_file(root, "books", 9, 100, false, buf, sizeof(buf), receive, NULL, NULL, NULL);
+    assert(r.status == 400 && !r.changed);
+    // 无扩展名、点开头及零字节文件都可以上传。/ Extensionless, dot-prefixed and empty files are accepted.
+    for (const char **p = (const char *[]){"README", ".env", "Pico-update.bin", NULL}; *p; ++p) {
+        r = upload_directory_file(root, *p, 0, 0, false, buf, sizeof(buf), receive, NULL, NULL, change_callback);
+        assert(r.status == 200 && r.changed && !cleanup_calls);
+        snprintf(target, sizeof(target), "%s/%s", root, *p);
+        assert(!stat(target, &st) && st.st_size == 0 && !remove(target));
+    }
+    snprintf(temp, sizeof(temp), "%s/books/test.txt.part", root); write_fixture(temp, "user file");
+    remaining = 4;
+    r = upload_directory_file(root, "books/test.txt", 4, 100, false, buf, sizeof(buf), receive, NULL, NULL, change_callback);
+    assert(r.status == 200 && cleanup_calls == 1 && !stat(temp, &st) && st.st_size == 9);
+    assert(!remove(temp)); snprintf(target, sizeof(target), "%s/books/test.txt", root); assert(!remove(target));
+    snprintf(target, sizeof(target), "%s/books", root);
+    DIR *dir = opendir(target); assert(dir); struct dirent *entry; unsigned entries = 0;
+    while ((entry = readdir(dir))) if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) ++entries;
+    assert(!entries && !closedir(dir) && !rmdir(target) && !rmdir(root));
+    cleanup_calls = 0; cleaned_path[0] = 0;
 }
-
 int main(void) {
-    test_font_uploads();
+    test_directory_upload();
     char alias_root[] = "/tmp/transfer-alias-XXXXXX", canonical[448], requested[448];
     assert(mkdtemp(alias_root));
     snprintf(canonical, sizeof(canonical), "%s/Book.txt", alias_root);

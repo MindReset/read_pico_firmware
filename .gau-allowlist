@@ -1,0 +1,7 @@
+# github-auto-upload 密钥扫描白名单
+# 本文件中的条目均为人工审阅后确认非真实密钥，放行提交。
+#
+# tools/settings_backup_host_test.c：宿主单元测试固件，第 27 行的
+# ssid 与 password 两个字段取值为测试常量（弱口令字面量），非真实凭据。
+# 该文件不进入设备固件，仅在 x86 宿主构建的单元测试中编译。
+tools/settings_backup_host_test.c

@@ -8,10 +8,17 @@
 static app_desc_t items[10];
 static bool selected;
 static int pressed, texts, clears;
+static ui_icon_t last_icon;
+static int icon_calls;
+void ui_draw_icon(uint8_t *fb, int cx, int cy, int size, ui_icon_t icon, uint8_t gray) {
+    (void)fb; (void)cx; (void)cy; (void)gray;
+    assert(size == 48);
+    last_icon = icon;
+    ++icon_calls;
+}
 int app_count(void) {return 10;}
 const app_desc_t* app_at(int i) {return i>=0&&i<10?&items[i]:NULL;}
 int app_index_of(const app_desc_t*a) {return (int)(a-items);}
-int epd_rotated_display_width(void) {return 684;}
 void epd_fill_triangle(int a,int b,int c,int d,int e,int f,uint8_t g,uint8_t*h) {(void)a;(void)b;(void)c;(void)d;(void)e;(void)f;(void)g;(void)h;}
 int ui_content_width(void) {return 684-2*UI_MARGIN;}
 EpdRect ui_bar_rect(int col,int cols) {return (EpdRect){UI_MARGIN+col*240,UI_BAR_TOP,480/cols,UI_BAR_H};}
@@ -42,5 +49,9 @@ int main(void) {
     assert(!selected);
     ui_draw_menu_row_pressed(NULL,&items[8],1,2,true);
     assert(pressed==1);
+    ui_draw_menu_handle(NULL, false);
+    assert(last_icon == UI_ICON_CHEVRON_UP && icon_calls == 1);
+    ui_draw_menu_handle(NULL, true);
+    assert(last_icon == UI_ICON_CHEVRON_DOWN && icon_calls == 2);
     puts("ui_menu: local row bounds and current selection restoration passed");
 }

@@ -1,0 +1,29 @@
+{
+  "name": "Pico-Plus",
+  "version": "0.3.3-pico22",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "improv": false,
+      "parts": [
+        {
+          "path": "bootloader.bin",
+          "offset": 0
+        },
+        {
+          "path": "partition-table.bin",
+          "offset": 32768
+        },
+        {
+          "path": "Read_Pico.bin",
+          "offset": 65536
+        },
+        {
+          "path": "ota_data_initial.bin",
+          "offset": 11599872
+        }
+      ]
+    }
+  ]
+}

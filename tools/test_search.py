@@ -16,7 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build/search-tests"
 BUILD.mkdir(parents=True, exist_ok=True)
 source = ROOT / "components/read_pico_search/read_pico_search.c"
-flags = ["gcc", "-std=c11", "-Wall", "-Wextra", "-Werror", "-O2",
+# -D_GNU_SOURCE：read_pico_search.c 用 strnlen，-std=c11 严格模式下 glibc 默认不暴露它，
+# 与 OTA/transfer 测试同一处理。/ -D_GNU_SOURCE exposes strnlen under strict -std=c11,
+# the same treatment the OTA/transfer tests already use.
+flags = ["gcc", "-std=c11", "-D_GNU_SOURCE", "-Wall", "-Wextra", "-Werror", "-O2",
          "-I" + str(ROOT / "components/read_pico_search/include")]
 exe = BUILD / "search-host"
 subprocess.run(flags + ["-g", "-fsanitize=address,undefined", str(ROOT / "tools/search_host_test.c"), str(source), "-o", str(exe)], check=True)

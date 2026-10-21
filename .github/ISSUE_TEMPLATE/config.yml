@@ -4,5 +4,5 @@ contact_links:
     url: https://dot.mindreset.tech/docs/contact
     about: Purchases, repairs, accounts, and the Dot App
   - name: Private security report
-    url: https://dot.mindreset.tech/docs/security_policy
-    about: Report vulnerabilities, exposed data, or unsafe hardware behavior privately
+    url: https://github.com/wegooo-cell/read-pico-reader/security/advisories/new
+    about: Report vulnerabilities in this independent firmware privately

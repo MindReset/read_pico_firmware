@@ -1,0 +1,493 @@
+menu "TinyUSB Stack"
+    config TINYUSB_DEBUG_LEVEL
+        int "TinyUSB log level (0-3)"
+        default 1
+        range 0 3
+        help
+            Specify verbosity of TinyUSB log output.
+
+    menu "TinyUSB DCD"
+        choice TINYUSB_MODE
+            prompt "DCD Mode"
+            default TINYUSB_MODE_DMA
+            help
+                TinyUSB DCD DWC2 Driver supports two modes: Slave mode (based on IRQ) and Buffer DMA mode.
+
+            config TINYUSB_MODE_SLAVE
+                bool "Slave/IRQ"
+            config TINYUSB_MODE_DMA
+                bool "Buffer DMA"
+        endchoice
+    endmenu # "TinyUSB DCD"
+
+    menu "TinyUSB callbacks"
+        config TINYUSB_SUSPEND_CALLBACK
+            bool "Register suspend callback"
+            default n
+            help
+                Register TinyUSB's suspend callback (tud_suspend_cb()) in esp_tinyusb.
+
+                When enabled, esp_tinyusb provides a strong implementation of
+                tud_suspend_cb() and dispatches TINYUSB_EVENT_SUSPENDED via the
+                esp_tinyusb device event callback.
+
+                When disabled, tinyusb provides weak implementation of the tud_suspend_cb(),
+                and user can provide it's own strong implementation of the tud_suspend_cb().
+
+                NOTE: When this option is enabled, user applications MUST NOT
+                define tud_suspend_cb() themselves. Defining tud_suspend_cb()
+                in the application while this option is enabled will result in
+                a linker error due to multiple definitions.
+
+        config TINYUSB_RESUME_CALLBACK
+            bool "Register resume callback"
+            default n
+            help
+                Register TinyUSB's resume callback (tud_resume_cb()) in esp_tinyusb.
+
+                When enabled, esp_tinyusb provides a strong implementation of
+                tud_resume_cb() and dispatches TINYUSB_EVENT_RESUMED via the
+                esp_tinyusb device event callback.
+
+                When disabled, tinyusb provides weak implementation of the tud_resume_cb(),
+                and user can provide it's own strong implementation of the tud_resume_cb().
+
+                NOTE: When this option is enabled, user applications MUST NOT
+                define tud_resume_cb() themselves. Defining tud_resume_cb()
+                in the application while this option is enabled will result in
+                a linker error due to multiple definitions.
+    endmenu # "TinyUSB callbacks"
+
+    menu "Power management"
+        # Proxy configs normalize SOC caps across IDF releases:
+        # - caps may be absent in older IDF (must stay hidden)
+        # - caps may be bool (plain "1") or int ("(1U)") in soc_caps.h
+
+        # Do not use "depends on SOC_* > 0" here as they are defined differently in different IDF releases
+        # IDF 5.4   SOC_PM_SUPPORT_USB_WAKEUP absent
+        # IDF 5.5   SOC_PM_SUPPORT_USB_WAKEUP (1U)
+        # IDF 6.1   SOC_PM_SUPPORT_USB_WAKEUP (1U)
+        # IDF 6.2   SOC_PM_SUPPORT_USB_WAKEUP 1
+
+        # Simple depends on SOC_PM_SUPPORT_USB_WAKEUP > 0 or
+        #        depends on SOC_PM_SUPPORT_USB_WAKEUP
+        # Fails in each IDF release differently
+        config TINYUSB_SOC_PM_USB_WAKEUP_SUPPORTED
+            bool
+            default y if SOC_PM_SUPPORT_USB_WAKEUP = y
+            default y if SOC_PM_SUPPORT_USB_WAKEUP = 1
+            default n
+
+        config TINYUSB_SOC_USB_UTMI_PHY_SUPPORTED
+            bool
+            default y if SOC_USB_UTMI_PHY_NUM = y
+            default y if SOC_USB_UTMI_PHY_NUM > 0
+            default n
+
+        config TINYUSB_USB_OTG_WAKEUP
+            bool "USB Device light sleep wakeup source"
+            default n
+            depends on SOC_PM_SUPPORT_CPU_PD
+            depends on SOC_PM_SUPPORT_CNNT_PD
+            depends on TINYUSB_SOC_PM_USB_WAKEUP_SUPPORTED
+            depends on TINYUSB_SOC_USB_UTMI_PHY_SUPPORTED
+            depends on TINYUSB_SUSPEND_CALLBACK
+            depends on TINYUSB_RESUME_CALLBACK
+            depends on PM_ENABLE
+            depends on FREERTOS_USE_TICKLESS_IDLE
+            depends on ESP_SLEEP_EVENT_CALLBACKS
+            help
+                Register light sleep event callbacks to prepare the UTMI PHY for USB wakeup when
+                entering light sleep while the USB bus is suspended.
+
+                Available only on USB HS ports, due to PHY limitation. The USB wakeup source
+                (esp_sleep_enable_usb_wakeup()) is enabled automatically during
+                tinyusb_driver_install(). The USB connection power domain must be kept on during
+                light sleep.
+
+                Requires the TinyUSB suspend and resume callbacks (TINYUSB_SUSPEND_CALLBACK and
+                TINYUSB_RESUME_CALLBACK) to be registered inside esp_tinyusb, so the driver is
+                notified about USB suspend/resume. Without them the wakeup state cannot be tracked
+                and the feature is not usable.
+
+                Independent of TinyUSB Power Management (PM locks). USB wakeup works whether light
+                sleep is entered manually or triggered automatically after the PM lock is released
+                on USB suspend.
+
+        config TINYUSB_PM
+            bool "Enable tinyusb Power Management"
+            default n
+            depends on TINYUSB_SUSPEND_CALLBACK
+            depends on TINYUSB_RESUME_CALLBACK
+            depends on PM_ENABLE
+            depends on FREERTOS_USE_TICKLESS_IDLE
+            help
+                Enable TinyUSB power management using ESP-IDF PM locks.
+
+                When enabled together with `tinyusb_config_t.pm_lock_enable`, esp_tinyusb creates an
+                ESP_PM_NO_LIGHT_SLEEP lock and releases it while the USB device is suspended, allowing
+                automatic light sleep when automatic light sleep is configured through esp_pm_configure().
+
+                Requires the TinyUSB suspend and resume callbacks (TINYUSB_SUSPEND_CALLBACK and
+                TINYUSB_RESUME_CALLBACK) to be registered inside esp_tinyusb. The PM lock is released
+                on USB suspend and re-acquired on USB resume, so without those events the lock would
+                never be released and automatic light sleep would never happen.
+
+                It is recommended to pair this config with the TINYUSB_USB_OTG_WAKEUP config above, so the USB
+                peripheral can act as a wakeup source from the light sleep. Without enabling the TINYUSB_USB_OTG_WAKEUP
+                the USB peripheral can NOT act as a light sleep wakeup source.
+
+    endmenu # "Power management"
+
+
+    menu "Descriptor configuration"
+        comment "You can provide your custom descriptors via tinyusb_driver_install()"
+        config TINYUSB_DESC_USE_ESPRESSIF_VID
+            bool "VID: Use Espressif's vendor ID"
+            default y
+            help
+                Enable this option, USB device will use Espressif's vendor ID as its VID.
+                This is helpful at product develop stage.
+
+        config TINYUSB_DESC_CUSTOM_VID
+            hex "VID: Custom vendor ID"
+            default 0x1234
+            depends on !TINYUSB_DESC_USE_ESPRESSIF_VID
+            help
+                Custom Vendor ID.
+
+        config TINYUSB_DESC_USE_DEFAULT_PID
+            bool "PID: Use a default PID assigned to TinyUSB"
+            default y
+            help
+                Default TinyUSB PID assigning uses values 0x4000...0x4007.
+
+        config TINYUSB_DESC_CUSTOM_PID
+            hex "PID: Custom product ID"
+            default 0x5678
+            depends on !TINYUSB_DESC_USE_DEFAULT_PID
+            help
+                Custom Product ID.
+
+        config TINYUSB_DESC_BCD_DEVICE
+            hex "bcdDevice"
+            default 0x0100
+            help
+                Version of the firmware of the USB device.
+
+        config TINYUSB_DESC_MANUFACTURER_STRING
+            string "Manufacturer name"
+            default "Espressif Systems"
+            help
+                Name of the manufacturer of the USB device.
+
+        config TINYUSB_DESC_PRODUCT_STRING
+            string "Product name"
+            default "Espressif Device"
+            help
+                Name of the USB device.
+
+        config TINYUSB_DESC_SERIAL_STRING
+            string "Serial string"
+            default "123456"
+            help
+                Serial number of the USB device.
+
+        config TINYUSB_DESC_CDC_STRING
+            depends on TINYUSB_CDC_ENABLED
+            string "CDC Device String"
+            default "Espressif CDC Device"
+            help
+                Name of the CDC device.
+
+        config TINYUSB_DESC_MSC_STRING
+            depends on TINYUSB_MSC_ENABLED
+            string "MSC Device String"
+            default "Espressif MSC Device"
+            help
+                Name of the MSC device.
+
+        config TINYUSB_DESC_MTP_STRING
+            depends on TINYUSB_MTP_ENABLED
+            string "MTP Device String"
+            default "Espressif MTP Device"
+            help
+                Name of the MTP device.
+    endmenu # "Descriptor configuration"
+
+    menu "Mass Storage Class (MSC)"
+        config TINYUSB_MSC_ENABLED
+            bool "Enable TinyUSB MSC feature"
+            default n
+            help
+                Enable TinyUSB MSC feature.
+
+        config TINYUSB_MSC_BUFSIZE
+            depends on TINYUSB_MSC_ENABLED
+            int "MSC FIFO size"
+            default 512 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32H4
+            default 8192 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            range 64 8192 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32H4
+            range 64 32768 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            help
+                MSC FIFO size, in bytes.
+
+        config TINYUSB_MSC_MOUNT_PATH
+            depends on TINYUSB_MSC_ENABLED
+            string "Mount Path"
+            default "/data"
+            help
+                MSC Mount Path of storage.
+    endmenu # "Mass Storage Class"
+
+    menu "Media Transfer Protocol (MTP)"
+        config TINYUSB_MTP_ENABLED
+            bool "Enable TinyUSB MTP feature"
+            default n
+            help
+                Enable TinyUSB MTP feature. MTP exposes files through already-mounted
+                VFS/FATFS paths and does not take block-device ownership.
+
+        config TINYUSB_MTP_EP_BUFSIZE
+            depends on TINYUSB_MTP_ENABLED
+            int "MTP endpoint buffer size"
+            default 4096
+            range 4096 8192 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32H4
+            range 4096 32768 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            help
+                MTP bulk endpoint transfer buffer size, in bytes. Larger values improve
+                large file transfer throughput at the cost of RAM. The minimum size keeps
+                valid ObjectInfo and object property string datasets in one transfer buffer.
+
+        config TINYUSB_MTP_MAX_STORAGES
+            depends on TINYUSB_MTP_ENABLED
+            int "Maximum MTP storage count"
+            default 3
+            range 1 3 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32H4
+            range 1 8 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            help
+                Maximum number of mounted VFS/FATFS paths that can be registered as MTP storages.
+
+        config TINYUSB_MTP_MAX_OBJECTS
+            depends on TINYUSB_MTP_ENABLED
+            int "Maximum cached MTP object count"
+            default 512
+            range 32 1024 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32H4
+            range 32 4096 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            help
+                Maximum number of file or directory object handles cached by the MTP backend.
+
+        config TINYUSB_MTP_TRACE_WRITES
+            depends on TINYUSB_MTP_ENABLED
+            bool "Trace MTP file-transfer operations"
+            default n
+            help
+                Enable concise logs for host read, write, edit, delete, rename, and unsupported
+                MTP operations. This is intended for manual host compatibility debugging.
+    endmenu # "Media Transfer Protocol"
+
+    menu "Communication Device Class (CDC)"
+        config TINYUSB_CDC_ENABLED
+            bool "Enable TinyUSB CDC feature"
+            default n
+            help
+                Enable TinyUSB CDC feature.
+
+        config TINYUSB_CDC_COUNT
+            int "CDC Channel Count"
+            default 1
+            range 1 2
+            depends on TINYUSB_CDC_ENABLED
+            help
+                Number of independent serial ports.
+
+        config TINYUSB_CDC_RX_BUFSIZE
+            depends on TINYUSB_CDC_ENABLED
+            int "CDC FIFO size of RX channel"
+            default 512
+            range 64 10000
+            help
+                This buffer size defines maximum data length in bytes that you can receive at once.
+                Must be greater or equal to TINYUSB_CDC_EP_BUFSIZE for correct receiving.
+
+        config TINYUSB_CDC_TX_BUFSIZE
+            depends on TINYUSB_CDC_ENABLED
+            int "CDC FIFO size of TX channel"
+            default 512
+            help
+                This buffer size defines maximum data length in bytes that you can transmit at once.
+
+        config TINYUSB_CDC_EP_BUFSIZE
+            depends on TINYUSB_CDC_ENABLED
+            int "CDC Endpoint buffer size"
+            default 512
+            help
+                This low layer buffer has the most significant impact on performance. Set to 8192 for best performance.
+                Sizes above 8192 bytes bring only little performance improvement.
+    endmenu # "Communication Device Class"
+
+    menu "Musical Instrument Digital Interface (MIDI)"
+        config TINYUSB_MIDI_COUNT
+            int "TinyUSB MIDI interfaces count"
+            default 0
+            range 0 2
+            help
+                Setting value greater than 0 will enable TinyUSB MIDI feature.
+    endmenu # "Musical Instrument Digital Interface (MIDI)"
+
+    menu "Human Interface Device Class (HID)"
+        config TINYUSB_HID_COUNT
+            int "TinyUSB HID interfaces count"
+            default 0
+            range 0 4
+            help
+                Setting value greater than 0 will enable TinyUSB HID feature.
+    endmenu # "HID Device Class (HID)"
+
+    menu "Device Firmware Upgrade (DFU)"
+        choice TINYUSB_DFU_MODE
+            prompt "DFU mode"
+            default TINYUSB_DFU_MODE_NONE
+            help
+                Select which DFU driver you want to use.
+
+            config TINYUSB_DFU_MODE_DFU
+                bool "DFU"
+
+            config TINYUSB_DFU_MODE_DFU_RUNTIME
+                bool "DFU Runtime"
+
+            config TINYUSB_DFU_MODE_NONE
+                bool "None"
+        endchoice
+        config TINYUSB_DFU_BUFSIZE
+            depends on TINYUSB_DFU_MODE_DFU
+            int "DFU XFER BUFFSIZE"
+            default 512
+            help
+                DFU XFER BUFFSIZE.
+    endmenu # Device Firmware Upgrade (DFU)
+
+    menu "Bluetooth Host Class (BTH)"
+        config TINYUSB_BTH_ENABLED
+            bool "Enable TinyUSB BTH feature"
+            default n
+            help
+                Enable TinyUSB BTH feature.
+
+        config TINYUSB_BTH_ISO_ALT_COUNT
+            depends on TINYUSB_BTH_ENABLED
+            int "BTH ISO ALT COUNT"
+            default 0
+            help
+                BTH ISO ALT COUNT.
+    endmenu # "Bluetooth Host Device Class"
+
+    menu "Network driver (ECM/NCM/RNDIS)"
+        choice TINYUSB_NET_MODE
+            prompt "Network mode"
+            default TINYUSB_NET_MODE_NONE
+            help
+                Select network driver you want to use.
+
+            config TINYUSB_NET_MODE_ECM_RNDIS
+                bool "ECM/RNDIS"
+
+            config TINYUSB_NET_MODE_NCM
+                bool "NCM"
+
+            config TINYUSB_NET_MODE_NONE
+                bool "None"
+        endchoice
+
+        config TINYUSB_NCM_OUT_NTB_BUFFS_COUNT
+            int "Number of NCM NTB buffers for reception side"
+            depends on TINYUSB_NET_MODE_NCM
+            default 3
+            range 1 6
+            help
+                Number of NTB buffers for reception side.
+                Can be increased to improve performance and stability with the cost of additional RAM requirements.
+                Helps to mitigate "tud_network_can_xmit: request blocked" warning message when running NCM device.
+
+        config TINYUSB_NCM_IN_NTB_BUFFS_COUNT
+            int "Number of NCM NTB buffers for transmission side"
+            depends on TINYUSB_NET_MODE_NCM
+            default 3
+            range 1 6
+            help
+                Number of NTB buffers for transmission side.
+                Can be increased to improve performance and stability with the cost of additional RAM requirements.
+                Helps to mitigate "tud_network_can_xmit: request blocked" warning message when running NCM device.
+
+        config TINYUSB_NCM_OUT_NTB_BUFF_MAX_SIZE
+            int "NCM NTB Buffer size for reception size"
+            depends on TINYUSB_NET_MODE_NCM
+            default 3200
+            range 1600 10240
+            help
+                Size of NTB buffers on the reception side. The minimum size used by Linux is 2048 bytes.
+                NTB buffer size must be significantly larger than the MTU (Maximum Transmission Unit).
+                The typical default MTU size for Ethernet is 1500 bytes, plus an additional packet overhead.
+                To improve performance, the NTB buffer size should be large enough to fit multiple MTU-sized
+                frames in a single NTB buffer and it's length should be multiple of 4.
+
+        config TINYUSB_NCM_IN_NTB_BUFF_MAX_SIZE
+            int "NCM NTB Buffer size for transmission size"
+            depends on TINYUSB_NET_MODE_NCM
+            default 3200
+            range 1600 10240
+            help
+                Size of NTB buffers on the transmission side. The minimum size used by Linux is 2048 bytes.
+                NTB buffer size must be significantly larger than the MTU (Maximum Transmission Unit).
+                The typical default MTU size for Ethernet is 1500 bytes, plus an additional packet overhead.
+                To improve performance, the NTB buffer size should be large enough to fit multiple MTU-sized
+                frames in a single NTB buffer and it's length should be multiple of 4.
+
+    endmenu # "Network driver (ECM/NCM/RNDIS)"
+
+    menu "Vendor Specific Interface"
+        config TINYUSB_VENDOR_COUNT
+            int "TinyUSB Vendor specific interfaces count"
+            default 0
+            range 0 2
+            help
+                Setting value greater than 0 will enable TinyUSB Vendor specific feature.
+
+        config TINYUSB_VENDOR_RX_BUFSIZE
+            depends on (TINYUSB_VENDOR_COUNT > 0)
+            int "Vendor specific FIFO size of RX channel"
+            default 512 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            default 64
+            range 0 32768
+            help
+                This buffer size defines maximum data length in bytes that you can receive at once.
+
+                Note: Unlike other USB classes, the vendor class supports setting buffer sizes to 0
+                to disable internal buffering. When disabled, RX data goes directly to tud_vendor_rx_cb(),
+                the tud_vendor_read() function is not available and application must handle data in the callback.
+
+        config TINYUSB_VENDOR_TX_BUFSIZE
+            depends on (TINYUSB_VENDOR_COUNT > 0)
+            int "Vendor specific FIFO size of TX channel"
+            default 512 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            default 64
+            range 0 32768
+            help
+                This buffer size defines maximum data length in bytes that you can transmit at once.
+
+                Note: Unlike other USB classes, the vendor class supports setting buffer sizes to 0
+                to disable internal buffering. When disabled, tud_vendor_write() bypasses internal software FIFO.
+
+        config TINYUSB_VENDOR_EPSIZE
+            depends on (TINYUSB_VENDOR_COUNT > 0)
+            int "Vendor specific Endpoint buffer size"
+            default 512 if IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31
+            default 64
+            range 64 32768
+            help
+                This low layer buffer has the most significant impact on performance. Set to 8192 for best performance.
+                Sizes above 8192 bytes bring only little performance improvement.
+
+    endmenu # "Vendor Specific Interface"
+endmenu # "TinyUSB Stack"

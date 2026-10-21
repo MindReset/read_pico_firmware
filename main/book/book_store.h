@@ -17,17 +17,18 @@
 
 #define BOOK_STORE_FLASH_FILE_MAX (1024U * 1024U)
 #define BOOK_STORE_PATH_MAX 288
+#define BOOK_STORE_ROOT_MAX 3
 
 typedef struct {
     /// 书目录绝对路径。/ Absolute book directory path.
-    char path[32];
+    char path[128];
     /// 内置存储标记。/ Internal-storage marker.
     bool is_flash;
 } book_store_root_t;
 
 /// 返回可用目录，SD 在前；至少一个可用即成功。可能首次格式化内置分区。
 /// Return usable roots, SD first; succeeds if any is usable. May initially format flash.
-esp_err_t book_store_roots(book_store_root_t out[2], int* n);
+esp_err_t book_store_roots(book_store_root_t out[BOOK_STORE_ROOT_MAX], int* n);
 /// 最近一次 roots 扫描有来源失败；未插 SD 不算失败，成功返回也可能为 true。
 /// Whether the last roots scan lost a source; absent SD is not failure, and a successful call may still be degraded.
 bool book_store_roots_degraded(void);

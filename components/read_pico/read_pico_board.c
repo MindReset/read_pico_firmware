@@ -105,6 +105,8 @@ static bool rails_on;
 // / With rails up, VCOM_EN follows ep_mode and is on only while scanning; holding VCOM
 // during idle rails slowly drives the image dark.
 static bool vcom_gated;
+// 中性控制写入失败时，不能把软件影子当作硬件已经关断。/ Retry a failed neutral write instead of trusting the software shadow.
+static bool s_drive_release_retry;
 static i2c_master_bus_handle_t s_i2c_bus;
 static sy7636a_handle_t s_sy;
 static fca9555_handle_t s_ioe;
@@ -396,12 +398,27 @@ static void board_set_ctrl(epd_ctrl_state_t* state, const epd_ctrl_state_t* cons
         // / Do not abort on a dead I2C; a self-test interrupt mid-refresh would
         // bounce the device back to home.
         esp_err_t err = ioe_commit();
+        s_drive_release_retry = err != ESP_OK;
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "ioe_commit %s", esp_err_to_name(err));
         } else if (vcom_rise) {
             esp_rom_delay_us(VCOM_SETTLE_US);
         }
     }
+}
+
+// 差分无变化不会进入扫描器；同样需要退出上电时开启的驱动状态。
+// An unchanged differential skips the scanner, but must still release the drive enabled by power-on.
+bool read_pico_epd_release_drive(void) {
+    if (!rails_on) return true;
+    const uint8_t drive = IOE_MODE | IOE_XOE | IOE_SY_VCOM_EN;
+    if (!(ioe_output & drive) && !s_drive_release_retry) return true;
+    epd_ctrl_state_t *state = epd_ctrl_state();
+    state->ep_mode = false;
+    state->ep_output_enable = false;
+    ioe_output &= (uint8_t)~drive;
+    s_drive_release_retry = ioe_commit() != ESP_OK;
+    return !s_drive_release_retry;
 }
 
 // 面板源/栅驱动的逻辑电源接常开 SYS_VDD；IDF 默认把睡眠中的 GPIO 隔离成悬空，这里改为浅睡下拉。
@@ -700,13 +717,21 @@ bool read_pico_rails_on(void) {
     return rails_on;
 }
 
-bool read_pico_sd_present(void) {
-    // 卡座 CD 信号低有效，连接到 FCA9555 P0.6。
-    // 读失败时不要把低有效 CD 判成“有卡”。
-    // / Slot CD is active-low on FCA9555 P0.6. A failed read must not look like "card present".
+esp_err_t read_pico_sd_detect(bool* present) {
+    if (present == NULL) return ESP_ERR_INVALID_ARG;
+    if (s_ioe == NULL) return ESP_ERR_INVALID_STATE;
+    // CD 低有效；I2C 错误是未知状态，不能触发已挂载卡的失效锁存。
+    // Active-low CD; an I2C error is unknown and must not invalidate a mounted card.
     uint8_t in0 = 0xFF;
-    if (s_ioe == NULL || fca9555_read_reg(s_ioe, 0, &in0) != ESP_OK) return false;
-    return (in0 & IOE_SD_CD) == 0;
+    esp_err_t err = fca9555_read_reg(s_ioe, 0, &in0);
+    if (err != ESP_OK) return err;
+    *present = (in0 & IOE_SD_CD) == 0;
+    return ESP_OK;
+}
+
+bool read_pico_sd_present(void) {
+    bool present = false;
+    return read_pico_sd_detect(&present) == ESP_OK && present;
 }
 
 void read_pico_clear_ioe_int(void) {

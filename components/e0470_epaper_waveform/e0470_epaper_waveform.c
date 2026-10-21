@@ -80,6 +80,27 @@ const EpdWaveform E0470_FOLLOW_WAVEFORM = {
     .temp_intervals = e0470_intervals,
 };
 
+/* ---- 错相 GL16 执行表 / Staggered GL16 apply waveform ---- */
+static uint8_t e0470_apply_data[1][16][4];
+static const EpdWaveformPhases e0470_apply_phases = {
+    .phases = 1,
+    .phase_times = NULL,
+    .luts = (const uint8_t*)&e0470_apply_data[0],
+};
+static const EpdWaveformPhases* e0470_apply_ranges[] = { &e0470_apply_phases };
+static const EpdWaveformMode e0470_apply_mode = {
+    .type = 1,
+    .temp_ranges = 1,
+    .range_data = &e0470_apply_ranges[0],
+};
+static const EpdWaveformMode* e0470_apply_modes[] = { &e0470_apply_mode };
+const EpdWaveform E0470_APPLY_WAVEFORM = {
+    .num_modes = 1,
+    .num_temp_ranges = 1,
+    .mode_data = e0470_apply_modes,
+    .temp_intervals = e0470_intervals,
+};
+
 /* ---- 阈值 DU / Threshold DU ---- */
 // 源表只认目标 0/15。中间灰按 50/50 切开，暗的走整段到黑、亮的走整段到白。
 // from 不切片，沿用源表对真实起点的时间序列，上一帧残留的浅墨也会被推到黑或白。
@@ -133,6 +154,23 @@ static void e0470_gl16_white_tick(uint8_t (*data)[16][4], int frames) {
     }
     if (tick < 0) tick = frames > 2 ? frames - 3 : 0;
     lut_or(data, tick, 15, 15, 2);
+}
+
+// 普通文字翻页的序列对齐；来源与许可见 THIRD_PARTY_NOTICES.md。
+// Text-turn alignment; see THIRD_PARTY_NOTICES.md for provenance and licenses.
+static void e0470_left_align(const uint8_t (*src)[16][4], int frames, uint8_t (*dst)[16][4]) {
+    memset(dst, 0, (size_t)frames * 16 * 4);
+    for (int to = 0; to < 16; to++) {
+        for (int from = 0; from < 16; from++) {
+            uint8_t seq[64];
+            for (int f = 0; f < frames; f++) seq[f] = (uint8_t)lut_get(src, f, to, from);
+            int a = 0;
+            while (a < frames && seq[a] == 0) a++;
+            int z = frames;
+            while (z > a && seq[z - 1] == 0) z--;
+            for (int f = a; f < z; f++) lut_or(dst, f - a, to, from, seq[f]);
+        }
+    }
 }
 
 /* ---- 完整表 / Full tables ---- */
@@ -215,6 +253,27 @@ const EpdWaveform E0470_WAVEFORM = {
     .temp_intervals = e0470_intervals,
 };
 
+static uint8_t e0470_textturn_gl16_data[E0470_GL16_FRAMES][16][4];
+static const EpdWaveformPhases e0470_textturn_gl16_phases = {
+    .phases = E0470_GL16_FRAMES,
+    .phase_times = NULL,
+    .luts = (const uint8_t*)&e0470_textturn_gl16_data[0],
+};
+static const EpdWaveformPhases* e0470_textturn_gl16_ranges[] = { &e0470_textturn_gl16_phases };
+static const EpdWaveformMode e0470_textturn_gl16_mode = {
+    .type = 5, .temp_ranges = 1, .range_data = &e0470_textturn_gl16_ranges[0],
+};
+static const EpdWaveformMode* e0470_textturn_modes[] = {
+    &e0470_textturn_gl16_mode,
+};
+
+const EpdWaveform E0470_TEXTTURN_WAVEFORM = {
+    .num_modes = 1,
+    .num_temp_ranges = 1,
+    .mode_data = e0470_textturn_modes,
+    .temp_intervals = e0470_intervals,
+};
+
 const EpdWaveformPhases* e0470_waveform_phases(const EpdWaveform* waveform, int mode) {
     if (waveform == NULL) return NULL;
     const int type = mode & 0x3F;
@@ -234,6 +293,7 @@ int e0470_phase_action(const EpdWaveformPhases* phases, int phase, int to, int f
 
 void e0470_waveform_init(void) {
     e0470_follow_lut_build(E0470_FOLLOW_FRAMES, e0470_follow_data);
+    e0470_follow_lut_build(1, e0470_apply_data);
     e0470_complete_du_build();
 
     const e0470_trim_t trim = {
@@ -250,4 +310,24 @@ void e0470_waveform_init(void) {
     memcpy(e0470_full_gl16_live, e0470_full_gl16_data, sizeof(e0470_full_gl16_live));
     e0470_gl16_white_tick(e0470_full_gl16_live, E0470_FULL_GL16_FRAMES);
     e0470_gl16_white_tick(e0470_gl16_data, E0470_GL16_FRAMES);
+    // 仅文字翻页使用：对齐起点、保持同灰像素，省去非白目标的前导擦白。
+    // Text turns only: align starts, hold unchanged grays and omit leading erase for nonwhite targets.
+    // 保留上游算法；灰阶与残影表现仍需实屏验收，其他波形不受影响。
+    // Keep the upstream algorithm; gray accuracy and ghosting require panel validation. Other profiles are unchanged.
+    e0470_left_align(e0470_gl16_data, E0470_GL16_FRAMES, e0470_textturn_gl16_data);
+    for (int f = 0; f < E0470_GL16_FRAMES; f++) {
+        for (int v = 0; v < 16; v++) {
+            e0470_textturn_gl16_data[f][v][v / 4] &= (uint8_t)~(3u << (6 - 2 * (v % 4)));
+        }
+    }
+
+    for (int to = 0; to < 15; to++) {
+        for (int from = 0; from < 16; from++) {
+            int f = 0;
+            while (f < E0470_GL16_FRAMES && lut_get(e0470_textturn_gl16_data, f, to, from) == 2) {
+                e0470_textturn_gl16_data[f][to][from / 4] &= (uint8_t)~(3u << (6 - 2 * (from % 4)));
+                ++f;
+            }
+        }
+    }
 }

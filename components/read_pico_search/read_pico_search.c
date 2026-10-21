@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "search_table.h"
+#include "search_candidates.h"
 
 static unsigned char lower(unsigned char c) {
     return c >= 'A' && c <= 'Z' ? c + ('a' - 'A') : c;
@@ -131,4 +132,36 @@ bool read_pico_search_match(const char* filename, const char* query) {
         full = next_full; initials = next_initials;
     }
     return false;
+}
+
+size_t read_pico_search_candidates(const char* syllable, uint32_t* out, size_t cap, size_t skip) {
+    if (!syllable || !out || !cap) return 0;
+    char normalized[9];
+    size_t n = strnlen(syllable, sizeof(normalized));
+    if (!n || n >= sizeof(normalized)) return 0;
+    for (size_t i = 0; i < n; ++i) {
+        unsigned char c = lower((unsigned char)syllable[i]);
+        if (!letter(c)) return 0;
+        normalized[i] = c;
+    }
+    normalized[n] = 0;
+    size_t low = 0, high = sizeof(search_syllable_offsets) / sizeof(search_syllable_offsets[0]);
+    while (low < high) {
+        size_t mid = low + (high - low) / 2;
+        int order = strcmp(search_syllables + search_syllable_offsets[mid], normalized);
+        if (order < 0) low = mid + 1; else high = mid;
+    }
+    if (low >= sizeof(search_syllable_offsets) / sizeof(search_syllable_offsets[0]) ||
+        strcmp(search_syllables + search_syllable_offsets[low], normalized)) return 0;
+    // 直接定位读音区间，候选翻页不再扫描整张字表。/ Locate the reading range without scanning the character table per page.
+    size_t begin = ime_character_offsets[low], count = ime_character_offsets[low + 1] - begin;
+    if (skip >= count) return 0;
+    count -= skip; if (count > cap) count = cap;
+    for (size_t i = 0; i < count; ++i) out[i] = ime_characters[begin + skip + i];
+    return count;
+}
+
+const char *read_pico_search_syllable(size_t index) {
+    return index < sizeof(search_syllable_offsets) / sizeof(search_syllable_offsets[0])
+        ? search_syllables + search_syllable_offsets[index] : NULL;
 }

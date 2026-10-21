@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SPDX-FileCopyrightText: 2026 mindreset
  * SPDX-License-Identifier: Apache-2.0
  * NVS 故障替身验证进度、序号及遗忘重试。/ Fault-injected NVS tests for progress, sequence and forget retries.
@@ -51,6 +51,31 @@ esp_err_t nvs_erase_key(nvs_handle_t h,const char* key){
     record_t*r=record(key,false);if(!r)return ESP_ERR_NVS_NOT_FOUND;r->len=0;return ESP_OK;
 }
 esp_err_t nvs_commit(nvs_handle_t h){(void)h;++commits;return commit_failure;}
+/* 迭代器就是 records 槽位的指针；len 为 0 的槽位视为已擦除。
+   The iterator is a pointer into records; a zero-length slot counts as erased. */
+esp_err_t nvs_entry_find(const char* part,const char* ns,nvs_type_t type,nvs_iterator_t* it){
+    (void)part;(void)ns;(void)type;if(!it)return ESP_ERR_INVALID_ARG;
+    for(int i=0;i<8;++i)if(records[i].len){*it=(nvs_iterator_t)&records[i];return ESP_OK;}
+    *it=NULL;return ESP_ERR_NVS_NOT_FOUND;
+}
+esp_err_t nvs_entry_next(nvs_iterator_t* it){
+    if(!it||!*it)return ESP_ERR_INVALID_ARG;
+    for(record_t* p=(record_t*)*it+1;p<records+8;++p)if(p->len){*it=(nvs_iterator_t)p;return ESP_OK;}
+    *it=NULL;return ESP_ERR_NVS_NOT_FOUND;
+}
+esp_err_t nvs_entry_info(nvs_iterator_t it,nvs_entry_info_t* out){
+    if(!it||!out)return ESP_ERR_INVALID_ARG;
+    memset(out,0,sizeof(*out));
+    strcpy(out->key,((record_t*)it)->key);out->type=NVS_TYPE_BLOB;return ESP_OK;
+}
+void nvs_release_iterator(nvs_iterator_t it){(void)it;}
+static int listed;
+static char listed_paths[8][BOOK_STORE_PATH_MAX];
+static bool record_list_visit(const char* path,const book_progress_t* progress,void* ctx){
+    (void)progress;
+    if(listed<8)snprintf(listed_paths[listed],BOOK_STORE_PATH_MAX,"%s",path);
+    ++listed;return ctx==NULL;
+}
 int main(void){
     const char*sd="/sdcard/books/同名.txt",*flash="/flash/books/同名.txt";
     book_progress_watch_t* watch_a=book_progress_watch_create(sd);
@@ -100,8 +125,24 @@ int main(void){
     assert(book_progress_last_path(out,sizeof(out))&&!strcmp(out,long_path));assert(!book_progress_last_path(out,2)&&!out[0]);
     assert(book_progress_forget(long_path)==ESP_OK&&!has_last);
     assert(book_progress_set_last_path("")==ESP_OK);assert(!book_progress_last_path(out,sizeof(out))&&!out[0]);
-    p.px=37;assert(book_progress_save(sd,&p)==ESP_ERR_INVALID_ARG);p.px=48;p.pct=101;assert(book_progress_save(sd,&p)==ESP_ERR_INVALID_ARG);
+    p.px=35;assert(book_progress_save(sd,&p)==ESP_ERR_INVALID_ARG);p.px=48;p.pct=101;assert(book_progress_save(sd,&p)==ESP_ERR_INVALID_ARG);
     p.pct=83;sequence=UINT32_MAX;int before=commits;
     assert(book_progress_save(sd,&p)==ESP_ERR_INVALID_STATE&&commits==before&&sequence==UINT32_MAX);
+    // 枚举只返回仍保存进度的路径：sd 与 long_path 都已遗忘，flash 还在。
+    // The walk lists only paths that still hold progress: sd and long_path were forgotten, flash remains.
+    listed=0;
+    assert(book_progress_list(record_list_visit,NULL)==ESP_OK);
+    assert(listed==1&&!strcmp(listed_paths[0],flash));
+    assert(book_progress_list(NULL,NULL)==ESP_ERR_INVALID_ARG);
+    // 坏记录不会挡住后续有效记录；提前结束与空列表均可安全释放迭代器。
+    // Bad records do not block later valid ones; early-stop and empty walks safely release iteration.
+    sequence=10;assert(book_progress_save(sd,&p)==ESP_OK);
+    latest->data[3]=99;
+    listed=0;assert(book_progress_list(record_list_visit,NULL)==ESP_OK);
+    assert(listed==1&&!strcmp(listed_paths[0],flash));
+    latest->data[3]=2;
+    listed=0;assert(book_progress_list(record_list_visit,&listed)==ESP_OK&&listed==1);
+    assert(book_progress_forget(sd)==ESP_OK&&book_progress_forget(flash)==ESP_OK);
+    listed=0;assert(book_progress_list(record_list_visit,NULL)==ESP_OK&&listed==0);
     puts("book progress: v1/v2, sequence, collision, two roots, NVS-full, partial forget and retry passed");
 }

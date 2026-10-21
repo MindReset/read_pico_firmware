@@ -13,6 +13,7 @@
 
 typedef enum {
     UI_GESTURE_PRESS, ///< 按下 / Press
+    UI_GESTURE_MOVE, ///< 按住移动，用于连续滑块 / Move while held for continuous sliders
     UI_GESTURE_LONG_PRESS, ///< 长按一次 / Single long press
     UI_GESTURE_TAP, ///< 原点轻点 / Tap at origin
     UI_GESTURE_SWIPE_L, ///< 左滑 / Swipe left

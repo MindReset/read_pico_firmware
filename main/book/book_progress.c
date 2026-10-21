@@ -35,6 +35,9 @@ struct book_progress_watch {
     struct book_progress_watch* next;
 };
 static book_progress_watch_t* s_watches;
+static atomic_uint s_progress_revision;
+uint32_t book_progress_revision(void){return atomic_load_explicit(&s_progress_revision,memory_order_relaxed);}
+void book_progress_notify_changed(void){atomic_fetch_add_explicit(&s_progress_revision,1,memory_order_relaxed);}
 
 static bool path_valid(const char* path) {
     return path != NULL && path[0] != '\0' && strnlen(path, PATH_CAP) < PATH_CAP;
@@ -103,13 +106,54 @@ bool book_progress_load(const char* path, uint32_t size, book_progress_t* out) {
     nvs_close(h);
     if (err != ESP_OK || !record_valid(data, len) ||
         strcmp((const char*)data + HEADER_SIZE, path) != 0 || get32(data + 4) != size ||
-        data[14] < 36 || data[14] > 72 || (data[14] - 36) % 4 != 0 || data[15] > 100) return false;
+        data[14] < 36 || data[14] > 72 || data[15] > 100) return false;
     *out = (book_progress_t){
         .file_size = get32(data + 4), .chapter = (uint16_t)(data[8] | (data[9] << 8)),
         .byte_off = get32(data + 10), .px = data[14], .pct = data[15],
         .last_open_s = data[3] == 2 ? get32(data + 16) : 0,
     };
     return true;
+}
+
+esp_err_t book_progress_list(book_progress_visit_fn visit, void* ctx) {
+    if (visit == NULL) return ESP_ERR_INVALID_ARG;
+    nvs_iterator_t it = NULL;
+    // 只遍历 blob：同命名空间的 seq 与 last 不是书。
+    // Walk blobs only; seq and last share the namespace but are not books.
+    esp_err_t err = nvs_entry_find(NVS_DEFAULT_PART_NAME, NS, NVS_TYPE_BLOB, &it);
+    if (err == ESP_ERR_NVS_NOT_FOUND) return ESP_OK;
+    if (err != ESP_OK) return warn_error(err);
+    nvs_handle_t h;
+    if (nvs_open(NS, NVS_READONLY, &h) != ESP_OK) {
+        nvs_release_iterator(it);
+        return warn_error(ESP_ERR_NVS_NOT_FOUND);
+    }
+    uint8_t data[RECORD_CAP];
+    bool more = true;
+    while (more) {
+        nvs_entry_info_t info;
+        if (nvs_entry_info(it, &info) == ESP_OK) {
+            size_t len = sizeof(data);
+            // 与 load 相同的有效性门槛；坏记录跳过，不打断整轮遍历。
+            // Same validity gate as load; a bad record is skipped rather than ending the walk.
+            if (nvs_get_blob(h, info.key, data, &len) == ESP_OK && record_valid(data, len) &&
+                data[14] >= 36 && data[14] <= 72 && data[15] <= 100) {
+                book_progress_t value = {
+                    .file_size = get32(data + 4),
+                    .chapter = (uint16_t)(data[8] | (data[9] << 8)),
+                    .byte_off = get32(data + 10),
+                    .px = data[14],
+                    .pct = data[15],
+                    .last_open_s = data[3] == 2 ? get32(data + 16) : 0,
+                };
+                more = visit((const char*)data + HEADER_SIZE, &value, ctx);
+            }
+        }
+        if (more) more = nvs_entry_next(&it) == ESP_OK;
+    }
+    nvs_release_iterator(it);
+    nvs_close(h);
+    return ESP_OK;
 }
 
 // 旧记录必须可识别且属于同一路径；损坏或未知版本也不盲目覆盖。
@@ -126,7 +170,7 @@ static esp_err_t check_owner(nvs_handle_t h, const char* key, const char* path) 
 
 esp_err_t book_progress_save(const char* path, const book_progress_t* progress) {
     if (!path_valid(path) || progress == NULL || progress->px < 36 || progress->px > 72 ||
-        (progress->px - 36) % 4 != 0 || progress->pct > 100) return ESP_ERR_INVALID_ARG;
+        progress->pct > 100) return ESP_ERR_INVALID_ARG;
     uint8_t data[RECORD_CAP] = {'R', 'P', 'B', 2};
     put32(data + 4, progress->file_size);
     data[8] = (uint8_t)progress->chapter;
@@ -158,6 +202,7 @@ esp_err_t book_progress_save(const char* path, const book_progress_t* progress) 
     if (err == ESP_OK) err = nvs_set_blob(h, key, data, HEADER_SIZE + path_len);
     if (err == ESP_OK) err = nvs_commit(h);
     nvs_close(h);
+    book_progress_notify_changed();
     return warn_error(err);
 }
 
@@ -173,6 +218,7 @@ esp_err_t book_progress_clear(const char* path) {
     if (err == ESP_ERR_NVS_NOT_FOUND) err = ESP_OK;
     if (err == ESP_OK) err = nvs_commit(h);
     nvs_close(h);
+    book_progress_notify_changed();
     return warn_error(err);
 }
 
@@ -205,6 +251,7 @@ esp_err_t book_progress_forget(const char* path) {
     if (err == ESP_ERR_NVS_NOT_FOUND) err = ESP_OK;
     if (err == ESP_OK) err = nvs_commit(h);
     nvs_close(h);
+    book_progress_notify_changed();
     return warn_error(err);
 }
 
@@ -231,5 +278,6 @@ esp_err_t book_progress_set_last_path(const char* path) {
     err = nvs_set_str(h, "last", path);
     if (err == ESP_OK) err = nvs_commit(h);
     nvs_close(h);
+    book_progress_notify_changed();
     return warn_error(err);
 }

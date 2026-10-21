@@ -7,6 +7,7 @@
  * Frozen: Progress uses source offsets; at most 2048 entries; never load the whole book.
  */
 #include "book_source_internal.h"
+#include "book_index_cache.h"
 #include "gbk.h"
 #include "esp_heap_caps.h"
 #include <stdlib.h>
@@ -15,6 +16,14 @@
 #include <limits.h>
 #define READ_BLOCK (64 * 1024)
 #define PART_TARGET (48 * 1024)
+#define TXT_CACHE_VERSION 1u
+typedef struct {
+    uint32_t total;
+    uint32_t bom;
+    uint32_t count;
+    uint8_t gbk;
+    uint8_t reserved[3];
+} txt_cache_payload_t;
 typedef struct {
     FILE *file; ///< 只读句柄 / Read-only handle
     unsigned char bytes[READ_BLOCK + 4]; ///< 跨块字符余量 / Room for a cross-block character
@@ -121,6 +130,44 @@ static esp_err_t index_book(reader_t *r, book_txt_t *b) {
     }
     return ferror(b->file) ? ESP_FAIL : ESP_OK;
 }
+
+static bool txt_cache_load(const char* source, book_txt_t* b) {
+    char path[112]; book_index_cache_header_t key;
+    if (!book_index_cache_prepare(source, "txt", TXT_CACHE_VERSION, path, sizeof(path), &key)) return false;
+    FILE* cache = book_index_cache_open_read(path, &key);
+    if (!cache) return false;
+    txt_cache_payload_t payload;
+    bool ok = fread(&payload, 1, sizeof(payload), cache) == sizeof(payload) &&
+        payload.total == b->total && payload.bom <= 3 && payload.bom <= payload.total &&
+        payload.count > 0 && payload.count <= BOOK_CHAPTER_MAX && payload.gbk <= 1 &&
+        fread(b->entries, sizeof(b->entries[0]), payload.count, cache) == payload.count &&
+        fgetc(cache) == EOF;
+    fclose(cache);
+    uint32_t previous = 0;
+    for (size_t i = 0; ok && i < payload.count; ++i) {
+        const book_entry_t* entry = &b->entries[i];
+        ok = entry->offset >= previous && entry->offset < payload.total &&
+            memchr(entry->title, 0, sizeof(entry->title)) != NULL;
+        previous = entry->offset;
+    }
+    if (!ok) return false;
+    b->bom = payload.bom; b->gbk = payload.gbk != 0; b->count = payload.count;
+    return true;
+}
+
+static void txt_cache_save(const char* source, const book_txt_t* b) {
+    char path[112], temp[120]; book_index_cache_header_t key;
+    if (!book_index_cache_prepare(source, "txt", TXT_CACHE_VERSION, path, sizeof(path), &key)) return;
+    FILE* cache = book_index_cache_open_write(path, &key, temp, sizeof(temp));
+    if (!cache) return;
+    txt_cache_payload_t payload = {
+        .total = b->total, .bom = b->bom, .count = (uint32_t)b->count, .gbk = b->gbk,
+    };
+    bool ok = fwrite(&payload, 1, sizeof(payload), cache) == sizeof(payload) &&
+        fwrite(b->entries, sizeof(b->entries[0]), b->count, cache) == b->count;
+    (void)book_index_cache_finish_write(cache, temp, path, ok);
+}
+
 esp_err_t book_txt_open(book_txt_t *b, const char *path) {
     b->file = fopen(path, "rb"); if (!b->file) return ESP_ERR_NOT_FOUND;
     if (fseek(b->file, 0, SEEK_END)) return ESP_FAIL;
@@ -128,8 +175,10 @@ esp_err_t book_txt_open(book_txt_t *b, const char *path) {
     if (size < 0 || (unsigned long)size > UINT32_MAX || size > LONG_MAX - 4) return ESP_ERR_INVALID_SIZE;
     b->total = (uint32_t)size;
     b->entries = heap_caps_malloc(sizeof(book_entry_t) * BOOK_CHAPTER_MAX, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (!b->entries) return ESP_ERR_NO_MEM;
+    if (txt_cache_load(path, b)) return ESP_OK;
     reader_t *r = heap_caps_malloc(sizeof(*r), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    if (!b->entries || !r) { free(r); return ESP_ERR_NO_MEM; }
+    if (!r) return ESP_ERR_NO_MEM;
     esp_err_t err = reset(r, b, 0);
     if (!err) {
         size_t n = fread(r->bytes, 1, READ_BLOCK + 3, b->file);
@@ -141,6 +190,7 @@ esp_err_t book_txt_open(book_txt_t *b, const char *path) {
         }
     }
     if (!err) err = index_book(r, b);
+    if (!err) txt_cache_save(path, b);
     free(r); return err;
 }
 esp_err_t book_txt_load(book_txt_t *b, size_t i, char **utf8, size_t *len) {

@@ -1,0 +1,112 @@
+kiikoread 个人学习许可 1.0 / Personal Study License 1.0
+Identifier: LicenseRef-Kiikoread-Personal-Study-1.0
+Version date / 版本日期: 2026-10-15
+
+一、适用内容与权利人 / 1. Covered material and licensor
+
+“许可内容”仅指由拥有相应权利的作者或其被授权人（“许可人”）明确
+标注适用本许可的新增原创内容及该内容的副本、修改和衍生部分。
+许可人由该内容的版权声明确定；本许可不将其他贡献者的版权转给维护者。
+仓库根目录 LICENSE 的适用范围和保留条款是本许可的组成部分。
+
+“Covered Material” means only new original material explicitly placed under
+this license by its copyright holder or authorized representative (the
+“Licensor”), and copies, modifications and derivatives of that material.
+The applicable copyright notice identifies the Licensor; this license does
+not transfer contributors' copyright to the project maintainer. The scope
+and reservations in the repository's root LICENSE form part of this license.
+
+二、允许的个人用途 / 2. Permitted personal uses
+
+在遵守本许可的前提下，许可人授予自然人一项免费、非独占、不可转授权的
+有限许可，允许为个人、非商业的学习、研究和测试而查看、复制、编译、
+修改许可内容，并在自己的设备上安装和运行。官方未修改版本也可用于
+个人、非商业阅读。公司或其他组织的业务使用不属于个人学习用途。
+
+Subject to this license, the Licensor grants an individual a no-charge,
+nonexclusive, nonsublicensable, limited license to inspect, copy, compile,
+modify, install and run the Covered Material on their own devices solely
+for personal, noncommercial study, research and testing. Unmodified official
+builds may also be used for personal, noncommercial reading. Use in the
+operations of a business or other organization is not personal study.
+
+三、禁止商用 / 3. No commercial use
+
+除非事先取得相应许可人的单独书面授权，不得将许可内容或包含其受保护
+表达的修改版本直接或间接用于商业目的，包括：
+- 销售、出租、付费下载、付费订阅或付费解锁；
+- 预装、捆绑在用于出售或出租的设备、商品或商业服务中；
+- 以收费方式提供刷机、定制、代开发、维护或其他以许可内容为基础的服务；
+- 用于企业经营、客户交付、商业产品研发或以广告等方式获利的服务。
+仅仅免费提供软件，不意味着相关商业用途已经获得授权。
+
+Unless separately authorized in advance and in writing by the relevant
+Licensor, the Covered Material and modified versions containing its protected
+expression must not be used directly or indirectly for commercial purposes,
+including sale, rental, paid downloads, subscriptions or paid access;
+preinstallation or bundling with devices, goods or commercial services offered
+for sale or rental; paid flashing, customization, development or maintenance;
+business operations, client deliveries, commercial product development or
+advertising-funded services. Offering the software free of charge does not
+by itself authorize commercial use.
+
+四、学习交流与分发 / 4. Study sharing and redistribution
+
+允许为个人、非商业学习交流而免费分享源码、学习笔记或测试构建，也允许
+通过 GitHub 的公开仓库、fork 和 PR 进行此类交流。接收者直接依据本许可
+获得许可，而非由分享者转授权。分享时必须保留本许可、根目录 LICENSE、
+版权与来源说明，并注明修改内容，不得暗示修改版是官方发布或得到背书。
+分享者只能许可自己有权许可的部分；同包第三方材料必须同时遵守其许可。
+
+You may share source, study notes and test builds without charge solely for
+personal, noncommercial study, including through public GitHub repositories,
+forks and pull requests. Recipients obtain their permission directly under
+this license, not by sublicense. Preserve this license, the root LICENSE,
+copyright and attribution notices, and identify your changes. Do not imply
+that modified builds are official or endorsed. License only material you
+have the right to license, and comply with licenses of third-party material
+distributed alongside it.
+
+五、保留的权利与优先顺序 / 5. Reserved rights and priority
+
+本许可不适用于已经按 Apache-2.0、MIT、ISC、LGPL、OFL 或其他条款授权
+的既有内容，不撤销历史授权，不限制依法独立获得的权利、合理使用或其他
+法定例外。各第三方材料继续适用其各自许可。本许可不得用于限制 LGPL
+组件本身的修改、调试和重新链接，或其他由组件许可保障的权利。
+本许可不转让版权，也不授予将 kiikoread 名称或标识用于商业宣传、
+冒充官方或暗示背书的商标权利；依法进行的真实来源说明不受此限制。
+
+This license does not apply to existing material already licensed under
+Apache-2.0, MIT, ISC, LGPL, OFL or other terms; revoke historical permissions;
+or limit independently obtained rights, fair use or other statutory exceptions.
+Third-party licenses continue to govern their respective material. This
+license must not restrict modification, debugging or relinking of an LGPL
+component or other rights guaranteed by its license. Copyright is not
+transferred. No trademark permission is granted to use kiikoread names or
+marks for commercial promotion, impersonation or implied endorsement; lawful,
+truthful attribution remains permitted.
+
+六、违反条款、免责声明及授权联系 / 6. Breach, disclaimer and contact
+
+违反本许可时，本许可授予的权利自动终止；依法应继续有效的权利及其他
+独立许可不受影响。许可内容按“现状”提供，在适用法律允许的范围内不提供
+任何明示或默示担保，许可人不对因使用造成的损失负责。依法不能排除的
+责任不受本条影响。本许可为自定义的源码可见许可，不是 OSI 开源许可证。
+商业授权请通过 https://github.com/wegooo-cell/read-pico-reader 联系维护者；
+维护者仅能授权自己拥有或已获授权的权利。未经单独书面许可不得商用。
+中英文表述不一致时，以中文为准，但不改变任何第三方或既有许可。
+本许可文本本身可为说明和应用本许可而原样复制与分发。
+
+Your rights granted by this license terminate automatically upon breach;
+rights that survive by law and permissions under independent licenses remain
+unaffected. The Covered Material is provided “AS IS,” without express or
+implied warranties, and the Licensor is not liable for losses resulting from
+its use, to the extent permitted by applicable law. Nonexcludable liability
+is unaffected. This is a custom source-available license, not an OSI-approved
+open-source license. Contact the maintainer through
+https://github.com/wegooo-cell/read-pico-reader to request commercial permission.
+The maintainer can authorize only rights they own or are authorized to grant.
+Commercial use requires separate written permission. The Chinese text controls
+if the translations differ, without altering third-party or existing licenses.
+The license text itself may be copied and distributed verbatim to explain and
+apply this license.

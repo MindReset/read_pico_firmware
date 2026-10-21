@@ -1,0 +1,37 @@
+name: Publish web flasher
+
+# 发布 web-flasher/ 目录为 GitHub Pages 站点根目录。
+# Publishes the web-flasher/ directory as the GitHub Pages site root.
+# 因此网页刷机地址为 https://<用户名>.github.io/<仓库名>/，没有 /web-flasher/ 后缀。
+# The flasher URL is therefore https://<user>.github.io/<repo>/ with no /web-flasher/ suffix.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - web-flasher/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: web-flasher
+      - id: deployment
+        uses: actions/deploy-pages@v4

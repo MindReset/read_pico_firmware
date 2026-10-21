@@ -1,0 +1,4 @@
+version: "1.0.0"
+description: "E0470 staggered page-turn engine"
+dependencies:
+  idf: ">=5.3"

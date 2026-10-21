@@ -1,0 +1,6886 @@
+state columns=1 degenerate=1
+== fixture[] col1
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=1 degenerate=0
+== fixture[] col1
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=2 degenerate=1
+== fixture[] col2
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=2 degenerate=0
+== fixture[] col2
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=1 degenerate=1
+== fixture[.] col1
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=1 degenerate=0
+== fixture[.] col1
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=2 degenerate=1
+== fixture[.] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=2 degenerate=0
+== fixture[.] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=1 degenerate=1
+== fixture[..] col1
+count=2
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 1
+clamp logical=3 -> 1
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 1
+mode visual=2 -> 0
+pages visual=2 -> left=1 right=none
+start visual=3 -> 1
+mode visual=3 -> 0
+pages visual=3 -> left=1 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 1
+offset off=999999 -> 1
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+state columns=1 degenerate=0
+== fixture[..] col1
+count=2
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 1
+clamp logical=3 -> 1
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 1
+mode visual=2 -> 0
+pages visual=2 -> left=1 right=none
+start visual=3 -> 1
+mode visual=3 -> 0
+pages visual=3 -> left=1 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 1
+offset off=999999 -> 1
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+state columns=2 degenerate=1
+== fixture[..] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+index logical=3 -> 0
+clamp logical=3 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=1
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=1
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=2 degenerate=0
+== fixture[..] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+index logical=3 -> 0
+clamp logical=3 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=1
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=1
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=1 degenerate=1
+== fixture[.....] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=1 degenerate=0
+== fixture[.....] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=2 degenerate=1
+== fixture[.....] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[.....] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+state columns=1 degenerate=1
+== fixture[........] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=1 degenerate=0
+== fixture[........] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=2 degenerate=1
+== fixture[........] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=2 degenerate=0
+== fixture[........] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=1 degenerate=1
+== fixture[....I] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=1 degenerate=0
+== fixture[....I] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[....I] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 1
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 1
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 1
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=1
+state columns=2 degenerate=0
+== fixture[....I] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 1
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 1
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 1
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=1
+state columns=1 degenerate=1
+== fixture[..I..] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=1 degenerate=0
+== fixture[..I..] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[..I..] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+index logical=6 -> 2
+clamp logical=6 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 1
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=4
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=4
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=4
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=2 degenerate=0
+== fixture[..I..] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+index logical=6 -> 2
+clamp logical=6 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 1
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=4
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=4
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=4
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=1 degenerate=1
+== fixture[.I.] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[.I.] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[.I.] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[.I.] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=1 degenerate=1
+== fixture[I...] col1
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 3
+index logical=5 -> 3
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+start visual=5 -> 3
+mode visual=5 -> 0
+pages visual=5 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+state columns=1 degenerate=0
+== fixture[I...] col1
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 3
+index logical=5 -> 3
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+start visual=5 -> 3
+mode visual=5 -> 0
+pages visual=5 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+state columns=2 degenerate=0
+== fixture[I...] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=2
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=3 mode=0
+state columns=2 degenerate=0
+== fixture[I...] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=2
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=3 mode=0
+state columns=1 degenerate=1
+== fixture[III] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[III] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[III] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=1
+map 2 start=2 mode=1
+state columns=2 degenerate=0
+== fixture[III] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=1
+map 2 start=2 mode=1
+state columns=1 degenerate=1
+== fixture[...I..] col1
+count=6
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 5
+clamp logical=6 -> 5
+index logical=7 -> 5
+clamp logical=7 -> 5
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 5
+mode visual=6 -> 0
+pages visual=6 -> left=5 right=none
+start visual=7 -> 5
+mode visual=7 -> 0
+pages visual=7 -> left=5 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 5
+offset off=999999 -> 5
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+state columns=1 degenerate=0
+== fixture[...I..] col1
+count=6
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 5
+clamp logical=6 -> 5
+index logical=7 -> 5
+clamp logical=7 -> 5
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 5
+mode visual=6 -> 0
+pages visual=6 -> left=5 right=none
+start visual=7 -> 5
+mode visual=7 -> 0
+pages visual=7 -> left=5 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 5
+offset off=999999 -> 5
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+state columns=2 degenerate=0
+== fixture[...I..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 4
+index logical=5 -> 3
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 4
+index logical=7 -> 3
+clamp logical=7 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 1
+pages visual=2 -> left=3 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=5
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=5
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=5
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=3 mode=1
+map 3 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[...I..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 4
+index logical=5 -> 3
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 4
+index logical=7 -> 3
+clamp logical=7 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 1
+pages visual=2 -> left=3 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=5
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=5
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=5
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=3 mode=1
+map 3 start=4 mode=0
+state columns=1 degenerate=1
+== fixture[..i..i..] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=1 degenerate=0
+== fixture[..i..i..] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=2 degenerate=1
+== fixture[..i..i..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=2 degenerate=0
+== fixture[..i..i..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=1 degenerate=1
+== fixture[iIi] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[iIi] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[iIi] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[iIi] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=1 degenerate=1
+== fixture[IiI] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[IiI] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[IiI] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=2 mode=1
+state columns=2 degenerate=0
+== fixture[IiI] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=2 mode=1
+state columns=1 degenerate=1
+== fixture[.......I...........I.......I................] col1
+count=44
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 8
+clamp logical=8 -> 8
+index logical=9 -> 9
+clamp logical=9 -> 9
+index logical=10 -> 10
+clamp logical=10 -> 10
+index logical=11 -> 11
+clamp logical=11 -> 11
+index logical=12 -> 12
+clamp logical=12 -> 12
+index logical=13 -> 13
+clamp logical=13 -> 13
+index logical=14 -> 14
+clamp logical=14 -> 14
+index logical=15 -> 15
+clamp logical=15 -> 15
+index logical=16 -> 16
+clamp logical=16 -> 16
+index logical=17 -> 17
+clamp logical=17 -> 17
+index logical=18 -> 18
+clamp logical=18 -> 18
+index logical=19 -> 19
+clamp logical=19 -> 19
+index logical=20 -> 20
+clamp logical=20 -> 20
+index logical=21 -> 21
+clamp logical=21 -> 21
+index logical=22 -> 22
+clamp logical=22 -> 22
+index logical=23 -> 23
+clamp logical=23 -> 23
+index logical=24 -> 24
+clamp logical=24 -> 24
+index logical=25 -> 25
+clamp logical=25 -> 25
+index logical=26 -> 26
+clamp logical=26 -> 26
+index logical=27 -> 27
+clamp logical=27 -> 27
+index logical=28 -> 28
+clamp logical=28 -> 28
+index logical=29 -> 29
+clamp logical=29 -> 29
+index logical=30 -> 30
+clamp logical=30 -> 30
+index logical=31 -> 31
+clamp logical=31 -> 31
+index logical=32 -> 32
+clamp logical=32 -> 32
+index logical=33 -> 33
+clamp logical=33 -> 33
+index logical=34 -> 34
+clamp logical=34 -> 34
+index logical=35 -> 35
+clamp logical=35 -> 35
+index logical=36 -> 36
+clamp logical=36 -> 36
+index logical=37 -> 37
+clamp logical=37 -> 37
+index logical=38 -> 38
+clamp logical=38 -> 38
+index logical=39 -> 39
+clamp logical=39 -> 39
+index logical=40 -> 40
+clamp logical=40 -> 40
+index logical=41 -> 41
+clamp logical=41 -> 41
+index logical=42 -> 42
+clamp logical=42 -> 42
+index logical=43 -> 43
+clamp logical=43 -> 43
+index logical=44 -> 43
+clamp logical=44 -> 43
+index logical=45 -> 43
+clamp logical=45 -> 43
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 8
+mode visual=8 -> 0
+pages visual=8 -> left=8 right=none
+start visual=9 -> 9
+mode visual=9 -> 0
+pages visual=9 -> left=9 right=none
+start visual=10 -> 10
+mode visual=10 -> 0
+pages visual=10 -> left=10 right=none
+start visual=11 -> 11
+mode visual=11 -> 0
+pages visual=11 -> left=11 right=none
+start visual=12 -> 12
+mode visual=12 -> 0
+pages visual=12 -> left=12 right=none
+start visual=13 -> 13
+mode visual=13 -> 0
+pages visual=13 -> left=13 right=none
+start visual=14 -> 14
+mode visual=14 -> 0
+pages visual=14 -> left=14 right=none
+start visual=15 -> 15
+mode visual=15 -> 0
+pages visual=15 -> left=15 right=none
+start visual=16 -> 16
+mode visual=16 -> 0
+pages visual=16 -> left=16 right=none
+start visual=17 -> 17
+mode visual=17 -> 0
+pages visual=17 -> left=17 right=none
+start visual=18 -> 18
+mode visual=18 -> 0
+pages visual=18 -> left=18 right=none
+start visual=19 -> 19
+mode visual=19 -> 0
+pages visual=19 -> left=19 right=none
+start visual=20 -> 20
+mode visual=20 -> 0
+pages visual=20 -> left=20 right=none
+start visual=21 -> 21
+mode visual=21 -> 0
+pages visual=21 -> left=21 right=none
+start visual=22 -> 22
+mode visual=22 -> 0
+pages visual=22 -> left=22 right=none
+start visual=23 -> 23
+mode visual=23 -> 0
+pages visual=23 -> left=23 right=none
+start visual=24 -> 24
+mode visual=24 -> 0
+pages visual=24 -> left=24 right=none
+start visual=25 -> 25
+mode visual=25 -> 0
+pages visual=25 -> left=25 right=none
+start visual=26 -> 26
+mode visual=26 -> 0
+pages visual=26 -> left=26 right=none
+start visual=27 -> 27
+mode visual=27 -> 0
+pages visual=27 -> left=27 right=none
+start visual=28 -> 28
+mode visual=28 -> 0
+pages visual=28 -> left=28 right=none
+start visual=29 -> 29
+mode visual=29 -> 0
+pages visual=29 -> left=29 right=none
+start visual=30 -> 30
+mode visual=30 -> 0
+pages visual=30 -> left=30 right=none
+start visual=31 -> 31
+mode visual=31 -> 0
+pages visual=31 -> left=31 right=none
+start visual=32 -> 32
+mode visual=32 -> 0
+pages visual=32 -> left=32 right=none
+start visual=33 -> 33
+mode visual=33 -> 0
+pages visual=33 -> left=33 right=none
+start visual=34 -> 34
+mode visual=34 -> 0
+pages visual=34 -> left=34 right=none
+start visual=35 -> 35
+mode visual=35 -> 0
+pages visual=35 -> left=35 right=none
+start visual=36 -> 36
+mode visual=36 -> 0
+pages visual=36 -> left=36 right=none
+start visual=37 -> 37
+mode visual=37 -> 0
+pages visual=37 -> left=37 right=none
+start visual=38 -> 38
+mode visual=38 -> 0
+pages visual=38 -> left=38 right=none
+start visual=39 -> 39
+mode visual=39 -> 0
+pages visual=39 -> left=39 right=none
+start visual=40 -> 40
+mode visual=40 -> 0
+pages visual=40 -> left=40 right=none
+start visual=41 -> 41
+mode visual=41 -> 0
+pages visual=41 -> left=41 right=none
+start visual=42 -> 42
+mode visual=42 -> 0
+pages visual=42 -> left=42 right=none
+start visual=43 -> 43
+mode visual=43 -> 0
+pages visual=43 -> left=43 right=none
+start visual=44 -> 43
+mode visual=44 -> 0
+pages visual=44 -> left=43 right=none
+start visual=45 -> 43
+mode visual=45 -> 0
+pages visual=45 -> left=43 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 9
+offset off=999999 -> 43
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+map 8 start=8 mode=0
+map 9 start=9 mode=0
+map 10 start=10 mode=0
+map 11 start=11 mode=0
+map 12 start=12 mode=0
+map 13 start=13 mode=0
+map 14 start=14 mode=0
+map 15 start=15 mode=0
+map 16 start=16 mode=0
+map 17 start=17 mode=0
+map 18 start=18 mode=0
+map 19 start=19 mode=0
+map 20 start=20 mode=0
+map 21 start=21 mode=0
+map 22 start=22 mode=0
+map 23 start=23 mode=0
+map 24 start=24 mode=0
+map 25 start=25 mode=0
+map 26 start=26 mode=0
+map 27 start=27 mode=0
+map 28 start=28 mode=0
+map 29 start=29 mode=0
+map 30 start=30 mode=0
+map 31 start=31 mode=0
+map 32 start=32 mode=0
+map 33 start=33 mode=0
+map 34 start=34 mode=0
+map 35 start=35 mode=0
+map 36 start=36 mode=0
+map 37 start=37 mode=0
+map 38 start=38 mode=0
+map 39 start=39 mode=0
+map 40 start=40 mode=0
+map 41 start=41 mode=0
+map 42 start=42 mode=0
+map 43 start=43 mode=0
+state columns=1 degenerate=0
+== fixture[.......I...........I.......I................] col1
+count=44
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 8
+clamp logical=8 -> 8
+index logical=9 -> 9
+clamp logical=9 -> 9
+index logical=10 -> 10
+clamp logical=10 -> 10
+index logical=11 -> 11
+clamp logical=11 -> 11
+index logical=12 -> 12
+clamp logical=12 -> 12
+index logical=13 -> 13
+clamp logical=13 -> 13
+index logical=14 -> 14
+clamp logical=14 -> 14
+index logical=15 -> 15
+clamp logical=15 -> 15
+index logical=16 -> 16
+clamp logical=16 -> 16
+index logical=17 -> 17
+clamp logical=17 -> 17
+index logical=18 -> 18
+clamp logical=18 -> 18
+index logical=19 -> 19
+clamp logical=19 -> 19
+index logical=20 -> 20
+clamp logical=20 -> 20
+index logical=21 -> 21
+clamp logical=21 -> 21
+index logical=22 -> 22
+clamp logical=22 -> 22
+index logical=23 -> 23
+clamp logical=23 -> 23
+index logical=24 -> 24
+clamp logical=24 -> 24
+index logical=25 -> 25
+clamp logical=25 -> 25
+index logical=26 -> 26
+clamp logical=26 -> 26
+index logical=27 -> 27
+clamp logical=27 -> 27
+index logical=28 -> 28
+clamp logical=28 -> 28
+index logical=29 -> 29
+clamp logical=29 -> 29
+index logical=30 -> 30
+clamp logical=30 -> 30
+index logical=31 -> 31
+clamp logical=31 -> 31
+index logical=32 -> 32
+clamp logical=32 -> 32
+index logical=33 -> 33
+clamp logical=33 -> 33
+index logical=34 -> 34
+clamp logical=34 -> 34
+index logical=35 -> 35
+clamp logical=35 -> 35
+index logical=36 -> 36
+clamp logical=36 -> 36
+index logical=37 -> 37
+clamp logical=37 -> 37
+index logical=38 -> 38
+clamp logical=38 -> 38
+index logical=39 -> 39
+clamp logical=39 -> 39
+index logical=40 -> 40
+clamp logical=40 -> 40
+index logical=41 -> 41
+clamp logical=41 -> 41
+index logical=42 -> 42
+clamp logical=42 -> 42
+index logical=43 -> 43
+clamp logical=43 -> 43
+index logical=44 -> 43
+clamp logical=44 -> 43
+index logical=45 -> 43
+clamp logical=45 -> 43
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 8
+mode visual=8 -> 0
+pages visual=8 -> left=8 right=none
+start visual=9 -> 9
+mode visual=9 -> 0
+pages visual=9 -> left=9 right=none
+start visual=10 -> 10
+mode visual=10 -> 0
+pages visual=10 -> left=10 right=none
+start visual=11 -> 11
+mode visual=11 -> 0
+pages visual=11 -> left=11 right=none
+start visual=12 -> 12
+mode visual=12 -> 0
+pages visual=12 -> left=12 right=none
+start visual=13 -> 13
+mode visual=13 -> 0
+pages visual=13 -> left=13 right=none
+start visual=14 -> 14
+mode visual=14 -> 0
+pages visual=14 -> left=14 right=none
+start visual=15 -> 15
+mode visual=15 -> 0
+pages visual=15 -> left=15 right=none
+start visual=16 -> 16
+mode visual=16 -> 0
+pages visual=16 -> left=16 right=none
+start visual=17 -> 17
+mode visual=17 -> 0
+pages visual=17 -> left=17 right=none
+start visual=18 -> 18
+mode visual=18 -> 0
+pages visual=18 -> left=18 right=none
+start visual=19 -> 19
+mode visual=19 -> 0
+pages visual=19 -> left=19 right=none
+start visual=20 -> 20
+mode visual=20 -> 0
+pages visual=20 -> left=20 right=none
+start visual=21 -> 21
+mode visual=21 -> 0
+pages visual=21 -> left=21 right=none
+start visual=22 -> 22
+mode visual=22 -> 0
+pages visual=22 -> left=22 right=none
+start visual=23 -> 23
+mode visual=23 -> 0
+pages visual=23 -> left=23 right=none
+start visual=24 -> 24
+mode visual=24 -> 0
+pages visual=24 -> left=24 right=none
+start visual=25 -> 25
+mode visual=25 -> 0
+pages visual=25 -> left=25 right=none
+start visual=26 -> 26
+mode visual=26 -> 0
+pages visual=26 -> left=26 right=none
+start visual=27 -> 27
+mode visual=27 -> 0
+pages visual=27 -> left=27 right=none
+start visual=28 -> 28
+mode visual=28 -> 0
+pages visual=28 -> left=28 right=none
+start visual=29 -> 29
+mode visual=29 -> 0
+pages visual=29 -> left=29 right=none
+start visual=30 -> 30
+mode visual=30 -> 0
+pages visual=30 -> left=30 right=none
+start visual=31 -> 31
+mode visual=31 -> 0
+pages visual=31 -> left=31 right=none
+start visual=32 -> 32
+mode visual=32 -> 0
+pages visual=32 -> left=32 right=none
+start visual=33 -> 33
+mode visual=33 -> 0
+pages visual=33 -> left=33 right=none
+start visual=34 -> 34
+mode visual=34 -> 0
+pages visual=34 -> left=34 right=none
+start visual=35 -> 35
+mode visual=35 -> 0
+pages visual=35 -> left=35 right=none
+start visual=36 -> 36
+mode visual=36 -> 0
+pages visual=36 -> left=36 right=none
+start visual=37 -> 37
+mode visual=37 -> 0
+pages visual=37 -> left=37 right=none
+start visual=38 -> 38
+mode visual=38 -> 0
+pages visual=38 -> left=38 right=none
+start visual=39 -> 39
+mode visual=39 -> 0
+pages visual=39 -> left=39 right=none
+start visual=40 -> 40
+mode visual=40 -> 0
+pages visual=40 -> left=40 right=none
+start visual=41 -> 41
+mode visual=41 -> 0
+pages visual=41 -> left=41 right=none
+start visual=42 -> 42
+mode visual=42 -> 0
+pages visual=42 -> left=42 right=none
+start visual=43 -> 43
+mode visual=43 -> 0
+pages visual=43 -> left=43 right=none
+start visual=44 -> 43
+mode visual=44 -> 0
+pages visual=44 -> left=43 right=none
+start visual=45 -> 43
+mode visual=45 -> 0
+pages visual=45 -> left=43 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 9
+offset off=999999 -> 43
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+map 8 start=8 mode=0
+map 9 start=9 mode=0
+map 10 start=10 mode=0
+map 11 start=11 mode=0
+map 12 start=12 mode=0
+map 13 start=13 mode=0
+map 14 start=14 mode=0
+map 15 start=15 mode=0
+map 16 start=16 mode=0
+map 17 start=17 mode=0
+map 18 start=18 mode=0
+map 19 start=19 mode=0
+map 20 start=20 mode=0
+map 21 start=21 mode=0
+map 22 start=22 mode=0
+map 23 start=23 mode=0
+map 24 start=24 mode=0
+map 25 start=25 mode=0
+map 26 start=26 mode=0
+map 27 start=27 mode=0
+map 28 start=28 mode=0
+map 29 start=29 mode=0
+map 30 start=30 mode=0
+map 31 start=31 mode=0
+map 32 start=32 mode=0
+map 33 start=33 mode=0
+map 34 start=34 mode=0
+map 35 start=35 mode=0
+map 36 start=36 mode=0
+map 37 start=37 mode=0
+map 38 start=38 mode=0
+map 39 start=39 mode=0
+map 40 start=40 mode=0
+map 41 start=41 mode=0
+map 42 start=42 mode=0
+map 43 start=43 mode=0
+state columns=2 degenerate=0
+== fixture[.......I...........I.......I................] col2
+count=25
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 4
+clamp logical=7 -> 7
+index logical=8 -> 5
+clamp logical=8 -> 8
+index logical=9 -> 5
+clamp logical=9 -> 8
+index logical=10 -> 6
+clamp logical=10 -> 10
+index logical=11 -> 6
+clamp logical=11 -> 10
+index logical=12 -> 7
+clamp logical=12 -> 12
+index logical=13 -> 7
+clamp logical=13 -> 12
+index logical=14 -> 8
+clamp logical=14 -> 14
+index logical=15 -> 8
+clamp logical=15 -> 14
+index logical=16 -> 9
+clamp logical=16 -> 16
+index logical=17 -> 9
+clamp logical=17 -> 16
+index logical=18 -> 10
+clamp logical=18 -> 18
+index logical=19 -> 11
+clamp logical=19 -> 19
+index logical=20 -> 12
+clamp logical=20 -> 20
+index logical=21 -> 12
+clamp logical=21 -> 20
+index logical=22 -> 13
+clamp logical=22 -> 22
+index logical=23 -> 13
+clamp logical=23 -> 22
+index logical=24 -> 14
+clamp logical=24 -> 24
+index logical=25 -> 14
+clamp logical=25 -> 24
+index logical=26 -> 15
+clamp logical=26 -> 26
+index logical=27 -> 16
+clamp logical=27 -> 27
+index logical=28 -> 17
+clamp logical=28 -> 28
+index logical=29 -> 17
+clamp logical=29 -> 28
+index logical=30 -> 18
+clamp logical=30 -> 30
+index logical=31 -> 18
+clamp logical=31 -> 30
+index logical=32 -> 19
+clamp logical=32 -> 32
+index logical=33 -> 19
+clamp logical=33 -> 32
+index logical=34 -> 20
+clamp logical=34 -> 34
+index logical=35 -> 20
+clamp logical=35 -> 34
+index logical=36 -> 21
+clamp logical=36 -> 36
+index logical=37 -> 21
+clamp logical=37 -> 36
+index logical=38 -> 22
+clamp logical=38 -> 38
+index logical=39 -> 22
+clamp logical=39 -> 38
+index logical=40 -> 23
+clamp logical=40 -> 40
+index logical=41 -> 23
+clamp logical=41 -> 40
+index logical=42 -> 24
+clamp logical=42 -> 42
+index logical=43 -> 24
+clamp logical=43 -> 42
+index logical=44 -> 24
+clamp logical=44 -> 42
+index logical=45 -> 24
+clamp logical=45 -> 42
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=none
+start visual=4 -> 7
+mode visual=4 -> 1
+pages visual=4 -> left=7 right=none
+start visual=5 -> 8
+mode visual=5 -> 0
+pages visual=5 -> left=8 right=9
+start visual=6 -> 10
+mode visual=6 -> 0
+pages visual=6 -> left=10 right=11
+start visual=7 -> 12
+mode visual=7 -> 0
+pages visual=7 -> left=12 right=13
+start visual=8 -> 14
+mode visual=8 -> 0
+pages visual=8 -> left=14 right=15
+start visual=9 -> 16
+mode visual=9 -> 0
+pages visual=9 -> left=16 right=17
+start visual=10 -> 18
+mode visual=10 -> 0
+pages visual=10 -> left=18 right=none
+start visual=11 -> 19
+mode visual=11 -> 1
+pages visual=11 -> left=19 right=none
+start visual=12 -> 20
+mode visual=12 -> 0
+pages visual=12 -> left=20 right=21
+start visual=13 -> 22
+mode visual=13 -> 0
+pages visual=13 -> left=22 right=23
+start visual=14 -> 24
+mode visual=14 -> 0
+pages visual=14 -> left=24 right=25
+start visual=15 -> 26
+mode visual=15 -> 0
+pages visual=15 -> left=26 right=none
+start visual=16 -> 27
+mode visual=16 -> 1
+pages visual=16 -> left=27 right=none
+start visual=17 -> 28
+mode visual=17 -> 0
+pages visual=17 -> left=28 right=29
+start visual=18 -> 30
+mode visual=18 -> 0
+pages visual=18 -> left=30 right=31
+start visual=19 -> 32
+mode visual=19 -> 0
+pages visual=19 -> left=32 right=33
+start visual=20 -> 34
+mode visual=20 -> 0
+pages visual=20 -> left=34 right=35
+start visual=21 -> 36
+mode visual=21 -> 0
+pages visual=21 -> left=36 right=37
+start visual=22 -> 38
+mode visual=22 -> 0
+pages visual=22 -> left=38 right=39
+start visual=23 -> 40
+mode visual=23 -> 0
+pages visual=23 -> left=40 right=41
+start visual=24 -> 42
+mode visual=24 -> 0
+pages visual=24 -> left=42 right=43
+start visual=25 -> 42
+mode visual=25 -> 0
+pages visual=25 -> left=42 right=43
+start visual=26 -> 42
+mode visual=26 -> 0
+pages visual=26 -> left=42 right=43
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 5
+offset off=999999 -> 24
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+map 4 start=7 mode=1
+map 5 start=8 mode=0
+map 6 start=10 mode=0
+map 7 start=12 mode=0
+map 8 start=14 mode=0
+map 9 start=16 mode=0
+map 10 start=18 mode=0
+map 11 start=19 mode=1
+map 12 start=20 mode=0
+map 13 start=22 mode=0
+map 14 start=24 mode=0
+map 15 start=26 mode=0
+map 16 start=27 mode=1
+map 17 start=28 mode=0
+map 18 start=30 mode=0
+map 19 start=32 mode=0
+map 20 start=34 mode=0
+map 21 start=36 mode=0
+map 22 start=38 mode=0
+map 23 start=40 mode=0
+map 24 start=42 mode=0
+state columns=2 degenerate=0
+== fixture[.......I...........I.......I................] col2
+count=25
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 4
+clamp logical=7 -> 7
+index logical=8 -> 5
+clamp logical=8 -> 8
+index logical=9 -> 5
+clamp logical=9 -> 8
+index logical=10 -> 6
+clamp logical=10 -> 10
+index logical=11 -> 6
+clamp logical=11 -> 10
+index logical=12 -> 7
+clamp logical=12 -> 12
+index logical=13 -> 7
+clamp logical=13 -> 12
+index logical=14 -> 8
+clamp logical=14 -> 14
+index logical=15 -> 8
+clamp logical=15 -> 14
+index logical=16 -> 9
+clamp logical=16 -> 16
+index logical=17 -> 9
+clamp logical=17 -> 16
+index logical=18 -> 10
+clamp logical=18 -> 18
+index logical=19 -> 11
+clamp logical=19 -> 19
+index logical=20 -> 12
+clamp logical=20 -> 20
+index logical=21 -> 12
+clamp logical=21 -> 20
+index logical=22 -> 13
+clamp logical=22 -> 22
+index logical=23 -> 13
+clamp logical=23 -> 22
+index logical=24 -> 14
+clamp logical=24 -> 24
+index logical=25 -> 14
+clamp logical=25 -> 24
+index logical=26 -> 15
+clamp logical=26 -> 26
+index logical=27 -> 16
+clamp logical=27 -> 27
+index logical=28 -> 17
+clamp logical=28 -> 28
+index logical=29 -> 17
+clamp logical=29 -> 28
+index logical=30 -> 18
+clamp logical=30 -> 30
+index logical=31 -> 18
+clamp logical=31 -> 30
+index logical=32 -> 19
+clamp logical=32 -> 32
+index logical=33 -> 19
+clamp logical=33 -> 32
+index logical=34 -> 20
+clamp logical=34 -> 34
+index logical=35 -> 20
+clamp logical=35 -> 34
+index logical=36 -> 21
+clamp logical=36 -> 36
+index logical=37 -> 21
+clamp logical=37 -> 36
+index logical=38 -> 22
+clamp logical=38 -> 38
+index logical=39 -> 22
+clamp logical=39 -> 38
+index logical=40 -> 23
+clamp logical=40 -> 40
+index logical=41 -> 23
+clamp logical=41 -> 40
+index logical=42 -> 24
+clamp logical=42 -> 42
+index logical=43 -> 24
+clamp logical=43 -> 42
+index logical=44 -> 24
+clamp logical=44 -> 42
+index logical=45 -> 24
+clamp logical=45 -> 42
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=none
+start visual=4 -> 7
+mode visual=4 -> 1
+pages visual=4 -> left=7 right=none
+start visual=5 -> 8
+mode visual=5 -> 0
+pages visual=5 -> left=8 right=9
+start visual=6 -> 10
+mode visual=6 -> 0
+pages visual=6 -> left=10 right=11
+start visual=7 -> 12
+mode visual=7 -> 0
+pages visual=7 -> left=12 right=13
+start visual=8 -> 14
+mode visual=8 -> 0
+pages visual=8 -> left=14 right=15
+start visual=9 -> 16
+mode visual=9 -> 0
+pages visual=9 -> left=16 right=17
+start visual=10 -> 18
+mode visual=10 -> 0
+pages visual=10 -> left=18 right=none
+start visual=11 -> 19
+mode visual=11 -> 1
+pages visual=11 -> left=19 right=none
+start visual=12 -> 20
+mode visual=12 -> 0
+pages visual=12 -> left=20 right=21
+start visual=13 -> 22
+mode visual=13 -> 0
+pages visual=13 -> left=22 right=23
+start visual=14 -> 24
+mode visual=14 -> 0
+pages visual=14 -> left=24 right=25
+start visual=15 -> 26
+mode visual=15 -> 0
+pages visual=15 -> left=26 right=none
+start visual=16 -> 27
+mode visual=16 -> 1
+pages visual=16 -> left=27 right=none
+start visual=17 -> 28
+mode visual=17 -> 0
+pages visual=17 -> left=28 right=29
+start visual=18 -> 30
+mode visual=18 -> 0
+pages visual=18 -> left=30 right=31
+start visual=19 -> 32
+mode visual=19 -> 0
+pages visual=19 -> left=32 right=33
+start visual=20 -> 34
+mode visual=20 -> 0
+pages visual=20 -> left=34 right=35
+start visual=21 -> 36
+mode visual=21 -> 0
+pages visual=21 -> left=36 right=37
+start visual=22 -> 38
+mode visual=22 -> 0
+pages visual=22 -> left=38 right=39
+start visual=23 -> 40
+mode visual=23 -> 0
+pages visual=23 -> left=40 right=41
+start visual=24 -> 42
+mode visual=24 -> 0
+pages visual=24 -> left=42 right=43
+start visual=25 -> 42
+mode visual=25 -> 0
+pages visual=25 -> left=42 right=43
+start visual=26 -> 42
+mode visual=26 -> 0
+pages visual=26 -> left=42 right=43
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 5
+offset off=999999 -> 24
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+map 4 start=7 mode=1
+map 5 start=8 mode=0
+map 6 start=10 mode=0
+map 7 start=12 mode=0
+map 8 start=14 mode=0
+map 9 start=16 mode=0
+map 10 start=18 mode=0
+map 11 start=19 mode=1
+map 12 start=20 mode=0
+map 13 start=22 mode=0
+map 14 start=24 mode=0
+map 15 start=26 mode=0
+map 16 start=27 mode=1
+map 17 start=28 mode=0
+map 18 start=30 mode=0
+map 19 start=32 mode=0
+map 20 start=34 mode=0
+map 21 start=36 mode=0
+map 22 start=38 mode=0
+map 23 start=40 mode=0
+map 24 start=42 mode=0
+state columns=2 degenerate=0
+== stale_before
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+index logical=6 -> 2
+clamp logical=6 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 1
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=4
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=4
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=4
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=2 degenerate=1
+stale warn=1 text=page map stale: built gen 1, layout gen 2; formula fallback
+== stale_after
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=2 degenerate=1
+== stale_again
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+stale warn_again=1
+== big col2
+count=2049
+index logical=0 -> 0
+index logical=4095 -> 2048
+start visual=0 -> 0
+start visual=last -> 4095
+clamp logical=last -> 4095
+tile=1
+== big col1
+count=4096
+tile=1
+state columns=1 degenerate=1
+== fixture[] col1
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=1 degenerate=0
+== fixture[] col1
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=2 degenerate=1
+== fixture[] col2
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=2 degenerate=0
+== fixture[] col2
+count=0
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+state columns=1 degenerate=1
+== fixture[.] col1
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=1 degenerate=0
+== fixture[.] col1
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=2 degenerate=1
+== fixture[.] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=2 degenerate=0
+== fixture[.] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=none
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=1 degenerate=1
+== fixture[..] col1
+count=2
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 1
+clamp logical=3 -> 1
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 1
+mode visual=2 -> 0
+pages visual=2 -> left=1 right=none
+start visual=3 -> 1
+mode visual=3 -> 0
+pages visual=3 -> left=1 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 1
+offset off=999999 -> 1
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+state columns=1 degenerate=0
+== fixture[..] col1
+count=2
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 1
+clamp logical=3 -> 1
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 1
+mode visual=2 -> 0
+pages visual=2 -> left=1 right=none
+start visual=3 -> 1
+mode visual=3 -> 0
+pages visual=3 -> left=1 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 1
+offset off=999999 -> 1
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+state columns=2 degenerate=1
+== fixture[..] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+index logical=3 -> 0
+clamp logical=3 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=1
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=1
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=2 degenerate=0
+== fixture[..] col2
+count=1
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 0
+clamp logical=2 -> 0
+index logical=3 -> 0
+clamp logical=3 -> 0
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 0
+mode visual=1 -> 0
+pages visual=1 -> left=0 right=1
+start visual=2 -> 0
+mode visual=2 -> 0
+pages visual=2 -> left=0 right=1
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 0
+offset off=999 -> 0
+offset off=999999 -> 0
+map 0 start=0 mode=0
+state columns=1 degenerate=1
+== fixture[.....] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=1 degenerate=0
+== fixture[.....] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=2 degenerate=1
+== fixture[.....] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[.....] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+state columns=1 degenerate=1
+== fixture[........] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=1 degenerate=0
+== fixture[........] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=2 degenerate=1
+== fixture[........] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=2 degenerate=0
+== fixture[........] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=1 degenerate=1
+== fixture[....I] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=1 degenerate=0
+== fixture[....I] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[....I] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 1
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 1
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 1
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=1
+state columns=2 degenerate=0
+== fixture[....I] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 1
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 1
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 1
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=1
+state columns=1 degenerate=1
+== fixture[..I..] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=1 degenerate=0
+== fixture[..I..] col1
+count=5
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 4
+clamp logical=5 -> 4
+index logical=6 -> 4
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=none
+start visual=6 -> 4
+mode visual=6 -> 0
+pages visual=6 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 4
+offset off=999999 -> 4
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[..I..] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+index logical=6 -> 2
+clamp logical=6 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 1
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=4
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=4
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=4
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=2 degenerate=0
+== fixture[..I..] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+index logical=6 -> 2
+clamp logical=6 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 1
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=4
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=4
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=4
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=1 degenerate=1
+== fixture[.I.] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[.I.] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[.I.] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[.I.] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=1 degenerate=1
+== fixture[I...] col1
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 3
+index logical=5 -> 3
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+start visual=5 -> 3
+mode visual=5 -> 0
+pages visual=5 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+state columns=1 degenerate=0
+== fixture[I...] col1
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 3
+index logical=5 -> 3
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+start visual=5 -> 3
+mode visual=5 -> 0
+pages visual=5 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+state columns=2 degenerate=0
+== fixture[I...] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=2
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=3 mode=0
+state columns=2 degenerate=0
+== fixture[I...] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 1
+clamp logical=2 -> 1
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=2
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=3 mode=0
+state columns=1 degenerate=1
+== fixture[III] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[III] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[III] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=1
+map 2 start=2 mode=1
+state columns=2 degenerate=0
+== fixture[III] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=1
+map 2 start=2 mode=1
+state columns=1 degenerate=1
+== fixture[...I..] col1
+count=6
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 5
+clamp logical=6 -> 5
+index logical=7 -> 5
+clamp logical=7 -> 5
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 5
+mode visual=6 -> 0
+pages visual=6 -> left=5 right=none
+start visual=7 -> 5
+mode visual=7 -> 0
+pages visual=7 -> left=5 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 5
+offset off=999999 -> 5
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+state columns=1 degenerate=0
+== fixture[...I..] col1
+count=6
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 5
+clamp logical=6 -> 5
+index logical=7 -> 5
+clamp logical=7 -> 5
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 5
+mode visual=6 -> 0
+pages visual=6 -> left=5 right=none
+start visual=7 -> 5
+mode visual=7 -> 0
+pages visual=7 -> left=5 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 5
+offset off=999999 -> 5
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+state columns=2 degenerate=0
+== fixture[...I..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 4
+index logical=5 -> 3
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 4
+index logical=7 -> 3
+clamp logical=7 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 1
+pages visual=2 -> left=3 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=5
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=5
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=5
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=3 mode=1
+map 3 start=4 mode=0
+state columns=2 degenerate=0
+== fixture[...I..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 3
+clamp logical=4 -> 4
+index logical=5 -> 3
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 4
+index logical=7 -> 3
+clamp logical=7 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 1
+pages visual=2 -> left=3 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=5
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=5
+start visual=5 -> 4
+mode visual=5 -> 0
+pages visual=5 -> left=4 right=5
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=3 mode=1
+map 3 start=4 mode=0
+state columns=1 degenerate=1
+== fixture[..i..i..] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=1 degenerate=0
+== fixture[..i..i..] col1
+count=8
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 7
+clamp logical=8 -> 7
+index logical=9 -> 7
+clamp logical=9 -> 7
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 7
+mode visual=8 -> 0
+pages visual=8 -> left=7 right=none
+start visual=9 -> 7
+mode visual=9 -> 0
+pages visual=9 -> left=7 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 7
+offset off=999999 -> 7
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+state columns=2 degenerate=1
+== fixture[..i..i..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=2 degenerate=0
+== fixture[..i..i..] col2
+count=4
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 3
+clamp logical=7 -> 6
+index logical=8 -> 3
+clamp logical=8 -> 6
+index logical=9 -> 3
+clamp logical=9 -> 6
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=7
+start visual=4 -> 6
+mode visual=4 -> 0
+pages visual=4 -> left=6 right=7
+start visual=5 -> 6
+mode visual=5 -> 0
+pages visual=5 -> left=6 right=7
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 3
+offset off=999999 -> 3
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+state columns=1 degenerate=1
+== fixture[iIi] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[iIi] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[iIi] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[iIi] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 1
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=1
+map 2 start=2 mode=0
+state columns=1 degenerate=1
+== fixture[IiI] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=1 degenerate=0
+== fixture[IiI] col1
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 0
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 0
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+state columns=2 degenerate=0
+== fixture[IiI] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=2 mode=1
+state columns=2 degenerate=0
+== fixture[IiI] col2
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 2
+start visual=0 -> 0
+mode visual=0 -> 1
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 1
+pages visual=2 -> left=2 right=none
+start visual=3 -> 2
+mode visual=3 -> 1
+pages visual=3 -> left=2 right=none
+start visual=4 -> 2
+mode visual=4 -> 1
+pages visual=4 -> left=2 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=1
+map 1 start=1 mode=0
+map 2 start=2 mode=1
+state columns=1 degenerate=1
+== fixture[.......I...........I.......I................] col1
+count=44
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 8
+clamp logical=8 -> 8
+index logical=9 -> 9
+clamp logical=9 -> 9
+index logical=10 -> 10
+clamp logical=10 -> 10
+index logical=11 -> 11
+clamp logical=11 -> 11
+index logical=12 -> 12
+clamp logical=12 -> 12
+index logical=13 -> 13
+clamp logical=13 -> 13
+index logical=14 -> 14
+clamp logical=14 -> 14
+index logical=15 -> 15
+clamp logical=15 -> 15
+index logical=16 -> 16
+clamp logical=16 -> 16
+index logical=17 -> 17
+clamp logical=17 -> 17
+index logical=18 -> 18
+clamp logical=18 -> 18
+index logical=19 -> 19
+clamp logical=19 -> 19
+index logical=20 -> 20
+clamp logical=20 -> 20
+index logical=21 -> 21
+clamp logical=21 -> 21
+index logical=22 -> 22
+clamp logical=22 -> 22
+index logical=23 -> 23
+clamp logical=23 -> 23
+index logical=24 -> 24
+clamp logical=24 -> 24
+index logical=25 -> 25
+clamp logical=25 -> 25
+index logical=26 -> 26
+clamp logical=26 -> 26
+index logical=27 -> 27
+clamp logical=27 -> 27
+index logical=28 -> 28
+clamp logical=28 -> 28
+index logical=29 -> 29
+clamp logical=29 -> 29
+index logical=30 -> 30
+clamp logical=30 -> 30
+index logical=31 -> 31
+clamp logical=31 -> 31
+index logical=32 -> 32
+clamp logical=32 -> 32
+index logical=33 -> 33
+clamp logical=33 -> 33
+index logical=34 -> 34
+clamp logical=34 -> 34
+index logical=35 -> 35
+clamp logical=35 -> 35
+index logical=36 -> 36
+clamp logical=36 -> 36
+index logical=37 -> 37
+clamp logical=37 -> 37
+index logical=38 -> 38
+clamp logical=38 -> 38
+index logical=39 -> 39
+clamp logical=39 -> 39
+index logical=40 -> 40
+clamp logical=40 -> 40
+index logical=41 -> 41
+clamp logical=41 -> 41
+index logical=42 -> 42
+clamp logical=42 -> 42
+index logical=43 -> 43
+clamp logical=43 -> 43
+index logical=44 -> 43
+clamp logical=44 -> 43
+index logical=45 -> 43
+clamp logical=45 -> 43
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 8
+mode visual=8 -> 0
+pages visual=8 -> left=8 right=none
+start visual=9 -> 9
+mode visual=9 -> 0
+pages visual=9 -> left=9 right=none
+start visual=10 -> 10
+mode visual=10 -> 0
+pages visual=10 -> left=10 right=none
+start visual=11 -> 11
+mode visual=11 -> 0
+pages visual=11 -> left=11 right=none
+start visual=12 -> 12
+mode visual=12 -> 0
+pages visual=12 -> left=12 right=none
+start visual=13 -> 13
+mode visual=13 -> 0
+pages visual=13 -> left=13 right=none
+start visual=14 -> 14
+mode visual=14 -> 0
+pages visual=14 -> left=14 right=none
+start visual=15 -> 15
+mode visual=15 -> 0
+pages visual=15 -> left=15 right=none
+start visual=16 -> 16
+mode visual=16 -> 0
+pages visual=16 -> left=16 right=none
+start visual=17 -> 17
+mode visual=17 -> 0
+pages visual=17 -> left=17 right=none
+start visual=18 -> 18
+mode visual=18 -> 0
+pages visual=18 -> left=18 right=none
+start visual=19 -> 19
+mode visual=19 -> 0
+pages visual=19 -> left=19 right=none
+start visual=20 -> 20
+mode visual=20 -> 0
+pages visual=20 -> left=20 right=none
+start visual=21 -> 21
+mode visual=21 -> 0
+pages visual=21 -> left=21 right=none
+start visual=22 -> 22
+mode visual=22 -> 0
+pages visual=22 -> left=22 right=none
+start visual=23 -> 23
+mode visual=23 -> 0
+pages visual=23 -> left=23 right=none
+start visual=24 -> 24
+mode visual=24 -> 0
+pages visual=24 -> left=24 right=none
+start visual=25 -> 25
+mode visual=25 -> 0
+pages visual=25 -> left=25 right=none
+start visual=26 -> 26
+mode visual=26 -> 0
+pages visual=26 -> left=26 right=none
+start visual=27 -> 27
+mode visual=27 -> 0
+pages visual=27 -> left=27 right=none
+start visual=28 -> 28
+mode visual=28 -> 0
+pages visual=28 -> left=28 right=none
+start visual=29 -> 29
+mode visual=29 -> 0
+pages visual=29 -> left=29 right=none
+start visual=30 -> 30
+mode visual=30 -> 0
+pages visual=30 -> left=30 right=none
+start visual=31 -> 31
+mode visual=31 -> 0
+pages visual=31 -> left=31 right=none
+start visual=32 -> 32
+mode visual=32 -> 0
+pages visual=32 -> left=32 right=none
+start visual=33 -> 33
+mode visual=33 -> 0
+pages visual=33 -> left=33 right=none
+start visual=34 -> 34
+mode visual=34 -> 0
+pages visual=34 -> left=34 right=none
+start visual=35 -> 35
+mode visual=35 -> 0
+pages visual=35 -> left=35 right=none
+start visual=36 -> 36
+mode visual=36 -> 0
+pages visual=36 -> left=36 right=none
+start visual=37 -> 37
+mode visual=37 -> 0
+pages visual=37 -> left=37 right=none
+start visual=38 -> 38
+mode visual=38 -> 0
+pages visual=38 -> left=38 right=none
+start visual=39 -> 39
+mode visual=39 -> 0
+pages visual=39 -> left=39 right=none
+start visual=40 -> 40
+mode visual=40 -> 0
+pages visual=40 -> left=40 right=none
+start visual=41 -> 41
+mode visual=41 -> 0
+pages visual=41 -> left=41 right=none
+start visual=42 -> 42
+mode visual=42 -> 0
+pages visual=42 -> left=42 right=none
+start visual=43 -> 43
+mode visual=43 -> 0
+pages visual=43 -> left=43 right=none
+start visual=44 -> 43
+mode visual=44 -> 0
+pages visual=44 -> left=43 right=none
+start visual=45 -> 43
+mode visual=45 -> 0
+pages visual=45 -> left=43 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 9
+offset off=999999 -> 43
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+map 8 start=8 mode=0
+map 9 start=9 mode=0
+map 10 start=10 mode=0
+map 11 start=11 mode=0
+map 12 start=12 mode=0
+map 13 start=13 mode=0
+map 14 start=14 mode=0
+map 15 start=15 mode=0
+map 16 start=16 mode=0
+map 17 start=17 mode=0
+map 18 start=18 mode=0
+map 19 start=19 mode=0
+map 20 start=20 mode=0
+map 21 start=21 mode=0
+map 22 start=22 mode=0
+map 23 start=23 mode=0
+map 24 start=24 mode=0
+map 25 start=25 mode=0
+map 26 start=26 mode=0
+map 27 start=27 mode=0
+map 28 start=28 mode=0
+map 29 start=29 mode=0
+map 30 start=30 mode=0
+map 31 start=31 mode=0
+map 32 start=32 mode=0
+map 33 start=33 mode=0
+map 34 start=34 mode=0
+map 35 start=35 mode=0
+map 36 start=36 mode=0
+map 37 start=37 mode=0
+map 38 start=38 mode=0
+map 39 start=39 mode=0
+map 40 start=40 mode=0
+map 41 start=41 mode=0
+map 42 start=42 mode=0
+map 43 start=43 mode=0
+state columns=1 degenerate=0
+== fixture[.......I...........I.......I................] col1
+count=44
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 1
+clamp logical=1 -> 1
+index logical=2 -> 2
+clamp logical=2 -> 2
+index logical=3 -> 3
+clamp logical=3 -> 3
+index logical=4 -> 4
+clamp logical=4 -> 4
+index logical=5 -> 5
+clamp logical=5 -> 5
+index logical=6 -> 6
+clamp logical=6 -> 6
+index logical=7 -> 7
+clamp logical=7 -> 7
+index logical=8 -> 8
+clamp logical=8 -> 8
+index logical=9 -> 9
+clamp logical=9 -> 9
+index logical=10 -> 10
+clamp logical=10 -> 10
+index logical=11 -> 11
+clamp logical=11 -> 11
+index logical=12 -> 12
+clamp logical=12 -> 12
+index logical=13 -> 13
+clamp logical=13 -> 13
+index logical=14 -> 14
+clamp logical=14 -> 14
+index logical=15 -> 15
+clamp logical=15 -> 15
+index logical=16 -> 16
+clamp logical=16 -> 16
+index logical=17 -> 17
+clamp logical=17 -> 17
+index logical=18 -> 18
+clamp logical=18 -> 18
+index logical=19 -> 19
+clamp logical=19 -> 19
+index logical=20 -> 20
+clamp logical=20 -> 20
+index logical=21 -> 21
+clamp logical=21 -> 21
+index logical=22 -> 22
+clamp logical=22 -> 22
+index logical=23 -> 23
+clamp logical=23 -> 23
+index logical=24 -> 24
+clamp logical=24 -> 24
+index logical=25 -> 25
+clamp logical=25 -> 25
+index logical=26 -> 26
+clamp logical=26 -> 26
+index logical=27 -> 27
+clamp logical=27 -> 27
+index logical=28 -> 28
+clamp logical=28 -> 28
+index logical=29 -> 29
+clamp logical=29 -> 29
+index logical=30 -> 30
+clamp logical=30 -> 30
+index logical=31 -> 31
+clamp logical=31 -> 31
+index logical=32 -> 32
+clamp logical=32 -> 32
+index logical=33 -> 33
+clamp logical=33 -> 33
+index logical=34 -> 34
+clamp logical=34 -> 34
+index logical=35 -> 35
+clamp logical=35 -> 35
+index logical=36 -> 36
+clamp logical=36 -> 36
+index logical=37 -> 37
+clamp logical=37 -> 37
+index logical=38 -> 38
+clamp logical=38 -> 38
+index logical=39 -> 39
+clamp logical=39 -> 39
+index logical=40 -> 40
+clamp logical=40 -> 40
+index logical=41 -> 41
+clamp logical=41 -> 41
+index logical=42 -> 42
+clamp logical=42 -> 42
+index logical=43 -> 43
+clamp logical=43 -> 43
+index logical=44 -> 43
+clamp logical=44 -> 43
+index logical=45 -> 43
+clamp logical=45 -> 43
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=none
+start visual=1 -> 1
+mode visual=1 -> 0
+pages visual=1 -> left=1 right=none
+start visual=2 -> 2
+mode visual=2 -> 0
+pages visual=2 -> left=2 right=none
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+start visual=5 -> 5
+mode visual=5 -> 0
+pages visual=5 -> left=5 right=none
+start visual=6 -> 6
+mode visual=6 -> 0
+pages visual=6 -> left=6 right=none
+start visual=7 -> 7
+mode visual=7 -> 0
+pages visual=7 -> left=7 right=none
+start visual=8 -> 8
+mode visual=8 -> 0
+pages visual=8 -> left=8 right=none
+start visual=9 -> 9
+mode visual=9 -> 0
+pages visual=9 -> left=9 right=none
+start visual=10 -> 10
+mode visual=10 -> 0
+pages visual=10 -> left=10 right=none
+start visual=11 -> 11
+mode visual=11 -> 0
+pages visual=11 -> left=11 right=none
+start visual=12 -> 12
+mode visual=12 -> 0
+pages visual=12 -> left=12 right=none
+start visual=13 -> 13
+mode visual=13 -> 0
+pages visual=13 -> left=13 right=none
+start visual=14 -> 14
+mode visual=14 -> 0
+pages visual=14 -> left=14 right=none
+start visual=15 -> 15
+mode visual=15 -> 0
+pages visual=15 -> left=15 right=none
+start visual=16 -> 16
+mode visual=16 -> 0
+pages visual=16 -> left=16 right=none
+start visual=17 -> 17
+mode visual=17 -> 0
+pages visual=17 -> left=17 right=none
+start visual=18 -> 18
+mode visual=18 -> 0
+pages visual=18 -> left=18 right=none
+start visual=19 -> 19
+mode visual=19 -> 0
+pages visual=19 -> left=19 right=none
+start visual=20 -> 20
+mode visual=20 -> 0
+pages visual=20 -> left=20 right=none
+start visual=21 -> 21
+mode visual=21 -> 0
+pages visual=21 -> left=21 right=none
+start visual=22 -> 22
+mode visual=22 -> 0
+pages visual=22 -> left=22 right=none
+start visual=23 -> 23
+mode visual=23 -> 0
+pages visual=23 -> left=23 right=none
+start visual=24 -> 24
+mode visual=24 -> 0
+pages visual=24 -> left=24 right=none
+start visual=25 -> 25
+mode visual=25 -> 0
+pages visual=25 -> left=25 right=none
+start visual=26 -> 26
+mode visual=26 -> 0
+pages visual=26 -> left=26 right=none
+start visual=27 -> 27
+mode visual=27 -> 0
+pages visual=27 -> left=27 right=none
+start visual=28 -> 28
+mode visual=28 -> 0
+pages visual=28 -> left=28 right=none
+start visual=29 -> 29
+mode visual=29 -> 0
+pages visual=29 -> left=29 right=none
+start visual=30 -> 30
+mode visual=30 -> 0
+pages visual=30 -> left=30 right=none
+start visual=31 -> 31
+mode visual=31 -> 0
+pages visual=31 -> left=31 right=none
+start visual=32 -> 32
+mode visual=32 -> 0
+pages visual=32 -> left=32 right=none
+start visual=33 -> 33
+mode visual=33 -> 0
+pages visual=33 -> left=33 right=none
+start visual=34 -> 34
+mode visual=34 -> 0
+pages visual=34 -> left=34 right=none
+start visual=35 -> 35
+mode visual=35 -> 0
+pages visual=35 -> left=35 right=none
+start visual=36 -> 36
+mode visual=36 -> 0
+pages visual=36 -> left=36 right=none
+start visual=37 -> 37
+mode visual=37 -> 0
+pages visual=37 -> left=37 right=none
+start visual=38 -> 38
+mode visual=38 -> 0
+pages visual=38 -> left=38 right=none
+start visual=39 -> 39
+mode visual=39 -> 0
+pages visual=39 -> left=39 right=none
+start visual=40 -> 40
+mode visual=40 -> 0
+pages visual=40 -> left=40 right=none
+start visual=41 -> 41
+mode visual=41 -> 0
+pages visual=41 -> left=41 right=none
+start visual=42 -> 42
+mode visual=42 -> 0
+pages visual=42 -> left=42 right=none
+start visual=43 -> 43
+mode visual=43 -> 0
+pages visual=43 -> left=43 right=none
+start visual=44 -> 43
+mode visual=44 -> 0
+pages visual=44 -> left=43 right=none
+start visual=45 -> 43
+mode visual=45 -> 0
+pages visual=45 -> left=43 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 1
+offset off=250 -> 2
+offset off=999 -> 9
+offset off=999999 -> 43
+map 0 start=0 mode=0
+map 1 start=1 mode=0
+map 2 start=2 mode=0
+map 3 start=3 mode=0
+map 4 start=4 mode=0
+map 5 start=5 mode=0
+map 6 start=6 mode=0
+map 7 start=7 mode=0
+map 8 start=8 mode=0
+map 9 start=9 mode=0
+map 10 start=10 mode=0
+map 11 start=11 mode=0
+map 12 start=12 mode=0
+map 13 start=13 mode=0
+map 14 start=14 mode=0
+map 15 start=15 mode=0
+map 16 start=16 mode=0
+map 17 start=17 mode=0
+map 18 start=18 mode=0
+map 19 start=19 mode=0
+map 20 start=20 mode=0
+map 21 start=21 mode=0
+map 22 start=22 mode=0
+map 23 start=23 mode=0
+map 24 start=24 mode=0
+map 25 start=25 mode=0
+map 26 start=26 mode=0
+map 27 start=27 mode=0
+map 28 start=28 mode=0
+map 29 start=29 mode=0
+map 30 start=30 mode=0
+map 31 start=31 mode=0
+map 32 start=32 mode=0
+map 33 start=33 mode=0
+map 34 start=34 mode=0
+map 35 start=35 mode=0
+map 36 start=36 mode=0
+map 37 start=37 mode=0
+map 38 start=38 mode=0
+map 39 start=39 mode=0
+map 40 start=40 mode=0
+map 41 start=41 mode=0
+map 42 start=42 mode=0
+map 43 start=43 mode=0
+state columns=2 degenerate=0
+== fixture[.......I...........I.......I................] col2
+count=25
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 4
+clamp logical=7 -> 7
+index logical=8 -> 5
+clamp logical=8 -> 8
+index logical=9 -> 5
+clamp logical=9 -> 8
+index logical=10 -> 6
+clamp logical=10 -> 10
+index logical=11 -> 6
+clamp logical=11 -> 10
+index logical=12 -> 7
+clamp logical=12 -> 12
+index logical=13 -> 7
+clamp logical=13 -> 12
+index logical=14 -> 8
+clamp logical=14 -> 14
+index logical=15 -> 8
+clamp logical=15 -> 14
+index logical=16 -> 9
+clamp logical=16 -> 16
+index logical=17 -> 9
+clamp logical=17 -> 16
+index logical=18 -> 10
+clamp logical=18 -> 18
+index logical=19 -> 11
+clamp logical=19 -> 19
+index logical=20 -> 12
+clamp logical=20 -> 20
+index logical=21 -> 12
+clamp logical=21 -> 20
+index logical=22 -> 13
+clamp logical=22 -> 22
+index logical=23 -> 13
+clamp logical=23 -> 22
+index logical=24 -> 14
+clamp logical=24 -> 24
+index logical=25 -> 14
+clamp logical=25 -> 24
+index logical=26 -> 15
+clamp logical=26 -> 26
+index logical=27 -> 16
+clamp logical=27 -> 27
+index logical=28 -> 17
+clamp logical=28 -> 28
+index logical=29 -> 17
+clamp logical=29 -> 28
+index logical=30 -> 18
+clamp logical=30 -> 30
+index logical=31 -> 18
+clamp logical=31 -> 30
+index logical=32 -> 19
+clamp logical=32 -> 32
+index logical=33 -> 19
+clamp logical=33 -> 32
+index logical=34 -> 20
+clamp logical=34 -> 34
+index logical=35 -> 20
+clamp logical=35 -> 34
+index logical=36 -> 21
+clamp logical=36 -> 36
+index logical=37 -> 21
+clamp logical=37 -> 36
+index logical=38 -> 22
+clamp logical=38 -> 38
+index logical=39 -> 22
+clamp logical=39 -> 38
+index logical=40 -> 23
+clamp logical=40 -> 40
+index logical=41 -> 23
+clamp logical=41 -> 40
+index logical=42 -> 24
+clamp logical=42 -> 42
+index logical=43 -> 24
+clamp logical=43 -> 42
+index logical=44 -> 24
+clamp logical=44 -> 42
+index logical=45 -> 24
+clamp logical=45 -> 42
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=none
+start visual=4 -> 7
+mode visual=4 -> 1
+pages visual=4 -> left=7 right=none
+start visual=5 -> 8
+mode visual=5 -> 0
+pages visual=5 -> left=8 right=9
+start visual=6 -> 10
+mode visual=6 -> 0
+pages visual=6 -> left=10 right=11
+start visual=7 -> 12
+mode visual=7 -> 0
+pages visual=7 -> left=12 right=13
+start visual=8 -> 14
+mode visual=8 -> 0
+pages visual=8 -> left=14 right=15
+start visual=9 -> 16
+mode visual=9 -> 0
+pages visual=9 -> left=16 right=17
+start visual=10 -> 18
+mode visual=10 -> 0
+pages visual=10 -> left=18 right=none
+start visual=11 -> 19
+mode visual=11 -> 1
+pages visual=11 -> left=19 right=none
+start visual=12 -> 20
+mode visual=12 -> 0
+pages visual=12 -> left=20 right=21
+start visual=13 -> 22
+mode visual=13 -> 0
+pages visual=13 -> left=22 right=23
+start visual=14 -> 24
+mode visual=14 -> 0
+pages visual=14 -> left=24 right=25
+start visual=15 -> 26
+mode visual=15 -> 0
+pages visual=15 -> left=26 right=none
+start visual=16 -> 27
+mode visual=16 -> 1
+pages visual=16 -> left=27 right=none
+start visual=17 -> 28
+mode visual=17 -> 0
+pages visual=17 -> left=28 right=29
+start visual=18 -> 30
+mode visual=18 -> 0
+pages visual=18 -> left=30 right=31
+start visual=19 -> 32
+mode visual=19 -> 0
+pages visual=19 -> left=32 right=33
+start visual=20 -> 34
+mode visual=20 -> 0
+pages visual=20 -> left=34 right=35
+start visual=21 -> 36
+mode visual=21 -> 0
+pages visual=21 -> left=36 right=37
+start visual=22 -> 38
+mode visual=22 -> 0
+pages visual=22 -> left=38 right=39
+start visual=23 -> 40
+mode visual=23 -> 0
+pages visual=23 -> left=40 right=41
+start visual=24 -> 42
+mode visual=24 -> 0
+pages visual=24 -> left=42 right=43
+start visual=25 -> 42
+mode visual=25 -> 0
+pages visual=25 -> left=42 right=43
+start visual=26 -> 42
+mode visual=26 -> 0
+pages visual=26 -> left=42 right=43
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 5
+offset off=999999 -> 24
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+map 4 start=7 mode=1
+map 5 start=8 mode=0
+map 6 start=10 mode=0
+map 7 start=12 mode=0
+map 8 start=14 mode=0
+map 9 start=16 mode=0
+map 10 start=18 mode=0
+map 11 start=19 mode=1
+map 12 start=20 mode=0
+map 13 start=22 mode=0
+map 14 start=24 mode=0
+map 15 start=26 mode=0
+map 16 start=27 mode=1
+map 17 start=28 mode=0
+map 18 start=30 mode=0
+map 19 start=32 mode=0
+map 20 start=34 mode=0
+map 21 start=36 mode=0
+map 22 start=38 mode=0
+map 23 start=40 mode=0
+map 24 start=42 mode=0
+state columns=2 degenerate=0
+== fixture[.......I...........I.......I................] col2
+count=25
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 3
+clamp logical=6 -> 6
+index logical=7 -> 4
+clamp logical=7 -> 7
+index logical=8 -> 5
+clamp logical=8 -> 8
+index logical=9 -> 5
+clamp logical=9 -> 8
+index logical=10 -> 6
+clamp logical=10 -> 10
+index logical=11 -> 6
+clamp logical=11 -> 10
+index logical=12 -> 7
+clamp logical=12 -> 12
+index logical=13 -> 7
+clamp logical=13 -> 12
+index logical=14 -> 8
+clamp logical=14 -> 14
+index logical=15 -> 8
+clamp logical=15 -> 14
+index logical=16 -> 9
+clamp logical=16 -> 16
+index logical=17 -> 9
+clamp logical=17 -> 16
+index logical=18 -> 10
+clamp logical=18 -> 18
+index logical=19 -> 11
+clamp logical=19 -> 19
+index logical=20 -> 12
+clamp logical=20 -> 20
+index logical=21 -> 12
+clamp logical=21 -> 20
+index logical=22 -> 13
+clamp logical=22 -> 22
+index logical=23 -> 13
+clamp logical=23 -> 22
+index logical=24 -> 14
+clamp logical=24 -> 24
+index logical=25 -> 14
+clamp logical=25 -> 24
+index logical=26 -> 15
+clamp logical=26 -> 26
+index logical=27 -> 16
+clamp logical=27 -> 27
+index logical=28 -> 17
+clamp logical=28 -> 28
+index logical=29 -> 17
+clamp logical=29 -> 28
+index logical=30 -> 18
+clamp logical=30 -> 30
+index logical=31 -> 18
+clamp logical=31 -> 30
+index logical=32 -> 19
+clamp logical=32 -> 32
+index logical=33 -> 19
+clamp logical=33 -> 32
+index logical=34 -> 20
+clamp logical=34 -> 34
+index logical=35 -> 20
+clamp logical=35 -> 34
+index logical=36 -> 21
+clamp logical=36 -> 36
+index logical=37 -> 21
+clamp logical=37 -> 36
+index logical=38 -> 22
+clamp logical=38 -> 38
+index logical=39 -> 22
+clamp logical=39 -> 38
+index logical=40 -> 23
+clamp logical=40 -> 40
+index logical=41 -> 23
+clamp logical=41 -> 40
+index logical=42 -> 24
+clamp logical=42 -> 42
+index logical=43 -> 24
+clamp logical=43 -> 42
+index logical=44 -> 24
+clamp logical=44 -> 42
+index logical=45 -> 24
+clamp logical=45 -> 42
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=5
+start visual=3 -> 6
+mode visual=3 -> 0
+pages visual=3 -> left=6 right=none
+start visual=4 -> 7
+mode visual=4 -> 1
+pages visual=4 -> left=7 right=none
+start visual=5 -> 8
+mode visual=5 -> 0
+pages visual=5 -> left=8 right=9
+start visual=6 -> 10
+mode visual=6 -> 0
+pages visual=6 -> left=10 right=11
+start visual=7 -> 12
+mode visual=7 -> 0
+pages visual=7 -> left=12 right=13
+start visual=8 -> 14
+mode visual=8 -> 0
+pages visual=8 -> left=14 right=15
+start visual=9 -> 16
+mode visual=9 -> 0
+pages visual=9 -> left=16 right=17
+start visual=10 -> 18
+mode visual=10 -> 0
+pages visual=10 -> left=18 right=none
+start visual=11 -> 19
+mode visual=11 -> 1
+pages visual=11 -> left=19 right=none
+start visual=12 -> 20
+mode visual=12 -> 0
+pages visual=12 -> left=20 right=21
+start visual=13 -> 22
+mode visual=13 -> 0
+pages visual=13 -> left=22 right=23
+start visual=14 -> 24
+mode visual=14 -> 0
+pages visual=14 -> left=24 right=25
+start visual=15 -> 26
+mode visual=15 -> 0
+pages visual=15 -> left=26 right=none
+start visual=16 -> 27
+mode visual=16 -> 1
+pages visual=16 -> left=27 right=none
+start visual=17 -> 28
+mode visual=17 -> 0
+pages visual=17 -> left=28 right=29
+start visual=18 -> 30
+mode visual=18 -> 0
+pages visual=18 -> left=30 right=31
+start visual=19 -> 32
+mode visual=19 -> 0
+pages visual=19 -> left=32 right=33
+start visual=20 -> 34
+mode visual=20 -> 0
+pages visual=20 -> left=34 right=35
+start visual=21 -> 36
+mode visual=21 -> 0
+pages visual=21 -> left=36 right=37
+start visual=22 -> 38
+mode visual=22 -> 0
+pages visual=22 -> left=38 right=39
+start visual=23 -> 40
+mode visual=23 -> 0
+pages visual=23 -> left=40 right=41
+start visual=24 -> 42
+mode visual=24 -> 0
+pages visual=24 -> left=42 right=43
+start visual=25 -> 42
+mode visual=25 -> 0
+pages visual=25 -> left=42 right=43
+start visual=26 -> 42
+mode visual=26 -> 0
+pages visual=26 -> left=42 right=43
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 5
+offset off=999999 -> 24
+map 0 start=0 mode=0
+map 1 start=2 mode=0
+map 2 start=4 mode=0
+map 3 start=6 mode=0
+map 4 start=7 mode=1
+map 5 start=8 mode=0
+map 6 start=10 mode=0
+map 7 start=12 mode=0
+map 8 start=14 mode=0
+map 9 start=16 mode=0
+map 10 start=18 mode=0
+map 11 start=19 mode=1
+map 12 start=20 mode=0
+map 13 start=22 mode=0
+map 14 start=24 mode=0
+map 15 start=26 mode=0
+map 16 start=27 mode=1
+map 17 start=28 mode=0
+map 18 start=30 mode=0
+map 19 start=32 mode=0
+map 20 start=34 mode=0
+map 21 start=36 mode=0
+map 22 start=38 mode=0
+map 23 start=40 mode=0
+map 24 start=42 mode=0
+state columns=2 degenerate=0
+== stale_before
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 2
+clamp logical=3 -> 3
+index logical=4 -> 2
+clamp logical=4 -> 3
+index logical=5 -> 2
+clamp logical=5 -> 3
+index logical=6 -> 2
+clamp logical=6 -> 3
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 1
+pages visual=1 -> left=2 right=none
+start visual=2 -> 3
+mode visual=2 -> 0
+pages visual=2 -> left=3 right=4
+start visual=3 -> 3
+mode visual=3 -> 0
+pages visual=3 -> left=3 right=4
+start visual=4 -> 3
+mode visual=4 -> 0
+pages visual=4 -> left=3 right=4
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=2 degenerate=1
+stale warn=1 text=page map stale: built gen 2, layout gen 3; formula fallback
+== stale_after
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+state columns=2 degenerate=1
+== stale_again
+count=3
+index logical=0 -> 0
+clamp logical=0 -> 0
+index logical=1 -> 0
+clamp logical=1 -> 0
+index logical=2 -> 1
+clamp logical=2 -> 2
+index logical=3 -> 1
+clamp logical=3 -> 2
+index logical=4 -> 2
+clamp logical=4 -> 4
+index logical=5 -> 2
+clamp logical=5 -> 4
+index logical=6 -> 2
+clamp logical=6 -> 4
+start visual=0 -> 0
+mode visual=0 -> 0
+pages visual=0 -> left=0 right=1
+start visual=1 -> 2
+mode visual=1 -> 0
+pages visual=1 -> left=2 right=3
+start visual=2 -> 4
+mode visual=2 -> 0
+pages visual=2 -> left=4 right=none
+start visual=3 -> 4
+mode visual=3 -> 0
+pages visual=3 -> left=4 right=none
+start visual=4 -> 4
+mode visual=4 -> 0
+pages visual=4 -> left=4 right=none
+offset off=0 -> 0
+offset off=1 -> 0
+offset off=99 -> 0
+offset off=100 -> 0
+offset off=250 -> 1
+offset off=999 -> 2
+offset off=999999 -> 2
+map 0 start=0 mode=0
+map 1 start=2 mode=1
+map 2 start=3 mode=0
+stale warn_again=1
+== big col2
+count=2049
+index logical=0 -> 0
+index logical=4095 -> 2048
+start visual=0 -> 0
+start visual=last -> 4095
+clamp logical=last -> 4095
+tile=1
+== big col1
+count=4096
+tile=1

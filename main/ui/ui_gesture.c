@@ -61,5 +61,6 @@ bool ui_gesture_feed(ui_gesture_t *g, const app_ctx_t *ctx, ui_gesture_event_t *
         g->long_fired = true;
         return emit(g, UI_GESTURE_LONG_PRESS, ctx->now_ms, out);
     }
+    if (g->moved && !g->long_fired) return emit(g, UI_GESTURE_MOVE, ctx->now_ms, out);
     return false;
 }

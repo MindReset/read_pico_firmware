@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Pico-Plus 墨水屏极客副屏固件网页刷机页：v1.0（gen22 / 0.3.3-pico22），ESP32-S3，一键烧录。">
+<title>Pico-Plus 墨水屏极客副屏固件 · 网页刷机</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 48px;
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f6f4; color: #1c1c1a; line-height: 1.7;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header h1 { font-size: 26px; margin: 0 0 4px; }
+  header p { margin: 0 0 4px; color: #55554e; }
+  .badge {
+    display: inline-block; background: #1c1c1a; color: #fff; border-radius: 999px;
+    font-size: 12px; padding: 2px 10px; margin-bottom: 14px; letter-spacing: .5px;
+  }
+  section {
+    background: #fff; border: 1px solid #e4e4de; border-radius: 12px;
+    padding: 20px 22px; margin-top: 18px;
+  }
+  h2 { font-size: 18px; margin: 0 0 10px; }
+  ol, ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  code {
+    background: #f0f0ec; border-radius: 4px; padding: 1px 6px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px;
+  }
+  .action { text-align: center; padding: 28px 22px; }
+  .action h2 { margin-bottom: 6px; }
+  .action p { color: #55554e; margin: 0 0 18px; }
+  esp-web-install-button::part(button) {
+    font-size: 17px; padding: 12px 34px; border-radius: 10px;
+  }
+  .warn {
+    background: #fdf6e7; border: 1px solid #f0e2b6; border-radius: 10px;
+    padding: 12px 16px; margin-top: 16px; font-size: 14px; color: #6b5a1e;
+  }
+  .faq p { margin: 6px 0; font-size: 14px; }
+  .faq b { color: #1c1c1a; }
+  #cdn-hint {
+    display: none; background: #fdecec; border: 1px solid #f3c2c2; border-radius: 10px;
+    padding: 12px 16px; margin-top: 16px; font-size: 14px; color: #8a2a2a;
+  }
+  footer { text-align: center; color: #8a8a80; font-size: 12px; margin-top: 26px; }
+  a { color: #2a5db0; }
+</style>
+<!-- esp-web-tools：主源 jsdelivr（国内访问更稳定），失败时自动回退 unpkg。
+     esp-web-tools: primary CDN jsdelivr, automatic fallback to unpkg. -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/esp-web-tools@10/dist/web/install-button.js"></script>
+<script>
+  // 主源加载失败 → 回退 unpkg。Primary CDN failed → fall back to unpkg.
+  window.addEventListener('error', function (e) {
+    var t = e && e.target;
+    if (t && t.tagName === 'SCRIPT' && /jsdelivr\.net/.test(t.src || '')) {
+      var s = document.createElement('script');
+      s.type = 'module';
+      s.src = 'https://unpkg.com/esp-web-tools@10/dist/web/install-button.js';
+      document.head.appendChild(s);
+    }
+  }, true);
+  // 两个源都没加载出来时给出明确提示。Show a hint when both sources failed.
+  setTimeout(function () {
+    if (!customElements.get('esp-web-install-button')) {
+      document.getElementById('cdn-hint').style.display = 'block';
+    }
+  }, 8000);
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="badge">v1.0 · gen22 · 0.3.3-pico22</span>
+  <h1>Pico-Plus 墨水屏极客副屏固件 · 网页刷机</h1>
+  <p>适用硬件：MindReset RDP-G01-W 墨水屏阅读器（ESP32-S3）</p>
+  <p>本固件为第三方修改版：<b>基于 kiikoread r95 版（0.3.3-rc95）改造</b>，四大卖点——
+     <b>双栏排版</b>（横屏一页两栏，翻页次数减半）、
+     <b>离线词典与生词本</b>（取词查义，无需联网，词典文件需自备）、
+     <b>蓝牙推流</b>（安卓手机把长文与单词卡推到设备，当极客副屏用）、
+     <b>网页刷机</b>（无需安装任何软件，浏览器一键烧录）；与 MindReset 官方无关。</p>
+</header>
+
+<section class="action">
+  <h2>一键刷机</h2>
+  <p>用 USB 数据线连接设备后，点击下面的按钮开始。</p>
+  <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
+  <div class="warn">
+    如果之前刷过官方固件，工具会提示<b>擦除全部数据</b>——这属于正常现象
+    （官方固件与本固件的分区布局不同，必须整片擦除后才能写入），确认即可。
+  </div>
+  <div id="cdn-hint">
+    刷机脚本没能加载出来（网络原因）。请更换网络环境后刷新本页重试；
+    脚本来自 jsdelivr / unpkg 两个公共 CDN。
+  </div>
+</section>
+
+<section>
+  <h2>操作步骤</h2>
+  <ol>
+    <li>用 <b>USB 数据线</b>把设备连接到电脑（部分充电线只能充电，不能传数据）；</li>
+    <li>确保设备电量充足（建议 50% 以上）；</li>
+    <li>点击上方 <b>「安装固件」</b> 按钮；</li>
+    <li>在弹窗中选择设备对应的串口（如 <code>COM3</code>、<code>USB JTAG/serial debug unit</code>），点击连接；</li>
+    <li>等待进度条走完（约 1～2 分钟），设备自动重启，刷机完成。</li>
+  </ol>
+</section>
+
+<section class="warn">
+  <h2>手机端配套 App（蓝牙推流用）· 仅安卓</h2>
+  <p>
+    刷完固件后，若要使用<b>手机蓝牙推送（副屏）</b>，请下载配套安卓 App：
+    <a href="https://github.com/cere-hy/pico-plus/raw/main/apk/ReadPicoPush.apk"><b>ReadPicoPush.apk</b></a>
+    （也可到仓库 <code>apk/</code> 目录或本版 Release 附件下载）。
+  </p>
+  <ul>
+    <li><b>仅支持 Android（安卓）</b>；<b>不支持苹果 iOS</b>（系统限制）。</li>
+    <li><b>Android 10/11 手机</b>：需在系统设置里打开「定位服务」并授予位置权限，否则扫描不到设备（App 顶部会有红字提示）。</li>
+    <li><b>固件与 App 必须同时更新</b>：旧版 App 在有多台设备并存时可能连到非目标设备。</li>
+  </ul>
+</section>
+
+<section class="faq">
+  <h2>刷完之后必做：放置离线词典</h2>
+  <div class="warn">
+    <b>本固件不包含词典数据。</b>查词功能依赖放在 TF 卡里的词典文件，
+    不放置则无法使用查词功能。
+  </div>
+  <ol>
+    <li>下载词典文件
+      <a href="https://github.com/cere-hy/pico-plus/releases/download/v1.0-gen10/dict.bin"><b>dict.bin</b></a>
+      （约 8.9 MB，推荐；需要更全词库可下载
+      <a href="https://github.com/cere-hy/pico-plus/releases/download/v1.0-gen10/dict-full.bin">dict-full.bin</a>
+      并重命名为 <code>dict.bin</code>）；</li>
+    <li>把文件命名为 <code>dict.bin</code>，复制到 <b>TF 卡根目录下的 <code>dict</code> 文件夹</b>里：
+      在电脑上打开 TF 卡盘，在最上层建一个 <code>dict</code> 文件夹，把文件放进去
+      （<b>不需要建 <code>sdcard</code> 文件夹</b>——设备内路径
+      <code>/sdcard/dict/dict.bin</code> 里的 <code>/sdcard</code> 只是固件中 TF 卡的挂载点名，
+      卡插到电脑上看到的就是卡盘根目录本身）；</li>
+    <li>TF 卡插回设备并重启，之后阅读时选中单词即可查词。</li>
+  </ol>
+  <p>文件名称与位置必须严格一致：<code>dict.bin</code> 放在 TF 卡根目录的 <code>dict</code>
+     文件夹下，其他名字或位置不生效。详细说明见仓库 README 第四节。</p>
+</section>
+
+<section class="faq">
+  <h2>常见问题</h2>
+  <p><b>按钮点了没反应 / 找不到串口？</b>换一根数据线、换一个 USB 口，并关掉其他可能占用串口的软件。</p>
+  <p><b>页面一直转圈或按钮不出现？</b>是刷机脚本没加载出来，换个网络环境重试。</p>
+  <p><b>提示浏览器不支持？</b>必须使用电脑版 <b>Chrome</b> 或 <b>Edge</b> 浏览器；暂不支持手机浏览器和 Safari。</p>
+  <p><b>烧到一半失败？</b>重新插拔 USB 后重试；反复失败可换数据线或换 USB 口。</p>
+  <p><b>刷完为什么查不了词？</b>词典文件没放。本固件不包含词典数据，
+     需按上方「刷完之后必做」把 <code>dict.bin</code> 放进 TF 卡根目录的 <code>dict</code>
+     文件夹（设备内路径记为 <code>/sdcard/dict/</code>，无需建 <code>sdcard</code> 文件夹）。</p>
+  <p><b>刷完想升级/重刷？</b>可以再次使用本页面；也可以把 <code>Read_Pico.bin</code> 重命名为
+     <code>Pico-update.bin</code> 放到 TF 卡根目录，在设备上「设置 → 升级和恢复」中安装
+     （注意：相同版本会被设备拒绝重装，此时请用本页面重刷）。</p>
+</section>
+
+<footer>
+  Pico-Plus 墨水屏极客副屏固件（修改版）· Based on the original work by
+  <a href="https://github.com/MindReset/read_pico_firmware">MindReset/read_pico_firmware</a> ·
+  基于 kiikoread r95 版（0.3.3-rc95）改造 · 与 MindReset 官方无关 · 网页刷机基于 esp-web-tools（Apache-2.0）<br>
+  固件按"原样"提供，刷机有风险，请自行承担。详细说明见仓库 README。
+</footer>
+
+</div>
+</body>
+</html>

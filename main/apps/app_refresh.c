@@ -70,7 +70,7 @@ static void draw_pattern_page(uint8_t* framebuffer, const char* caption) {
     const int bar_h = 240;
     const int step = inner / 16;
     for (int i = 0; i < 16; i++) {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){
                 .x = UI_MARGIN + i * step,
                 .y = y,
@@ -89,7 +89,7 @@ static void draw_pattern_page(uint8_t* framebuffer, const char* caption) {
     y += 44;
 
     const int block_h = 200;
-    epd_fill_rect(
+    ui_fill_rect_fast(
         (EpdRect){
             .x = UI_MARGIN,
             .y = y,
@@ -116,7 +116,7 @@ static void draw_pattern_page(uint8_t* framebuffer, const char* caption) {
     for (int row = 0; row * cell < board_h; row++) {
         for (int col = 0; col * cell < inner; col++) {
             if ((row + col) % 2) continue;
-            epd_fill_rect(
+            ui_fill_rect_fast(
                 (EpdRect){
                     .x = UI_MARGIN + col * cell,
                     .y = y + row * cell,
@@ -131,7 +131,7 @@ static void draw_pattern_page(uint8_t* framebuffer, const char* caption) {
     y += board_h + 30;
 
     for (int i = 0; i < 20; i++) {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){
                 .x = UI_MARGIN,
                 .y = y + i * 6,
@@ -168,7 +168,7 @@ static void draw_demo_page(uint8_t* fb) {
     }
 
     EpdRect area = demo_area();
-    epd_fill_rect(area, s_demo_invert ? UI_GRAY_BLACK : UI_GRAY_WHITE, fb);
+    ui_fill_rect_fast(area, s_demo_invert ? UI_GRAY_BLACK : UI_GRAY_WHITE, fb);
     epd_draw_rect(area, UI_GRAY_BLACK, fb);
     ui_text_vc(
         fb, area.x + area.width / 2, area.y + area.height / 2, UI_PX_SUB,

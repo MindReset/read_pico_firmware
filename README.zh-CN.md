@@ -1,167 +1,252 @@
-# 小纸 Pico 官方演示固件
+# ReadPico 横屏双栏 · 墨水屏阅读器固件（修改版）
 
-**语言:** [English](./README.md) | [简体中文](./README.zh-CN.md) | [日本語](./README.ja-JP.md)
+**[English](README.md) | 简体中文**
 
-[贡献指南](CONTRIBUTING.md) · [支持](SUPPORT.md) · [安全政策](SECURITY.md) · [行为准则](CODE_OF_CONDUCT.md)
+> 给 MindReset RDP-G01-W 墨水屏阅读器用的**第三方修改版固件**：在官方开源固件基础上，新增
+> **横屏界面、双栏排版、离线英汉词典、生词本**，以及**手机蓝牙推送（副屏）**等功能。
+>
+> 本项目与 MindReset 官方无关，也不是官方发布。固件按"原样"提供，刷机有风险，
+> 请阅读文末[免责声明](#八免责声明)。
 
-[![License](https://img.shields.io/github/license/MindReset/read_pico_firmware?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
-[![Build](https://img.shields.io/github/actions/workflow/status/MindReset/read_pico_firmware/build.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/MindReset/read_pico_firmware/actions)
-![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
-![Target](https://img.shields.io/badge/target-ESP32--S3-E7352C?style=for-the-badge&logo=espressif&logoColor=white)
+Based on the original work by [MindReset/read_pico_firmware](https://github.com/MindReset/read_pico_firmware).
 
-小纸 Pico 是深圳思维重置科技有限公司旗下小纸 Read 系列的开发板，面向墨水屏开源固件开发者，
-搭载 ESP32-S3 和 4.7 寸单色墨水屏。本仓库是随板发布的出厂固件。
+**当前版本：v1.0 正式版（内部代号 gen22，固件版本号 `0.3.3-pico22`）**
 
-固件为显示、触摸、加速度计、电源、按键、TF 卡、字体、睡眠与唤醒提供独立的演示页和诊断页，
-用于逐项确认硬件状态，并为自有固件提供刷新策略、功耗处理和交互方式的参考实现。
+---
 
-板级支持、PMU 协议主机端和芯片驱动均为可独立复用的组件。这是一份硬件演示固件，并非完整的阅读器产品。
+## ⚠️ 请先读这一段：本分支的独立性
 
-面向 AI agent 的目录职责、`app_desc_t` 契约、术语表和注释规范见 [AGENTS.md](AGENTS.md)。
+1. **已停止同步上游。** 本固件是上游 `rc95` 的**深度魔改分支**，此后不再跟随上游更新合并
+   （上游的新改动不会被并入，本分支的改动也不会推回上游）。
+2. **分区表是独立的。** 使用 `partitions_16M.csv`（app 分区 5.5MB × 2，`otadata` 在 `0xb10000`），
+   与上游/官方布局**不同**。因此：
+   - **首次刷机必须连电脑**（网页一键刷机 或 命令行线刷），不能用官方工具或设备内在线升级；
+   - 刷过一次之后，**后续升级可以用 TF 卡**（见[第四节](#四tf-卡升级不用电脑在设备上直接升级)）。
+3. **底层协议是独立的。** 蓝牙推流（手机副屏）使用本项目自有的 BLE 协议与服务 UUID，
+   与官方应用/协议**不通用**。
+4. **手机端目前仅支持安卓。** **蓝牙推流、手机副屏功能仅支持 Android，iOS 因系统限制暂不支持。**
+   请到本仓库的 [`apk/`](apk/) 目录下载配套安卓 APK——**固件与 APK 必须配套使用**。
 
-## 官方文档与更多设备
+> 如果你只想要"官方原版体验"，请回到 [MindReset/read_pico_firmware](https://github.com/MindReset/read_pico_firmware)。
 
-- [小纸 Pico 官方文档](https://dot.mindreset.tech/docs/read_0)
-- [Dot Open Platform](https://github.com/MindReset/dot_open_platform)：探索更多可以动手玩的 Dot 设备与项目，包括 Quote/0 硬件资源和 Rand/0 本地显示集成，以及固件示例、引脚表和外壳文件。
+---
 
-## 硬件
+## 一、这个固件能干什么
 
-| 项目 | 规格 |
-| --- | --- |
-| 主控 | ESP32-S3，16 MB flash，8 MB Octal PSRAM，二者均运行于 120 MHz |
-| 屏幕 | 4.7 寸单色墨水屏，1216 × 684，16 级灰阶，16 bit 并口经 LCD 外设驱动 |
-| 屏电源 | SY7636A，PGOOD 经 IO 扩展读回 |
-| 电源管理 | CW32L010，自定义 I2C 协议：电池、充放电、指示灯、RTC、闹钟、开关机 |
-| 触摸 | CST836U，两点触摸、中断与深睡唤醒 |
-| 加速度计 | SC7A20H，敲击、朝向、自由落体、FIFO |
-| IO 扩展 | FCA9555，屏控制脚与卡检测 |
-| 存储 | TF 卡（1 bit SDMMC），字体从卡上加载 |
-| 其它 | 蜂鸣器、三个电容按键区 |
+在原版功能（书架、EPUB/TXT 阅读、阅读进度、字体导入、锁屏、USB 存储、WiFi 传书）之上，
+本修改版主要新增：
 
-## 编译与烧写
+| 分类 | 功能 | 说明 |
+|---|---|---|
+| 📖 核心阅读 | 横屏显示 | 界面支持横屏摆放，握持阅读更接近普通书籍 |
+| 📖 核心阅读 | 双栏排版 | 一页左右两栏，翻页次数减半；可在阅读设置中开关 |
+| 📖 核心阅读 | 更快的翻页 | 纯文字翻页不闪黑、不擦白，局部刷新 |
+| 📖 核心阅读 | 水波纹翻页 | 翻页带水波纹动画效果（可选） |
+| 📚 词典生词本 | 离线词典 | 阅读中取词查义，无需联网（**词典文件需自行下载并放到 TF 卡**） |
+| 📚 词典生词本 | 生词本 | 查过的词自动记录，随时复习 |
+| 📱 极客副屏 | **手机蓝牙推流** | 安卓手机把长文/网页片段/单词卡直接推送到设备并自动打开阅读（**仅安卓**） |
+| 📱 极客副屏 | **防串台（MAC 绑定）** | 广播名取自设备出厂 MAC（如 `PicoPush-1A2B`），固定唯一；多台并存时 APK 列表点选，不会推错设备 |
+| 📱 极客副屏 | **未读提醒** | 有新推送未打开时，首页状态条出现反色小圆点 +「有新内容」，打开即清 |
+| 📱 极客副屏 | **蓝牙自动校时** | 手机推送时顺带校准设备时钟（设备无 RTC 晶振，长期会漂移） |
+| ⚙️ 底层优化 | 刷新/功耗打磨 | 武装期收口不必要局部刷新、息屏与锁屏路径梳理等 |
 
-需要 ESP-IDF v6.1。`components/read_pico/read_pico_flash_hpm.c` 依赖 v6 才提供的
-`esp_flash_chips/spi_flash_override.h`。
+> ## ⚠️ 重要：离线词典必须自备词典文件
+>
+> **本固件不包含词典数据。** 查词功能依赖放在 TF 卡里的词典文件：
+> 需自行下载 `dict.bin`，并放入 TF 卡根目录下的 `dict` 文件夹里
+> （设备内路径记为 `/sdcard/dict/dict.bin`，其中 `/sdcard` 是 TF 卡在设备里的
+> 挂载点名，不是让你在卡上建 `sdcard` 文件夹），**否则无法使用查词功能**。
+> 下载地址与详细步骤见[第五节「刷完之后」](#五刷完之后把书放进设备)。
+
+原版的传书、WiFi、USB 存储、TF 卡读写等能力全部保留（见[第五节](#五刷完之后把书放进设备)）。
+
+## 二、刷机方法（三选一）
+
+> **刷机前**：确保设备电量充足（建议 50% 以上）；请使用 **USB 数据线**
+> （部分充电线只能充电、不能传数据）。
+>
+> **首次刷机必须连电脑**（网页一键 或 命令行），因为本固件的分区布局与官方不同，
+> 需要整片写入；刷过一次之后，后续升级可走 TF 卡。
+
+### 方法 1：网页一键刷机（推荐，最简单）
+
+不需要安装任何软件，用电脑浏览器就能刷。
+
+1. 用 USB 数据线把设备连接到电脑；
+2. 用电脑打开网页刷机页面（需 **Chrome 或 Edge** 浏览器，暂不支持手机浏览器和 Safari）：
+
+   ```
+   https://<你的用户名>.github.io/<仓库名>/
+   ```
+
+   （本仓库开启 GitHub Pages 后，上面的地址就是刷机页——`web-flasher/` 目录会被发布为站点根目录。
+   如果你还没把仓库放到 GitHub，也可以在电脑上进入 `web-flasher` 目录后运行
+   `python -m http.server 8000`，然后用浏览器打开 `http://localhost:8000` 刷机。）
+3. 点击页面上的 **「安装固件」** 按钮；
+4. 在弹窗中选择设备对应的串口（如 `COM3`、`USB JTAG/serial debug unit`），点击连接；
+5. 等待进度条走完（约 1～2 分钟），设备自动重启，刷机完成。
+
+> 之前刷过官方固件的设备，工具会提示**擦除全部数据**，属正常现象
+> （官方固件与本固件的分区布局不同，必须整片擦除后才能写入），确认即可。
+
+**遇到问题？**
+
+- 按钮点了没反应 / 找不到串口 → 换一根数据线、换一个 USB 口、关掉其他可能占用串口的软件；
+- 页面一直转圈或按钮不出现 → 是刷机脚本没加载出来，换个网络环境重试；
+- 提示浏览器不支持 → 必须用电脑版 Chrome / Edge；
+- 烧到一半失败 → 重新插拔 USB 后重试。
+
+### 方法 2：一键刷机脚本（Windows 用 `flash.bat`，Linux/macOS 用 `flash.sh`）
+
+1. 下载本仓库 Release 附件中的固件包，或取仓库 [`firmware/`](firmware/) 目录下的 4 个 `.bin`
+   与刷机脚本（**词典文件不在里面**，需另外下载，见[第五节](#五刷完之后把书放进设备)）；
+2. 安装 Python（到 [python.org](https://www.python.org/downloads/) 下载，
+   安装时**务必勾选 "Add Python to PATH"**）；
+3. 按 `Win + R`，输入 `cmd` 回车，执行：
+
+   ```
+   pip install esptool
+   ```
+
+4. 用 USB 线连接设备，**双击 `flash.bat`**（Windows）或执行 `sh flash.sh /dev/ttyUSB0`；
+5. 按提示等待，看到 `Flash done` 即完成。
+
+脚本会先校验 `Read_Pico.bin` 的 SHA-256 与锚定值一致，不一致会**拒绝烧录**并提示。
+
+### 方法 3：电脑命令行线刷（Linux / macOS / Windows 通用）
+
+适合熟悉命令行的用户：
 
 ```sh
-idf.py set-target esp32s3
-idf.py build
-idf.py -p /dev/cu.usbmodem* flash monitor
+pip install esptool   # 先安装 esptool
+
+python -m esptool --chip esp32s3 -b 460800 \
+  --before default-reset --after hard-reset write-flash \
+  --flash-mode dio --flash-size 16MB --flash-freq 80m \
+  0x0      bootloader.bin \
+  0x8000   partition-table.bin \
+  0x10000  Read_Pico.bin \
+  0xb10000 ota_data_initial.bin
 ```
 
-`sdkconfig.defaults` 中的 120 MHz flash / PSRAM 时序依赖板上实际的 flash 型号。
-CI 使用 `sdkconfig.ci` 换回默认时序，仅验证能否编译通过，见
-[.github/workflows/build.yml](.github/workflows/build.yml)。
+四个偏移对应本项目的 16MB 分区布局（app 分区 `ota_0` 在 `0x10000`，故 `otadata` 落在 `0xb10000`；
+**不要写成上游/其他项目的 `0xD10000`**）。烧录中途报错，可把 `-b 460800` 改为 `-b 230400` 重试。
 
-如果在固件开发或烧录时，设备从睡眠状态唤醒后无法被识别，请依次尝试：
+### 手机端配套 APK（蓝牙推流用）
 
-1. 更换 USB Type-A（标准 USB）数据线。
-2. 对设备重新执行一次睡眠和唤醒操作。
-3. 重启开发板后重试。
+刷完固件后，若要使用**手机蓝牙推送（副屏）**，请到 [`apk/`](apk/) 下载安卓 APK 并安装：
 
-面板公共电压（VCOM）在出厂时标定并写入 PMU。固件开机读取一次用于配置驱动，
-不在本地保存，也不提供修改入口。
+- **仅支持 Android**；**iOS 因系统限制暂不支持**。
+- **固件与 APK 必须同时更新**：旧版 APK 在有多台设备并存的环境下可能连到非目标设备
+  （它不具备设备选择能力）。
+- **Android 10/11 手机注意**：这两代系统要求「定位服务」总开关打开 + 授予位置权限，
+  否则蓝牙扫描一个设备都返回不了（表现是一直「未发现设备」）。APK v1.1 起会在顶部用
+  红/绿横幅自动检测并提示缺项，按提示开启即可。
 
-## 页面
+## 三、手机蓝牙推流怎么用（副屏）
 
-功能菜单按 [main/app/app_registry.c](main/app/app_registry.c) 中的顺序列出全部页面。
+1. 设备上进入「手机推送」入口，开启接收（进入武装窗口，屏幕会显示广播名，如 `PicoPush-1A2B`）；
+2. 安卓手机打开配套 APK，扫描到设备后：
+   - **只有一台设备时自动连接**；
+   - **有多台时弹出列表**，请按墨水屏上显示的代号点选你想要的那台（防串台）；
+3. 在 APK 里输入/粘贴要推送的文本（也支持单词卡），发送；
+4. 设备接收完成后自动以「虚拟书」形式打开阅读；若你没打开，首页状态条会亮出
+   **反色小圆点 +「有新内容」**提醒，打开后即清除。
 
-| 页面 | 内容 |
-| --- | --- |
-| 概览 | 开机 I2C 在线检测、识别码、电池与充电状态、构建时间 |
-| 墨水屏刷新 | 整屏 GC16、局部 DU、16 灰阶与快速 8 灰阶梯图，各自附实测耗时 |
-| 阅读测试 | 内置正文，DU / GL16 / GC16 翻页，页眉调字号 |
-| 触摸 | 两点连续 DU 跟手，抬手整页定稿；深睡与自动唤醒 |
-| 加速度计 | 实时三轴与倾角、敲击计数、朝向判定 |
-| 加速度计诊断 | 采样参数与自测 |
-| 电源与电池 | 电池电压、电量与充电状态；屏电源轨、温度与故障；只读的 SY7636A 配置 |
-| 电源管理协议 | 协议状态、事件、配置与命令 |
-| 电源按键 | `key_raw_events`、按下与抬起电平、DOWN/UP/SHORT/LONG 事件 |
-| 睡眠与唤醒 | 浅睡（按键或拿起唤醒）、深睡、关机 |
-| TF 卡与蜂鸣器 | 卡容量与挂载状态、重挂、格式化、蜂鸣 |
-| 字体 | 列出并切换卡上 TTF，同页排版示例，循环字重 |
-| 扩展口 | Port-0 电平与中断，底栏脉冲触摸复位 |
-| 设备功能自检 | 探活与命令 ACK；需要断电的项目只在后台记录结果 |
-| 图书 | TF 卡或内置存储的 UTF-8 / GBK TXT 与 EPUB，目录、字号与逐书进度；滑动翻页、长按正文进目录、长按书架条目查看详情、清进度或确认删除；书架支持来源筛选、名称/最近阅读排序及拼音/首字母/英文搜索；单本用弹窗管理，管理页支持批量选择、清进度/删除与重扫；实验晃动翻页默认关。EPUB 支持 NCX 与 nav 目录。 |
-| 传书 | 设备热点或已有 WiFi，浏览器上传 TXT/EPUB，TF 卡支持上传完整 TTF 字体；热点可扫码连接；已有 WiFi 可在触屏扫描选网并输入密码，也保留网页配网。优先 TF 卡，内置存储单文件 ≤ 1 MB；网页可列出和搜索当前上传目标中的图书，确认替换/删除，取消上传和重试；设备可确认遗忘已保存网络。离页断网。 |
+> 广播名取自设备出厂 MAC，固定不变，可直接用来认设备。
 
-图书阅读三键 KEY1 / KEY2 / KEY3 对应上一页 / 工具条 / 下一页；工具条提供强刷。长按中键约500 ms可打开演示菜单。其他页面仍为 KEY2 整屏 GC16、KEY3 菜单。菜单项抬起提交，滑出可取消。
+## 四、TF 卡升级（不用电脑，在设备上直接升级）
 
-## 目录
+1. 把固件包里的 `Read_Pico.bin` **重命名为 `Pico-update.bin`**；
+2. 用读卡器把它拷到 TF 卡（FAT32 格式）的**根目录**；
+3. TF 卡插回设备，进入 **设置 → 升级和恢复**；
+4. 点击「安装 TF 卡升级包」，等待自动完成并重启。
 
-```text
-main/
-  app_main.c        开机装配，随后交给 app_loop
-  app/              app 接口（app.h）、注册表、事件循环
-  apps/             每个演示页一个文件，只导出 app_desc_t
-  ui/               ui_kit 绘制原语与布局常量、ui_menu 两层菜单
-  font/             stb_truetype 字形缓存
-  factory/          设备功能自检与出厂 VCOM 标定
-components/
-  read_pico/        板级 BSP：I2C、EPD 板定义与扫描时序、TF 卡、蜂鸣器、flash HPM
-  read_pico_pmu/    CW32L010 协议主机端
-  epdiy/            墨水屏渲染，裁剪至 LCD 外设路径
-  continuous_du/    连续 DU：跨多轮累积相位，用于跟手
-  cst836u/ sc7a20h/ fca9555/ sy7636a/    芯片驱动
-  e0470_epaper_waveform/                 面板波形表与裁剪函数
-  pwm_audio/        LEDC PWM 音频，蜂鸣器底层之一
-assets/             图片素材（main/assets/*.bin 的来源）
-tools/              字体与图片转换脚本
-```
+> 如果设备当前已刷入**相同版本**的固件，会提示「升级包与当前版本相同」——
+> 此时想重刷，请用上面的网页刷机或线刷。
 
-新增演示页：在 `main/apps/` 新建文件，实现 `app_desc_t` 中需要的回调，
-再加入 `main/app/app_registry.c` 的菜单表。主循环不需要改动。
+> **重要：不要使用设备里的「在线升级」。** 在线升级检查的是官方固件地址，
+> 会刷回官方版本，丢失本修改版的横屏、双栏等功能。本修改版请只用本页三种方式升级。
 
-## 引脚
+## 五、刷完之后：把书放进设备
 
-| 功能 | GPIO |
-| --- | --- |
-| I2C SCL / SDA | 40 / 39（400 kHz） |
-| EPD 数据 D0–D15 | 4–18, 45 |
-| EPD XLE / XSTL / XCL / SPV / CKV | 3 / 46 / 21 / 47 / 48 |
-| FCA9555 INT# | 41（同时作为浅睡唤醒源） |
-| CST836U INT# | 43 |
-| SC7A20H INT1 | 1 |
-| TF 卡 CLK / CMD / D0 | 38 / 42 / 44 |
-| 蜂鸣器 | 2 |
+三种方式任选：
 
-屏电源开关、XOE、MODE、VCOM_EN、触摸复位和卡检测位于 FCA9555 的 Port-0，
-见 [main/apps/app_ioe.c](main/apps/app_ioe.c) 中的引脚表。
+- **WiFi 传书（最方便）**：设备上打开「传书」应用 → 按屏幕提示让手机/电脑连接设备热点 →
+  在浏览器里打开屏幕提示的地址，即可上传 EPUB / TXT；
+- **USB**：设备开启 USB 存储模式后，直接当 U 盘拖入书籍；
+- **TF 卡**：把书拷到 TF 卡，在设备文件管理中打开；
+- **蓝牙推流**：手机直接推送（见[第三节](#三手机蓝牙推流怎么用副屏)，**仅安卓**）。
 
-## 传书与使用限制
+### 离线词典设置（不设置就无法查词）
 
-AP 与已有 WiFi 均提供传书网页二维码；热点页可切换连接 WiFi 与打开网页二维码。设备显示的构建时间统一标注 UTC。
+> **本固件不包含词典数据。** 查词功能依赖放在 TF 卡里的词典文件，
+> 必须按下面的步骤放置，否则无法使用查词功能。
 
-传书服务仅在传书页运行，离页停止。它使用局域网 HTTP，没有独立登录或 TLS；同网设备可管理当前上传存储中的图书，请使用可信网络。保存的 WiFi 凭据位于设备 NVS，公开接口和日志不返回密码。本版未启用 NVS/flash 加密，不以此提供物理访问防护。
+1. 下载词典文件（二选一，推荐第一个）：
+   - [`dict.bin`](https://github.com/cere-hy/pico-plus/releases/download/v1.0-gen10/dict.bin)
+     ——推荐，约 8.9 MB，12.4 万词，SHA-256 `2bb228e4…9ee7`；
+   - [`dict-full.bin`](https://github.com/cere-hy/pico-plus/releases/download/v1.0-gen10/dict-full.bin)
+     ——词库更全，约 23 MB，40 万词，SHA-256 `7c17cca7…f61b`；
+2. 如果下载的是 `dict-full.bin`，先把它**重命名为 `dict.bin`**；
+3. 把 `dict.bin` 复制到 **TF 卡根目录下的 `dict` 文件夹**里：在电脑上插入 TF 卡
+   （或读卡器），打开这个卡盘，在最上层建一个名为 `dict` 的文件夹，把 `dict.bin`
+   放进去——放好后卡里就是 `dict/dict.bin` 这一层结构，**不需要、也不要在卡上
+   建 `sdcard` 文件夹**（没有 `dict` 文件夹就新建一个；设备插卡启动后也会自动创建）；
+4. TF 卡插回设备并重启，之后阅读时选中单词即可查词，查过的词自动进生词本。
 
-停止传书后返回进入前的页面或菜单位置。检测到已挂载TF卡失效时，设备停止相关阅读/传书并回退字体；插回后需在TF页显式重新挂载。写入时拔卡可能损坏文件系统。EPUB打开正文时只显示图片占位；点击后才加载本地 JPEG/PNG 并单独等比预览，点图片、返回按钮或三键任意一键回到原正文位置，不重新分页；开章、翻页和预绘制不解码图片；ZIP条目、资源清单项和章节各最多32768个，OPF/导航元数据解压后最多4 MiB，正文/图片读取最多2 MiB，ZIP中央目录最多8 MiB；标题总预算1 MiB，超出后用编号标题；即使未使用的ZIP条目也不能超过4 MiB。以上内存与资源限制独立于章节数，并非章数合规就一定能打开；不支持ZIP64或超过32768项/章的文件；外部换书或换卡产生同路径、同大小文件时，旧阅读进度可能仍被匹配。保存失败的待重试状态不能保证在断电后保留。
+> **命名与位置必须严格一致**：文件名叫 `dict.bin`，放在 TF 卡**根目录**的 `dict`
+> 文件夹下。文档里出现的设备内部路径 `/sdcard/dict/dict.bin` 中的 `/sdcard` 只是
+> 固件里 TF 卡的**挂载点名**（卡插到电脑上，看到的就是卡盘根目录本身），不是让你
+> 在卡上再建一层 `sdcard` 文件夹；其他名字、其他位置都不会生效。`dict` 文件夹里
+> 只放一个词典文件，放多个时打开哪一个不确定。
+>
+> 词典数据由 [ECDICT](https://github.com/skywind3000/ECDICT)（MIT）转换生成，
+> 你也可以用仓库里的 `tools/build_dict.py` 自行构建词典。
 
-进入书架时询问是否继续上次阅读，选择“留在书架”不会打开图书；确认“继续阅读”才加载（KEY1取消、KEY3继续）。先解析目录与当前章节，再完成起始两页或续读位置；其余分页每次补两页，其他章节按需加载。分页未完成时页数显示“…”；向前跨章到上一章末页仍需完成该章分页。字宽测量使用驻留字体表，不提前生成整章字形位图。打开图书和加载章节时保留等待提示；失败显示可见原因（内存不足、超出限制、格式不支持或文件异常）。
+## 六、开发者说明
 
-滑动翻页在抬手时提交，距离阈值由120像素缩短到64像素；超过24像素轻点容差但不足64像素的短拖仍取消。在图片占位上滑动仍翻页，不触发图片加载。
+- 开发环境：**ESP-IDF v6.1**；
+- 编译：
 
-插图范围：基线 JPEG 优先在解码时缩小，允许最多放大两倍到显示尺寸以减少计算，原图最多16M像素、单边8192；PNG及渐进 JPEG 原图最多1M像素，解码堆上限4 MiB。输出不超过648×1000灰度像素，透明 PNG 合成白底；只缓存当前章节最近查看的一幅图片，同图关闭后再次打开可复用；超限、缺失、损坏或不支持的图片在点击后说明原因，不中断正文阅读。同一归一化资源路径再次出现时显示“重复图片”和本次打开图书后已读章节中的最早节号（EPUB目录顺序包含封面、前言，可能不同于正文章号）。章首连续图片后紧接标题时，这些图片及已识别的同资源引用单独显示“标题图”，不重复显示首次位置；标题后的其他插图仍保留已读最早提示；不扫描未读章节，不声称是全书首次位置，关闭图书后记录清空；不同路径下的相同内容不作匹配；支持 SVG 包装中的 JPEG/PNG 引用，不绘制纯 SVG 矢量、CSS背景或外链图片。解码器来源与许可见 [第三方说明](main/book/vendor/README.md)。
+  ```sh
+  idf.py set-target esp32s3
+  idf.py build
+  ```
 
-内置字体仅覆盖界面和演示正文，阅读外部中文书籍请将完整中文 TTF 放到 TF 卡的 `fonts/` 或 `assets/fonts/`，再在“字体”页选用。默认字体路径为 `fonts/ChillDuanSansVF.ttf`；缺字时应检查卡上字体文件和所选字体的字形覆盖。仓库提供 [TF 部署字体与版权说明](sdcard/README.md)。也可通过 WiFi 网页的“上传字体”区上传到 `/sdcard/fonts`：单文件上限 32 MiB，仅支持带 TrueType 轮廓的 TTF（不支持 OTF/CFF、TTC、WOFF）。上传前检查容量，同名替换需确认，校验失败或中断保留旧字体；停止传书后在设备“字体”页选用。传书期间暂用内置字体，防止替换正在读取的字库；不会改变已保存的字体选择。
+- 分区表：`partitions_16M.csv`（app 分区 5.5MB × 2，`otadata` 在 `0xb10000`）；
+- 宿主测试：`tools/` 下有 **125 个无需硬件即可运行的测试**（C / Python / JS）
+  和 12 个一键运行脚本，CI 每次提交自动执行主要回归；
+- 目录速览：
+  - `main/` 固件主体——`book/` 文本解析与排版引擎、`dict/` 词典与生词本、`apps/` 各应用；
+  - `components/` 硬件与功能组件——`read_pico_transfer/` 为 WiFi 传书组件，
+    `push_sink/` 为蓝牙推流接收组件（含协议 `push_proto`）；
+  - `firmware/` 终版固件四件套 + 刷机脚本；`apk/` 安卓配套安装包；
+  - `web-flasher/` 网页刷机页（manifest + 固件 bin，随固件同步更新）；
+  - `tools/build_dict.py` 词典构建工具（ECDICT CSV → 设备用 RPD1 `dict.bin`）；
+  - `tools/android/` 安卓 APK 源码与构建脚本（`build-apk.sh`）、`push_pico.py` 命令行推送工具；
+- 内部机制约定（虚拟书、传书策略、波形等）见 `docs/ONBOARDING.md`、`docs/HANDOFF.md` 与 `AGENTS.md`。
 
-功能变化见 [版本变更](docs/CHANGELOG.md)。离线拼音字表来自 pypinyin（MIT），见 [组件许可与再生成说明](components/read_pico_search/README.md)。
+## 七、更新日志
 
-## 致谢与许可
+按四分类整理，**当前为 v1.0 正式版（固件版本号 `0.3.3-pico22`）**：
+详见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
 
-- 固件本体：Apache-2.0，见 [LICENSE](LICENSE)。
-- [epdiy](https://github.com/vroland/epdiy)：墨水屏时序与渲染。本仓库为按本板
-  LCD 路径裁剪的 fork，LGPL-3.0-or-later，改动清单见
-  [components/epdiy/LICENSE](components/epdiy/LICENSE)。
-- [stb_truetype](https://github.com/nothings/stb)：字形光栅化，公共领域。
-- [pwm_audio](https://github.com/espressif/esp-iot-solution/tree/master/components/audio/pwm_audio)：
-  Espressif LEDC PWM 音频。本仓库为裁剪副本，Apache-2.0，见
-  [components/pwm_audio/LICENSE](components/pwm_audio/LICENSE)。
-- 面板波形表随本板附带，按现状提供，Apache-2.0，见
-  [components/e0470_epaper_waveform/LICENSE](components/e0470_epaper_waveform/LICENSE)。
-- 内置字体 `main/assets/builtin.ttf` 由 `tools/gen_builtin_font.py` 从
-  [ChillDuanSans](https://github.com/Warren2060/ChillDuanSans)（寒蝉端黑体，
-  Warren2060，SIL OFL-1.1）可变字体子集化生成。完整原版字体和许可证随 `sdcard/fonts/` 提供；内置修改版名为 Read Pico UI。两者均适用 OFL-1.1，详见 [部署说明](sdcard/README.md)。
+## 八、免责声明
 
-感谢各位开发者的耐心与支持。
+1. 本固件是第三方修改版本，**按"原样"提供，不作任何明示或默示担保**；
+   对于因刷机或使用本固件造成的设备损坏、数据丢失或其他损失，本项目不承担任何责任；
+2. 刷机存在固有风险（包括极低概率下变砖、需拆机救砖），请确认了解并愿意承担该风险后再操作；
+3. 本项目与 MindReset 官方无关；「RDP-G01-W」等硬件名称的权利归其权利人所有；
+4. 本分支**已停止同步上游**，请使用本页提供的刷机方式，不要用官方工具或设备内在线升级；
+5. 固件中的新增原创内容适用[个人学习许可](licenses/kiikoread-Personal-Study-1.0.txt)，
+   允许个人学习使用，未经单独书面授权不得商用；上游代码许可（Apache-2.0 等）不受影响，
+   完整范围见 [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
-深圳思维重置科技有限公司
+## 九、致谢
+
+- 基于 [MindReset 官方开源示例固件](https://github.com/MindReset/read_pico_firmware) 开发
+  （Based on the original work by [MindReset/read_pico_firmware](https://github.com/MindReset/read_pico_firmware)）；
+- 词典数据来自 [ECDICT](https://github.com/skywind3000/ECDICT)（MIT）；
+- 网页刷机基于 [esp-web-tools](https://github.com/espressif/esp-web-tools)（Apache-2.0）；
+- 感谢上游项目与所有第三方组件作者，完整许可清单见 `licenses/` 与 `THIRD_PARTY_NOTICES.md`。

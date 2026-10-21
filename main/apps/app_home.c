@@ -11,6 +11,8 @@
 #include <string.h>
 
 #include "app.h"
+#include "crash_note.h"
+#include "read_pico_crashlog.h"
 #include "display.h"
 #include "e0470_epaper_waveform.h"
 #include "esp_app_desc.h"
@@ -286,7 +288,7 @@ static void draw_header_mark(uint8_t* fb, const home_layout_t* L) {
         ui_text_vc(fb, cx, cy, UI_PX_TITLE, "P", EPD_DRAW_ALIGN_CENTER, false);
         return;
     }
-    epd_fill_rect(acc, UI_GRAY_BLACK, fb);
+    ui_fill_rect_fast(acc, UI_GRAY_BLACK, fb);
     ui_text_vc(fb, cx, cy, UI_PX_TITLE, "P", EPD_DRAW_ALIGN_CENTER, true);
 }
 
@@ -313,7 +315,22 @@ static void draw_status_page(uint8_t* fb) {
         draw_header_mark(fb, &L);
 
         int y = UI_CONTENT_TOP;
-        y = ui_draw_section(fb, y, "供电 Power");
+        // 上次运行放在最前面：崩溃后重启，开机第一屏就是崩溃日志与 panic 现场，
+        // 不用进别的页面、也不用滚到底——这台设备没有可用的串口，这就是它留下的全部。
+        // The previous run comes first: after a crash the boot screen itself shows the crash log
+        // and the panic scene, without opening another page or scrolling -- this board has no
+        // usable console, and this is everything it left behind.
+        if (crash_note_valid() || rp_crash_log_count() > 0) {
+            y = ui_draw_section(fb, y, "上次运行 Last run");
+            const char *panic = crash_note_text();
+            if (panic != NULL) y = ui_draw_row(fb, y, "崩溃 Panic", panic);
+            for (uint8_t i = 0; i < 6; ++i) {
+                const char *line = rp_crash_log_line(i);
+                if (line == NULL) break;
+                y = ui_draw_row(fb, y, i == 0 ? "最后 Last" : "", line);
+            }
+        }
+        y = ui_draw_section(fb, y + UI_SECTION_GAP, "供电 Power");
         fmt_battery(line, sizeof(line), pmu);
         y = ui_draw_row(fb, y, "电池 Battery", line);
         y = ui_draw_row(fb, y, "充电 Charge", charge_text(pmu));

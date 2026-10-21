@@ -270,7 +270,29 @@ lcd_calculate_frame(RenderContext_t* ctx, int thread_id) {
             buf = lq_current(lq);
         }
 
-        ctx->lut_lookup_func(lp, buf, ctx->conversion_lut, ctx->display_width);
+        if (ctx->col_band_n > 0 && ctx->phase_luts && ctx->col_band_x0 &&
+            ctx->col_band_x1 && ctx->col_band_phase) {
+            // 未启动的条带保持零电压；活跃条带使用自己的 GL16 相位。
+            // Inactive bands hold at zero voltage; active bands use their GL16 phase.
+            memset(buf, 0x00, ctx->display_width / 4);
+            for (int band = 0; band < ctx->col_band_n; ++band) {
+                int8_t phase = ctx->col_band_phase[band];
+                if (phase < 0) continue;
+                int x0 = ctx->col_band_x0[band];
+                int x1 = ctx->col_band_x1[band];
+                if (x0 < 0 || x1 > ctx->display_width || x0 >= x1 ||
+                    (x0 & 15) || (x1 & 15)) continue;
+                ctx->lut_lookup_func((const uint32_t*)(ptr + x0), buf + x0 / 4,
+                                     ctx->phase_luts[phase], (uint32_t)(x1 - x0));
+            }
+        } else {
+            const uint8_t* lut = ctx->conversion_lut;
+            if (ctx->line_phase && ctx->phase_luts && l < ctx->display_height) {
+                int8_t phase = ctx->line_phase[l];
+                if (phase >= 0) lut = ctx->phase_luts[phase];
+            }
+            ctx->lut_lookup_func(lp, buf, lut, ctx->display_width);
+        }
 
         // apply the line mask
         epd_apply_line_mask_VE(buf, ctx->line_mask, ctx->display_width / 4);

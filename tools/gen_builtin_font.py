@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scan UI strings and subset ChillDuanSans VF into main/assets/builtin.ttf."""
+"""Scan UI strings and subset OFL Noto Sans SC Medium into main/assets/builtin.ttf."""
 
 from __future__ import annotations
 
@@ -15,21 +15,23 @@ SCAN_DIRS = [
     ROOT / "main/ui",
     ROOT / "main/app",
     ROOT / "main/apps",
-    ROOT / "main/book",
     ROOT / "main/factory",
     ROOT / "main/assets",
     ROOT / "main/app_main.c",
     ROOT / "main/display.c",
     ROOT / "main/sleep.c",
     ROOT / "main/settings.c",
+    ROOT / "main/ota_update.c",
+    ROOT / "main/ota_online.c",
     ROOT / "components/sy7636a",
     ROOT / "components/sc7a20h",
     ROOT / "components/read_pico",
     ROOT / "components/read_pico_pmu",
 ]
 TEXT_SUFFIXES = {".md", ".txt"}
-# 阅读正文补齐后 VF 子集会超过旧的 400KB；标题还要 wght=700，不能实例化成 Regular。
+# 阅读正文补齐后 VF 子集会超过旧的 400KB；系统字库使用固定 Medium 字重。
 MAX_BYTES = 700 * 1024
+BUILTIN_WEIGHT = 500
 STRING_RE = re.compile(r'"(?:\\.|[^"\\])*"')
 
 
@@ -93,25 +95,6 @@ def unique_text(*parts: str) -> str:
     return "".join(sorted(out, key=lambda c: ord(c)))
 
 
-def rename_subset(font) -> None:
-    # 子集属于修改版，使用自有字体名并保留原版权和 OFL 元数据。
-    # Subsets are modified versions: use our own family name and retain copyright and OFL metadata.
-    names = {1: "Read Pico UI", 3: "Read Pico UI 1.0", 4: "Read Pico UI", 6: "ReadPicoUI",
-             16: "Read Pico UI", 18: "Read Pico UI", 21: "Read Pico UI", 25: "ReadPicoUI"}
-    for record in list(font["name"].names):
-        if record.nameID in names:
-            font["name"].setName(names[record.nameID], record.nameID, record.platformID, record.platEncID, record.langID)
-    if "fvar" in font:
-        for instance in font["fvar"].instances:
-            name_id = instance.postscriptNameID
-            if name_id == 0xffff:
-                continue
-            for record in list(font["name"].names):
-                if record.nameID == name_id:
-                    value = re.sub(r"[^A-Za-z0-9-]", "", record.toUnicode().replace("ChillDuanSans", "ReadPicoUI"))
-                    font["name"].setName(value, name_id, record.platformID, record.platEncID, record.langID)
-
-
 def subset_variable(src: Path, text: str, dest: Path) -> int:
     from fontTools.subset import Subsetter, Options
     from fontTools.ttLib import TTFont
@@ -128,23 +111,31 @@ def subset_variable(src: Path, text: str, dest: Path) -> int:
     subsetter = Subsetter(options=options)
     subsetter.populate(text=text)
     subsetter.subset(font)
-    rename_subset(font)
     dest.parent.mkdir(parents=True, exist_ok=True)
     font.save(dest)
     font.close()
     return dest.stat().st_size
 
 
-def subset_regular(src: Path, text: str, dest: Path) -> int:
+def subset_medium(src: Path, text: str, dest: Path) -> int:
     from fontTools.subset import Subsetter, Options
     from fontTools.ttLib import TTFont
     from fontTools.varLib.instancer import instantiateVariableFont
 
     vf = TTFont(src)
     if "fvar" in vf:
-        inst = instantiateVariableFont(vf, {"wght": 400}, inplace=False)
+        inst = instantiateVariableFont(vf, {"wght": BUILTIN_WEIGHT}, inplace=False)
         vf.close()
         vf = inst
+    if vf["OS/2"].usWeightClass != BUILTIN_WEIGHT:
+        raise ValueError(f"source cannot provide wght={BUILTIN_WEIGHT}")
+    for name_id, value in (
+        (1, "Noto Sans SC"),
+        (2, "Medium"),
+        (4, "Noto Sans SC Medium"),
+        (6, "NotoSansSC-Medium"),
+    ):
+        vf["name"].setName(value, name_id, 3, 1, 0x409)
     options = Options()
     options.layout_features = ["*"]
     options.notdef_outline = True
@@ -153,7 +144,6 @@ def subset_regular(src: Path, text: str, dest: Path) -> int:
     subsetter = Subsetter(options=options)
     subsetter.populate(text=text)
     subsetter.subset(vf)
-    rename_subset(vf)
     dest.parent.mkdir(parents=True, exist_ok=True)
     vf.save(dest)
     vf.close()
@@ -162,13 +152,12 @@ def subset_regular(src: Path, text: str, dest: Path) -> int:
 
 def default_src() -> Path:
     for path in (
-        ROOT / "sdcard/fonts/ChillDuanSansVF.ttf",
-        ROOT / "ChillDuanSansVF.ttf",
-        ROOT / "tools/fonts/ChillDuanSansVF.ttf",
+        ROOT / "sdcard/fonts/Hei.ttf",
+        ROOT / "flash/fonts/Hei.ttf",
     ):
         if path.is_file():
             return path
-    return ROOT / "ChillDuanSansVF.ttf"
+    return ROOT / "sdcard/fonts/Hei.ttf"
 
 
 def main() -> int:
@@ -184,12 +173,8 @@ def main() -> int:
     cjk = sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff")
     print(f"charset {len(text)} chars ({cjk} CJK)")
 
-    size = subset_variable(args.src, text, args.out)
-    mode = "VF"
-    if size > MAX_BYTES:
-        print(f"VF subset {size} bytes > {MAX_BYTES}, instantiate wght=400")
-        size = subset_regular(args.src, text, args.out)
-        mode = "Regular"
+    size = subset_medium(args.src, text, args.out)
+    mode = f"Medium (wght={BUILTIN_WEIGHT})"
     print(f"wrote {args.out} ({size} bytes, {mode})")
     if size > MAX_BYTES:
         print("subset still too large", file=sys.stderr)

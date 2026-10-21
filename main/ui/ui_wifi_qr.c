@@ -67,7 +67,15 @@ bool ui_wifi_qr_prepare(const char* ssid, const char* password) {
 
 bool ui_wifi_qr_prepare_url(const char* url) {
     ui_wifi_qr_clear();
-    if (!url || strncmp(url, "http://", 7)) return false;
+    if (!url) return false;
+    size_t length = strnlen(url, 320);
+    if (!length || length >= 320) return false;
+    for (size_t i = 0; i < length; ++i)
+        if ((unsigned char)url[i] < 0x21 || (unsigned char)url[i] > 0x7e) return false;
+
+    // 传书二维码只接受本机 IPv4 地址，拒绝外部站点。
+    // Transfer QR codes accept only local IPv4 hosts, never external sites.
+    if (strncmp(url, "http://", 7)) return false;
     const char* p = url + 7;
     for (int i = 0; i < 4; ++i) {
         unsigned value = 0, digits = 0;

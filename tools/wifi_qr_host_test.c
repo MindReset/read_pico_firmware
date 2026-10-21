@@ -31,7 +31,7 @@ int main(void) {
     assert(ui_wifi_qr_prepare_url("http://192.168.123.234"));
     ui_wifi_qr_draw(image,(EpdRect){0,0,SIDE,SIDE});
     save("build/wifi-qr-url-sta.pgm");
-    const char* invalid[] = {NULL,"","https://192.168.4.1","http://256.1.1.1","http://1.2.3","http://1.2.3.4@evil","WIFI:T:WPA;S:test;;"};
+    const char* invalid[] = {NULL,"","https://192.168.4.1","https://example.com","http://256.1.1.1","http://1.2.3","http://1.2.3.4@evil","WIFI:T:WPA;S:test;;"};
     for(size_t j=0;j<sizeof(invalid)/sizeof(invalid[0]);++j) {
         assert(!ui_wifi_qr_prepare_url(invalid[j]));
         ui_wifi_qr_draw(image,(EpdRect){0,0,SIDE,SIDE});

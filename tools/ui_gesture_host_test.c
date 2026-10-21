@@ -38,29 +38,25 @@ int main(void) {
     assert(!feed(124, 100, 900, true, false, false, false));
     assert(feed(124, 100, 901, false, false, true, false));
     assert(event.type == UI_GESTURE_CANCEL);
-    const int dx[] = {-64, 64, 0, 0}, dy[] = {0, 0, -64, 64};
+    const int dx[] = {-120, 120, 0, 0}, dy[] = {0, 0, -120, 120};
     const ui_gesture_type_t kinds[] = {UI_GESTURE_SWIPE_L, UI_GESTURE_SWIPE_R, UI_GESTURE_SWIPE_U, UI_GESTURE_SWIPE_D};
     for (int i = 0; i < 4; ++i) {
         press(200, 300, 100);
-        assert(!feed(200 + dx[i], 300 + dy[i], 150, true, false, false, false));
+        assert(feed(200 + dx[i], 300 + dy[i], 150, true, false, false, false));
+        assert(event.type == UI_GESTURE_MOVE);
         assert(feed(200 + dx[i], 300 + dy[i], 200, false, false, true, false));
         assert(event.type == kinds[i]);
     }
     press(100, 100, 0);
-    assert(!feed(125, 100, 500, true, false, false, false));
+    assert(feed(125, 100, 500, true, false, false, false)); assert(event.type == UI_GESTURE_MOVE);
     assert(feed(100, 100, 600, false, false, true, false));
     assert(event.type == UI_GESTURE_CANCEL);
     press(100, 100, 0);
     assert(feed(220, 220, 100, false, false, true, false)); assert(event.type == UI_GESTURE_CANCEL);
     press(100, 100, 0);
-    assert(feed(163, 100, 100, false, false, true, false)); assert(event.type == UI_GESTURE_CANCEL);
+    assert(feed(219, 100, 100, false, false, true, false)); assert(event.type == UI_GESTURE_CANCEL);
     press(100, 100, 0);
-    assert(feed(100, 163, 100, false, false, true, false)); assert(event.type == UI_GESTURE_CANCEL);
-    press(200, 300, 0);
-    assert(!feed(136, 300, 500, true, false, false, false));
-    assert(feed(136, 300, 501, false, false, true, false)); assert(event.type == UI_GESTURE_SWIPE_L);
-    press(100, 100, 0);
-    assert(!feed(117, 117, 500, true, false, false, false));
+    assert(feed(117, 117, 500, true, false, false, false)); assert(event.type == UI_GESTURE_MOVE);
     assert(feed(117, 117, 600, false, false, true, false)); assert(event.type == UI_GESTURE_CANCEL);
     press(100, 100, 0);
     assert(feed(100, 100, 10, true, false, false, true)); assert(event.type == UI_GESTURE_CANCEL);

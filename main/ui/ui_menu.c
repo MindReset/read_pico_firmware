@@ -19,6 +19,10 @@
 #define UI_MENU_ROW_H \
     ((UI_CONTENT_BOTTOM - UI_MENU_LIST_TOP) / UI_MENU_ITEMS_PER_PAGE)
 
+// 把手上箭头的图标边长；菜单按钮本身是 96 像素见方。
+// Icon box for the handle chevron; the menu button itself is 96 px square.
+#define UI_MENU_ARROW_PX 48
+
 int ui_menu_leaf_count(void) {
     const int n = app_count();
     if (n <= 0) return 1;
@@ -63,11 +67,12 @@ static EpdRect menu_nav_rect(bool next) {
 static void draw_menu_arrow(
     uint8_t* framebuffer, int cx, int cy, bool up, uint8_t color
 ) {
-    if (up) {
-        epd_fill_triangle(cx, cy - 11, cx - 14, cy + 10, cx + 14, cy + 10, color, framebuffer);
-    } else {
-        epd_fill_triangle(cx, cy + 11, cx - 14, cy - 10, cx + 14, cy - 10, color, framebuffer);
-    }
+    // Lucide 箭头，线宽与底栏一致；收起时向上，打开时向下。
+    // Lucide chevron at the bar stroke weight; point up when closed and down when open.
+    ui_draw_icon(
+        framebuffer, cx, cy, UI_MENU_ARROW_PX,
+        up ? UI_ICON_CHEVRON_UP : UI_ICON_CHEVRON_DOWN, color
+    );
 }
 
 void ui_draw_menu_handle(uint8_t* framebuffer, bool menu_open) {
@@ -134,7 +139,7 @@ void ui_draw_menu_page(uint8_t* framebuffer, const app_desc_t* current, int leaf
         "第 %d / %d 页　Page %d / %d",
         leaf + 1, leaves, leaf + 1, leaves
     );
-    ui_draw_header(framebuffer, "演示项目 Demo Projects", line);
+    ui_draw_header(framebuffer, "功能", line);
 
     for (int row = 0; row < count; row++) {
         ui_draw_menu_row_pressed(framebuffer, current, leaf, row, false);

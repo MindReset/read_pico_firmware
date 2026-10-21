@@ -27,6 +27,20 @@ int main(int argc, char** argv) {
     int index = zip_find(zip, argv[3]);
     assert(index >= 0);
     size_t size = zip_entry_size(zip, index);
+    if (!strcmp(argv[1], "prefix")) {
+        unsigned char bounded[257 + 16];
+        memset(bounded, 0xcc, sizeof(bounded));
+        const size_t written = size < 257 ? size : 257;
+        assert(zip_extract_prefix(zip, index, bounded, 257) == ESP_OK);
+        assert(argc == 5);
+        FILE *expected = fopen(argv[4], "rb");
+        assert(expected);
+        for (size_t i = 0; i < written; ++i) assert(fgetc(expected) == bounded[i]);
+        for (size_t i = written; i < sizeof(bounded); ++i) assert(bounded[i] == 0xcc);
+        fclose(expected);
+        zip_close(zip);
+        return 0;
+    }
     unsigned char* out = malloc(size ? size : 1);
     assert(out);
     if (size) assert(zip_extract(zip, index, out, size - 1) != ESP_OK);

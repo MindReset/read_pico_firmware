@@ -9,6 +9,12 @@
 #define MALLOC_CAP_SPIRAM 1
 #define MALLOC_CAP_8BIT 2
 extern int html_test_fail_after;
+static inline void* heap_caps_malloc(size_t n, int caps) {
+    (void)caps;
+    if (html_test_fail_after == 0) return NULL;
+    if (html_test_fail_after > 0) html_test_fail_after--;
+    return malloc(n);
+}
 static inline void* heap_caps_realloc(void* p, size_t n, int caps) {
     (void)caps;
     if (html_test_fail_after == 0) return NULL;

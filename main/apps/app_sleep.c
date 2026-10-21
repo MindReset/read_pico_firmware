@@ -9,10 +9,10 @@
  * from this page. The three lock choices go to NVS; sleep.c runs them on
  * a power-key lock.
  *
- * 冻结：底栏试睡 / 读取走 ui_bar_rect；拿起默认关；浅睡 350mg/3 拍；
+ * 冻结：底栏试睡 / 读取走 ui_bar_rect；拿起默认关；浅睡 1000mg/5 拍；
  * 说明栏随模式变；KEY3 走主循环菜单把手。
  * Frozen: try-sleep / read use ui_bar_rect; pickup defaults off; light sleep
- * is 350mg / 3 samples; description follows the mode. KEY3 is the loop menu handle.
+ * is 1000mg / 5 samples; description follows the mode. KEY3 is the loop menu handle.
  */
 
 #include "app.h"
@@ -313,7 +313,8 @@ static void sleep_try(app_ctx_t* ctx) {
     sleep_show_notice(ctx, mode);
     app_lock_wait_key_idle(800);
     if (mode != APP_SLEEP_LIGHT) {
-        ESP_LOGW(TAG, "host sleep failed: %s, light sleep", esp_err_to_name(app_enter_host_sleep(mode)));
+        esp_err_t error = app_enter_host_sleep(mode);
+        if (error != ESP_OK) ESP_LOGW(TAG, "host sleep failed: %s, light sleep", esp_err_to_name(error));
     }
     epd_poweroff();
     app_light_sleep_wait(s_ui.pickup_ok ? ctx->acc : NULL);

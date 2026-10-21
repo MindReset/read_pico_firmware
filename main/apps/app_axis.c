@@ -311,12 +311,12 @@ static void draw_axis_block(
     );
     const int fill_h = UI_SENSOR_BAR_H - 10;
     if (length >= 0) {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){ .x = center, .y = bar_y + 5, .width = length, .height = fill_h },
             UI_GRAY_BLACK, framebuffer
         );
     } else {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){
                 .x = center + length, .y = bar_y + 5,
                 .width = -length, .height = fill_h,

@@ -2,111 +2,119 @@
 <!--
 SPDX-FileCopyrightText: 2026 mindreset
 SPDX-License-Identifier: Apache-2.0
-双模式传书与热点配网表单；服务器决定容量和凭据是否有效。
-Dual-mode upload and AP provisioning form; the server validates capacity and credentials.
-冻结：逐个发送原始文件，不使用 multipart；仅热点显示配网且不自动断网。
-Frozen: send raw files sequentially without multipart; AP-only provisioning never disconnects automatically.
+中文：TF 卡目录浏览、文件操作与固定目录上传。/ English: SD browsing, file actions, and fixed-destination uploads.
+冻结：上传逐个发送原始文件；设备将所有编辑路径限制在 TF 卡内。
+Frozen: upload raw files one by one; the device confines all edits to the SD card.
 -->
 <html lang="zh-CN">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>小纸 Pico · Read Pico</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kiikoread · TF 卡传输</title>
 <style>
-body{font:17px/1.6 system-ui,sans-serif;max-width:680px;margin:40px auto;padding:0 24px;color:#222;background:#faf9f5}h1{font-size:28px}button,input{font:inherit;max-width:100%}button{padding:8px 16px;margin:8px 8px 0 0}li{overflow-wrap:anywhere;margin:16px 0}.hint{color:#555}progress{width:100%}small{display:block}button:disabled{opacity:.5}
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans SC",system-ui,sans-serif;color:#202221;background:#ededeb}
+*{box-sizing:border-box}body{max-width:760px;margin:0 auto;padding:26px 20px 68px;font-size:16px;line-height:1.55}
+header{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:8px 0 22px}
+h1{font-size:36px;line-height:1.15;letter-spacing:-.03em;margin:0}h2{font-size:23px;line-height:1.25;margin:0 0 9px}
+section{background:#fff;border:1px solid #d2d4d0;border-radius:22px;padding:23px;margin:15px 0}
+.eyebrow,.muted{color:#696d68;font-size:14px}.eyebrow{letter-spacing:.14em;margin:0 0 8px}
+.hint{color:#626762;margin:4px 0 15px}.line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#storage{font-weight:600}button,input{font:inherit;max-width:100%}
+button{min-height:42px;padding:8px 15px;border:1px solid #c5c8c4;border-radius:13px;color:#202221;background:#f7f7f5;cursor:pointer}
+button:hover{background:#e8eae7}button:disabled{opacity:.45;cursor:default}
+.primary{background:#303331;color:#fff;border-color:#303331}.primary:hover{background:#484b49}
+.danger{color:#943b34}.tiny{min-height:34px;padding:5px 10px;font-size:14px}
+input[type=file]{width:100%;padding:13px;border:1px dashed #a8ada8;border-radius:13px;background:#fafaf9}
+input[type=text]{width:100%;min-height:44px;padding:9px 12px;border:1px solid #b9bdb9;border-radius:11px}
+.upload h2,.upload .hint{margin-bottom:9px}.upload .send{margin-top:10px}
+.result{min-height:24px;margin:9px 0 0;color:#4f5751;overflow-wrap:anywhere}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:13px 0}#path{font-weight:600;overflow-wrap:anywhere}
+ul{list-style:none;padding:0;margin:0}li{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;padding:11px 0;border-top:1px solid #e1e3df}
+.entry-name{min-width:0;flex:1;overflow-wrap:anywhere}.entry-name small{display:block;color:#6a6e69;font-size:13px}
+.entry-actions{display:flex;flex-wrap:wrap;justify-content:end;gap:6px}.folder{font-weight:600;text-align:left;border:0;background:none;padding:0}.folder:hover{background:none;text-decoration:underline}
+.pages{display:flex;gap:8px;align-items:center;justify-content:end;margin-top:14px}
+dialog{width:min(92vw,420px);border:1px solid #c8cac6;border-radius:20px;padding:22px;background:#fff;color:#202221;box-shadow:0 18px 60px #0003}
+dialog::backdrop{background:#20222175}dialog h2{margin-bottom:10px}dialog p{margin:8px 0 16px;color:#626762;overflow-wrap:anywhere}
+.dialog-actions{display:flex;justify-content:end;gap:8px;margin-top:18px}section[hidden]{display:none}
+.crop-layout{display:flex;align-items:start;gap:22px;flex-wrap:wrap}.crop-preview{display:block;width:min(100%,260px);height:auto;aspect-ratio:684/1216;border:2px solid #626662;border-radius:14px;background:#e2e3e0;touch-action:none;cursor:grab}.crop-preview:active{cursor:grabbing}
+.crop-controls{flex:1;min-width:220px}.crop-controls label{display:block;margin:14px 0 5px;font-weight:600}.crop-controls input[type=range]{width:100%;accent-color:#303331}.crop-controls .primary{margin-top:16px}
+@media(max-width:540px){body{padding:18px 12px 48px;font-size:15px}header{align-items:start}h1{font-size:31px}section{padding:17px;border-radius:19px}.entry-actions{width:100%;justify-content:start}li{flex-wrap:wrap}}
 </style>
-<h1>小纸 Pico · WiFi 传书</h1>
-<p class="hint">Read Pico · 保持手机与设备在同一网络。支持 TXT / EPUB；同名图书须明确选择替换或跳过。</p>
-<p id="info" role="status">正在查询存储空间…</p>
-<input id="files" aria-label="选择图书" type="file" accept=".txt,.epub" multiple>
-<br><button id="send" disabled>开始上传</button><button id="cancel" disabled>取消当前及剩余队列</button>
-<section><h2>上传字体</h2>
-<p id="fontInfo" class="hint">正在查询字体上传条件…</p>
-<input id="fontFiles" aria-label="选择 TTF 字体" type="file" accept=".ttf" multiple disabled>
-<br><button id="sendFonts" disabled>上传字体</button>
-<p class="hint">请选择有权使用的完整中文 TrueType TTF 字体。上传成功后停止传书，在设备“字体”页选用。字体替换需确认，传书期间设备使用内置字体。</p></section>
-<p class="hint">在设备上停止或离开传书页会中断当前上传；未完成或校验失败的文件不会替换原文件。</p>
-<p id="progressText" role="status"></p><progress id="progress" value="0" max="1"></progress>
-<ul id="results" aria-live="polite"></ul>
-<section><hr><h2>当前存储的图书</h2><p id="scope"></p>
-<form id="searchForm"><input id="search" aria-label="搜索书名" placeholder="书名 / 拼音 / 首字母" maxlength="64"><button id="searchButton">搜索</button></form>
-<p class="hint">支持完整拼音和首字母，英文不区分大小写；ü 可输入 v。</p>
-<p id="listState" role="status"></p><ul id="books"></ul>
-<button id="previous" disabled>上一页</button><button id="next" disabled>下一页</button>
-</section>
-<section id="network" hidden>
-<hr><h2>配置已有 WiFi</h2>
-<p class="hint">使用 2.4 GHz WiFi。保存后热点继续工作；请在设备上选择“已有 WiFi”，再把手机连接到同一网络。</p>
-<p id="saved"></p>
-<form id="wifiForm">
-<label for="ssid">网络名称（SSID）</label><br><input id="ssid" name="ssid" maxlength="32" autocomplete="off" required><br>
-<label for="password">WiFi 密码（开放网络留空）</label><br><input id="password" name="password" type="password" maxlength="64" autocomplete="new-password"><br>
-<button id="saveWifi" type="submit">保存网络</button>
-<button id="forgetWifi" type="button">遗忘网络</button>
-</form><p id="wifiResult" role="status"></p>
-</section>
+<header><div><p class="eyebrow">kiikoread / TRANSFER</p><h1>TF 卡传输</h1></div><span class="muted">一次连接一台设备</span></header>
+<section><h2>存储状态</h2><p id="storage" role="status">正在读取设备状态…</p><p class="hint">保持 kiikoread 停留在传输页面。上传后会保存到对应文件夹。</p></section>
+<section id="browser"><div class="line"><h2>浏览 TF 卡</h2><button id="refresh" class="tiny" type="button">刷新目录</button></div>
+<div class="toolbar"><button id="up" class="tiny" type="button">上一级</button><span id="path">/</span><button id="newFolder" class="tiny" type="button">新建文件夹</button></div>
+<div class="upload" data-kind="file"><p class="hint">先打开目标文件夹，再添加文件。支持任意格式，保留原文件名；同名文件会先询问。</p><input type="file" multiple aria-label="选择任意文件"><button class="primary send" type="button">添加文件到当前目录</button><p class="result" role="status"></p></div>
+<p id="listState" class="hint" role="status"></p><ul id="entries"></ul>
+<div class="pages"><button id="previous" class="tiny" type="button">上一页</button><span id="pageState" class="muted"></span><button id="next" class="tiny" type="button">下一页</button></div></section>
+<section id="signatureSettings"><h2>状态栏签名</h2><p class="hint">在墨水屏顶部居中显示。保存后重启仍会保留，留空保存即可隐藏。</p><input id="signatureText" type="text" maxlength="95" aria-label="状态栏签名" placeholder="写下你的签名"><button id="signatureSave" class="primary" type="button">保存签名</button><p id="signatureResult" class="result" role="status">正在读取签名…</p></section>
+<section class="upload" data-kind="book"><h2>上传书籍</h2><p class="hint">EPUB、TXT → books。同名文件会先询问。</p><input type="file" accept=".epub,.txt" multiple aria-label="选择书籍"><button class="primary send" type="button">上传到 books</button><p class="result" role="status"></p></section>
+<section class="upload" data-kind="font"><h2>上传字体</h2><p class="hint">TTF、OTF → fonts。上传后可在设备字体设置中选择。</p><input type="file" accept=".ttf,.otf" multiple aria-label="选择字体"><button class="primary send" type="button">上传到 fonts</button><p class="result" role="status"></p></section>
+<section id="wallpaper"><h2>设置锁屏壁纸</h2><p class="hint">选择手机中的图片，拖动裁剪框里的画面，用滑块缩放。上传后自动切换为壁纸锁屏。</p><div class="crop-layout"><canvas id="cropPreview" class="crop-preview" width="342" height="608" aria-label="684 × 1216 锁屏裁剪预览"></canvas><div class="crop-controls"><input id="wallpaperFile" type="file" accept="image/*" aria-label="选择锁屏图片"><label for="cropZoom">缩放图片</label><input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1" aria-label="缩放图片"><p class="muted">输出尺寸：684 × 1216 像素。可在框内拖动调整位置。</p><button id="cropReset" type="button">居中重置</button><button id="wallpaperSend" class="primary" type="button" disabled>裁剪并设为锁屏</button><p id="wallpaperResult" class="result" role="status">请先选择图片</p></div></div></section>
+<section class="upload" data-kind="picture"><h2>上传图片</h2><p class="hint">JPG、JPEG、PNG → pictures。可在设备上选择用作锁屏壁纸。</p><input type="file" accept=".jpg,.jpeg,.png" multiple aria-label="选择图片"><button class="primary send" type="button">上传到 pictures</button><p class="result" role="status"></p></section>
+<dialog id="editor"><h2 id="editorTitle"></h2><p id="editorDescription"></p><input id="editorName" type="text" maxlength="238" aria-label="新名称"><div class="dialog-actions"><button id="editorCancel" type="button">取消</button><button id="editorConfirm" class="primary" type="button">确认</button></div></dialog>
 <script>
-const $=id=>document.getElementById(id);let policy,busy=false,cancelled=false,activeXHR=null,page=0,pages=0;
-const size=n=>n>=1048576?(n/1048576).toFixed(2)+' MB':Math.ceil(n/1024)+' KB';
-async function info(){
-  const r=await fetch('/info',{cache:'no-store'});if(!r.ok)throw Error('无法查询存储空间');policy=await r.json();
-  $('info').textContent=(policy.mode==='sta'?'已有 WiFi':'设备热点')+' · 图书上传到'+(policy.is_flash?'内置存储':'TF 卡')+' · 剩余 '+size(policy.free_bytes)+' · 图书单文件'+(policy.file_limit?'上限 '+size(policy.file_limit):'不限大小');
-  $('fontInfo').textContent=policy.fonts_enabled?'字体保存到 TF 卡 '+policy.font_root+' · 单文件上限 '+size(policy.font_limit):'字体需要 TF 卡；请挂载后重新进入传书。';
-  $('fontFiles').disabled=$('sendFonts').disabled=busy||!policy.fonts_enabled;
-  $('network').hidden=policy.mode!=='ap';$('saved').textContent=policy.wifi_configured?'已保存：'+policy.wifi_ssid:'尚未保存网络';
+const $=id=>document.getElementById(id);
+let policy=null,busy=false,path='',page=0,pages=0,editorAction=null;
+const size=n=>n>=1048576?(n/1048576).toFixed(1)+' MB':n>=1024?Math.ceil(n/1024)+' KB':n+' B';
+const join=(dir,name)=>dir?dir+'/'+name:name;
+async function request(url,options){const response=await fetch(url,{cache:'no-store',...options});let body;try{body=await response.json()}catch{throw Error('设备响应无法解析，请重试')}return {status:response.status,body}}
+function lock(value){busy=value;document.querySelectorAll('button,input[type=file],input[type=range],#signatureText').forEach(el=>{if(el.id!=='editorCancel')el.disabled=value});if(!value){$('up').disabled=!path;$('previous').disabled=page<=0;$('next').disabled=page+1>=pages;$('wallpaperSend').disabled=!cropImage}}
+async function info(){const r=await request('/info');if(r.status!==200)throw Error(r.body.error||'无法读取存储状态');policy=r.body;$('storage').textContent=(policy.is_flash?'未检测到 TF 卡':'TF 卡已就绪')+' · 剩余 '+size(policy.free_bytes);if(policy.is_flash){$('browser').hidden=true;document.querySelectorAll('.upload').forEach(el=>el.hidden=true);$('storage').textContent='未检测到 TF 卡，请插卡后重新进入传输页面'}}
+async function loadDirectory(){if(policy.is_flash)return;const r=await request('/files?'+(path?'path='+encodeURIComponent(path)+'&':'')+'page='+page);if(r.status!==200)throw Error(r.body.error||'目录读取失败');pages=r.body.pages;if(page>=pages&&page){page=0;return loadDirectory()}$('path').textContent='/'+path;$('listState').textContent=r.body.total+' 项';$('pageState').textContent=(pages?page+1:0)+' / '+pages;$('entries').replaceChildren();for(const item of r.body.items){const row=document.createElement('li'),name=document.createElement('div'),actions=document.createElement('div'),detail=document.createElement('small');name.className='entry-name';actions.className='entry-actions';detail.textContent=item.directory?'文件夹':size(item.size);if(item.directory){const open=document.createElement('button');open.className='folder';open.textContent='▱  '+item.name;open.onclick=()=>{path=join(path,item.name);page=0;loadDirectory().catch(showError)};name.append(open)}else{name.textContent=item.name}name.append(detail);for(const action of ['rename','copy','delete']){const button=document.createElement('button');button.className='tiny'+(action==='delete'?' danger':'');button.textContent={rename:'重命名',copy:'复制',delete:'删除'}[action];button.onclick=()=>openEditor(action,item);actions.append(button)}row.append(name,actions);$('entries').append(row)}$('up').disabled=!path;$('previous').disabled=page<=0;$('next').disabled=page+1>=pages}
+function showError(error){$('listState').textContent=error.message||String(error)}
+function openEditor(action,item){if(busy)return;const source=item?join(path,item.name):path;editorAction={action,source,item};$('editorTitle').textContent={rename:'重命名',copy:'复制',delete:'删除',mkdir:'新建文件夹'}[action];$('editorDescription').textContent=action==='delete'?source+(item.directory?'（会删除其中所有文件）':''):'位置：/'+path;$('editorName').hidden=action==='delete';$('editorName').value=action==='copy'?(item.directory?item.name+' 副本':item.name.replace(/(\.[^.]+)?$/,' 副本$1')):item?item.name:'';$('editorConfirm').textContent=action==='delete'?'确认删除':'保存';$('editorConfirm').classList.toggle('danger',action==='delete');$('editor').showModal();if(action!=='delete')$('editorName').focus()}
+$('editorCancel').onclick=()=>$('editor').close();
+$('editorConfirm').onclick=async()=>{if(!editorAction)return;const {action,source}=editorAction;const name=$('editorName').value.trim();if(action!=='delete'&&(!name||name==='.'||name==='..'||/[\\/:*?"<>|]/.test(name))){$('editorDescription').textContent='名称不能包含斜杠或特殊符号';return}const target=action==='delete'?'':join(path,name);if(action!=='delete'&&new TextEncoder().encode(target).length>238){$('editorDescription').textContent='路径过长，请缩短名称';return}const payload={action,path:source,...(action==='delete'?{}:{target})};$('editorConfirm').disabled=true;try{const r=await request('/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(r.status!==200)throw Error(r.body.error||'操作失败');$('editor').close();await info();await loadDirectory()}catch(error){$('editorDescription').textContent=error.message}finally{$('editorConfirm').disabled=false}};
+$('refresh').onclick=()=>loadDirectory().catch(showError);
+$('up').onclick=()=>{if(!path)return;path=path.includes('/')?path.slice(0,path.lastIndexOf('/')):'';page=0;loadDirectory().catch(showError)};
+$('newFolder').onclick=()=>openEditor('mkdir');
+$('previous').onclick=()=>{if(page){--page;loadDirectory().catch(showError)}};
+$('next').onclick=()=>{if(page+1<pages){++page;loadDirectory().catch(showError)}};
+async function loadSignature(){const r=await request('/signature');if(r.status!==200)throw Error(r.body.error||'无法读取签名');$('signatureText').value=r.body.signature||'';$('signatureResult').textContent='可编辑签名后保存'}
+$('signatureSave').onclick=async()=>{if(busy)return;const text=$('signatureText').value,result=$('signatureResult');if(new TextEncoder().encode(text).length>95){result.textContent='签名过长，最多95字节（约31个汉字）';return}if(/[\x00-\x1f\x7f\u2028\u2029]/.test(text)){result.textContent='签名不能包含换行或控制字符';return}lock(true);try{result.textContent='正在保存…';const r=await request('/signature',{method:'POST',headers:{'Content-Type':'text/plain; charset=utf-8'},body:text});if(r.status!==200)throw Error(r.body.error||'保存失败');result.textContent=text?'签名已保存，kiikoread 状态栏已更新':'签名已清除'}catch(error){result.textContent=error.message}finally{lock(false)}};
+loadSignature().catch(error=>$('signatureResult').textContent=error.message);
+function upload(file,url,onProgress){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();xhr.open('PUT',url);xhr.upload.onprogress=e=>onProgress(e.loaded,e.total||file.size);xhr.onload=()=>{try{resolve({status:xhr.status,body:JSON.parse(xhr.responseText)})}catch{reject(Error('设备响应无法解析，请检查文件是否已保存'))}};xhr.onerror=()=>reject(Error('连接中断，请保持手机连接 kiikoread 热点'));xhr.send(file)})}
+const types={file:{re:null,url:'/file-upload',limit:0},book:{re:/\.(epub|txt)$/i,url:'/upload',limit:0},font:{re:/\.(ttf|otf)$/i,url:'/font-upload',limit:33554432},picture:{re:/\.(jpg|jpeg|png)$/i,url:'/image-upload',limit:20971520}};
+const cropWidth=684,cropHeight=1216;
+let cropImage=null,cropZoom=1,cropX=0,cropY=0,cropPointer=null;
+function cropScale(){return cropImage?Math.max(cropWidth/cropImage.naturalWidth,cropHeight/cropImage.naturalHeight)*cropZoom:1}
+function clampCrop(){if(!cropImage)return;const width=cropImage.naturalWidth*cropScale(),height=cropImage.naturalHeight*cropScale();cropX=Math.min(0,Math.max(cropWidth-width,cropX));cropY=Math.min(0,Math.max(cropHeight-height,cropY))}
+function drawCrop(canvas){const ctx=canvas.getContext('2d');ctx.setTransform(canvas.width/cropWidth,0,0,canvas.height/cropHeight,0,0);ctx.fillStyle='#f4f4f2';ctx.fillRect(0,0,cropWidth,cropHeight);if(cropImage)ctx.drawImage(cropImage,cropX,cropY,cropImage.naturalWidth*cropScale(),cropImage.naturalHeight*cropScale());else{ctx.fillStyle='#777d77';ctx.font='32px sans-serif';ctx.textAlign='center';ctx.fillText('684 × 1216',cropWidth/2,cropHeight/2)}}
+function resetCrop(){if(!cropImage)return;cropZoom=1;$('cropZoom').value='1';cropX=(cropWidth-cropImage.naturalWidth*cropScale())/2;cropY=(cropHeight-cropImage.naturalHeight*cropScale())/2;clampCrop();drawCrop($('cropPreview'))}
+$('wallpaperFile').onchange=()=>{const file=$('wallpaperFile').files[0];cropImage=null;$('wallpaperSend').disabled=true;if(!file){drawCrop($('cropPreview'));return}const url=URL.createObjectURL(file),image=new Image();$('wallpaperResult').textContent='正在读取图片…';image.onload=()=>{URL.revokeObjectURL(url);if(!image.naturalWidth||!image.naturalHeight){$('wallpaperResult').textContent='图片尺寸无效';return}cropImage=image;resetCrop();$('wallpaperSend').disabled=false;$('wallpaperResult').textContent='拖动图片并调整缩放后上传'};image.onerror=()=>{URL.revokeObjectURL(url);$('wallpaperResult').textContent='此图片无法读取，请换一张'};image.src=url};
+$('cropZoom').oninput=()=>{if(!cropImage)return;const next=Number($('cropZoom').value),ratio=next/cropZoom;cropX=cropWidth/2-(cropWidth/2-cropX)*ratio;cropY=cropHeight/2-(cropHeight/2-cropY)*ratio;cropZoom=next;clampCrop();drawCrop($('cropPreview'))};
+$('cropReset').onclick=resetCrop;
+$('cropPreview').onpointerdown=event=>{if(!cropImage||busy)return;cropPointer={id:event.pointerId,x:event.clientX,y:event.clientY};$('cropPreview').setPointerCapture(event.pointerId)};
+$('cropPreview').onpointermove=event=>{if(!cropPointer||cropPointer.id!==event.pointerId)return;const ratio=cropWidth/$('cropPreview').getBoundingClientRect().width;cropX+=(event.clientX-cropPointer.x)*ratio;cropY+=(event.clientY-cropPointer.y)*ratio;cropPointer.x=event.clientX;cropPointer.y=event.clientY;clampCrop();drawCrop($('cropPreview'))};
+$('cropPreview').onpointerup=$('cropPreview').onpointercancel=()=>{cropPointer=null};
+$('wallpaperSend').onclick=async()=>{if(!cropImage||busy)return;const result=$('wallpaperResult');if(!policy||policy.is_flash){result.textContent='设备未连接或 TF 卡未就绪';return}lock(true);try{result.textContent='正在制作 684 × 1216 壁纸…';const canvas=document.createElement('canvas');canvas.width=cropWidth;canvas.height=cropHeight;drawCrop(canvas);let blob=null;for(const quality of [0.86,0.72,0.56,0.42]){blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));if(blob&&blob.size<=2097152)break}if(!blob)throw Error('手机无法生成裁剪图片');if(blob.size>2097152)throw Error('图片仍过大，请换一张图片');if(blob.size>policy.free_bytes)throw Error('TF 卡空间不足');const name='pico-wallpaper-'+Date.now()+'.jpg';const url='/image-upload?name='+encodeURIComponent(name)+'&wallpaper=1';const response=await upload(blob,url,(done,total)=>result.textContent='正在上传壁纸 · '+size(done)+' / '+size(total));if(response.status!==200)throw Error(response.body.error||'壁纸上传失败');result.textContent='已设为壁纸锁屏';await info();if(path==='pictures')await loadDirectory()}catch(error){result.textContent=error.message}finally{lock(false)}};
+drawCrop($('cropPreview'));
+async function sendFiles(section){
+ if(busy||!policy||policy.is_flash)return;
+ const kind=section.dataset.kind,config=types[kind],files=[...section.querySelector('input').files],result=section.querySelector('.result'),destination=path;
+ if(!files.length){result.textContent='请先选择文件';return}
+ lock(true);
+ let saved=0,failed=0;
+ try{for(const file of files){try{
+  if(config.re&&(!config.re.test(file.name)||file.name.startsWith('.')))throw Error('文件格式不支持');
+  if(kind!=='file'&&!file.size)throw Error('文件为空');
+  if((config.limit&&file.size>config.limit)||(kind==='book'&&policy.file_limit&&file.size>policy.file_limit))throw Error('文件超过上限');
+  if(file.size>policy.free_bytes)throw Error('TF 卡剩余空间不足');
+  const target=join(destination,file.name);
+  if(kind==='file'&&new TextEncoder().encode(target).length>238)throw Error('路径过长，请缩短名称');
+  const shown=kind==='file'?'/'+target:file.name;
+  result.textContent='正在上传 '+shown;
+  const url=config.url+(kind==='file'?'?path='+encodeURIComponent(target):'?name='+encodeURIComponent(file.name));
+  let response=await upload(file,url,(done,total)=>result.textContent='正在上传 '+shown+' · '+size(done)+' / '+size(total));
+  if(response.status===409&&confirm('同名文件已存在，是否替换？\n'+shown))response=await upload(file,url+'&overwrite=1',(done,total)=>result.textContent='正在替换 '+shown+' · '+size(done)+' / '+size(total));
+  if(response.status!==200)throw Error(response.body.error||'上传失败');
+  ++saved;result.textContent='已保存 '+shown;
+  await info();
+  if(kind==='file'||path==={book:'books',font:'fonts',picture:'pictures'}[kind])await loadDirectory();
+ }catch(error){++failed;result.textContent=file.name+'：'+error.message}}
+ if(files.length>1)result.textContent='已保存 '+saved+' 个文件'+(kind==='file'?'到 /'+destination:'')+(failed?' · '+failed+' 个未保存':'');
+ }finally{lock(false)}
 }
-function lock(value){busy=value;$('send').disabled=$('files').disabled=$('searchButton').disabled=$('previous').disabled=$('next').disabled=value;$('fontFiles').disabled=$('sendFonts').disabled=value||!policy?.fonts_enabled;$('cancel').disabled=!value;document.querySelectorAll('[data-mutate]').forEach(b=>b.disabled=value);if(!value){$('previous').disabled=page<=0;$('next').disabled=page+1>=pages;}}
-function button(parent,label,action){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.mutate='1';b.disabled=busy;b.onclick=action;parent.append(b);return b;}
-async function request(url,options){const response=await fetch(url,options);let body;try{body=await response.json();}catch(e){throw Error('设备响应无法解析，请检查连接后重试');}return {status:response.status,body};}
-function cleanupButton(row,name){button(row,'重试清理阅读进度',async()=>{if(busy)return;lock(true);try{const r=await request('/books?name='+encodeURIComponent(name)+'&action=retry_progress',{method:'POST'});if(r.status!==200)throw Error(r.body.error||'清理失败');row.textContent=name+'：阅读进度已清理';}catch(e){const note=document.createElement('small');note.textContent=e.message;row.append(note);}finally{lock(false);}});}
-async function loadBooks(){if(new TextEncoder().encode($('search').value).length>64)throw Error('搜索词最多64字节，请缩短后重试');const r=await request('/books?page='+page+'&q='+encodeURIComponent($('search').value));if(r.status!==200)throw Error(r.body.error||'无法读取图书列表');const data=r.body;pages=data.pages;if(page&&page>=pages){page=0;return loadBooks();}$('scope').textContent='仅管理当前上传目标：'+data.root_label+'（'+data.root+'）。另一存储的图书不在此列表中。';$('listState').textContent='共 '+data.total+' 本 · 第 '+(pages?page+1:0)+' / '+pages+' 页';$('books').replaceChildren();for(const item of data.items){const row=document.createElement('li'),title=document.createElement('span'),detail=document.createElement('small');title.textContent=item.name;detail.textContent=size(item.size)+' · '+item.size+' 字节 · '+data.root_label;row.append(title,detail);button(row,'删除',()=>removeBook(item,row));$('books').append(row);}$('previous').disabled=busy||page<=0;$('next').disabled=busy||page+1>=pages;}
-async function removeBook(item,row){if(busy||!confirm('永久删除当前存储中的图书？\n\n'+item.name+'\n'+size(item.size)+'\n\n此操作不可撤销。'))return;lock(true);try{const r=await request('/books?name='+encodeURIComponent(item.name),{method:'DELETE'});if(r.body.progress_cleanup_failed){const notice=document.createElement('li');notice.textContent=item.name+'：'+r.body.error;$('results').append(notice);cleanupButton(notice,r.body.name||item.name);}else if(r.status!==200)throw Error(r.body.error||'删除失败');page=0;await info();await loadBooks();}catch(e){const note=document.createElement('small');note.textContent=e.message;row.append(note);}finally{lock(false);}}
-function upload(file,overwrite,kind='book'){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();activeXHR=xhr;let last=0;xhr.open('PUT',(kind==='font'?'/fonts':'/upload')+'?name='+encodeURIComponent(file.name)+(overwrite?'&overwrite=1':''));xhr.upload.onprogress=e=>{const now=Date.now();if(now-last<250&&e.loaded!==e.total)return;last=now;$('progress').max=e.total||file.size;$('progress').value=e.loaded;$('progressText').textContent=file.name+' · '+size(e.loaded)+' / '+size(e.total||file.size)+(e.loaded===e.total?' · 等待设备保存…':'');};xhr.onload=()=>{activeXHR=null;try{resolve({status:xhr.status,body:JSON.parse(xhr.responseText)});}catch(e){reject(Error('设备响应无法解析，请检查是否已保存'));}};xhr.onerror=()=>{activeXHR=null;reject(Error('网络中断，请检查连接后重试'));};xhr.onabort=()=>{activeXHR=null;reject(Error('已取消；若设备已完成提交，请检查保存结果'));};xhr.send(file);});}
-async function run(items){
-  if(busy)return;cancelled=false;lock(true);
-  for(let i=0;i<items.length;i++){
-    const {file,row,kind='book'}=items[i],font=kind==='font';
-    const retry=()=>run([{file,row,kind}]);
-    if(cancelled){row.textContent=file.name+'：未上传（队列已取消）';button(row,'重试此文件',retry);continue;}
-    row.textContent=file.name+'：检查文件…';
-    try{
-      await info();if(cancelled)throw Error('已取消');
-      if(font&&!policy.fonts_enabled)throw Error('字体需要 TF 卡，请挂载后重新进入传书');
-      if(!(font?/\.ttf$/i:/\.(txt|epub)$/i).test(file.name))throw Error(font?'字体仅支持 TTF':'图书仅支持 TXT / EPUB');
-      if(!file.size)throw Error('文件为空');
-      const limit=font?policy.font_limit:policy.file_limit;
-      if(limit&&file.size>limit)throw Error('超过单文件上限');
-      if(file.size>policy.free_bytes)throw Error('剩余空间不足（替换也须暂存完整新文件）');
-      const existing=await request((font?'/fonts':'/books')+'?name='+encodeURIComponent(file.name));
-      let overwrite=false;
-      if(existing.status===200){
-        overwrite=confirm('同名'+(font?'字体':'图书')+'已存在：\n\n'+file.name+'\n\n确定：'+(font?'替换字体':'替换并清除旧阅读进度')+'\n取消：跳过此文件');
-        if(!overwrite){row.textContent=file.name+'：已跳过';continue;}
-      }else if(existing.status!==404)throw Error(existing.body.error||'无法检查文件');
-      if(cancelled)throw Error('已取消');
-      row.textContent=file.name+'：上传中（'+(i+1)+' / '+items.length+'）';
-      let r=await upload(file,overwrite,kind);
-      if(r.status===409&&!cancelled){
-        if(confirm('文件刚刚发生变化：'+file.name+'\n确定替换？取消则跳过。'))r=await upload(file,true,kind);
-        else{row.textContent=file.name+'：已跳过';continue;}
-      }
-      if(r.body.progress_cleanup_failed){row.textContent=file.name+'：'+r.body.error+(r.body.warning?' · '+r.body.warning:'');cleanupButton(row,r.body.name||file.name);}
-      else if(r.status!==200)throw Error(r.body.error||'上传失败');
-      else row.textContent=file.name+'：已保存'+(font?'；停止传书后在设备“字体”页选用':'')+(r.body.warning?' · '+r.body.warning:'');
-    }catch(e){row.textContent=file.name+'：'+e.message;button(row,'重试此文件',retry);}
-  }
-  $('progressText').textContent=cancelled?'队列已取消，请检查已完成项目。':'上传队列已结束，请查看每个文件的结果。';
-  try{page=0;await info();await loadBooks();}catch(e){$('listState').textContent=e.message;}lock(false);
-}
-function queueFiles(id,kind){const files=[...$(id).files];if(!files.length)return;const items=files.map(file=>{const row=document.createElement('li');row.textContent=file.name+'：排队中';$('results').append(row);return {file,row,kind};});run(items);}
-$('send').onclick=()=>queueFiles('files','book');
-$('sendFonts').onclick=()=>queueFiles('fontFiles','font');
-$('cancel').onclick=()=>{cancelled=true;if(activeXHR)activeXHR.abort();};
-$('searchForm').onsubmit=e=>{e.preventDefault();if(busy)return;page=0;loadBooks().catch(e=>$('listState').textContent=e.message);};
-$('previous').onclick=()=>{if(busy||page<=0)return;--page;loadBooks().catch(e=>$('listState').textContent=e.message);};
-$('next').onclick=()=>{if(busy||page+1>=pages)return;++page;loadBooks().catch(e=>$('listState').textContent=e.message);};
-info().then(()=>{lock(false);return loadBooks();}).catch(e=>$('info').textContent=e.message+'，请刷新重试。');
-async function configure(method,body){$('saveWifi').disabled=$('forgetWifi').disabled=true;$('wifiResult').textContent='正在保存…';try{const r=await fetch('/wifi',{method,headers:{'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const result=await r.json();if(!r.ok)throw Error(result.error||'配置失败');$('password').value='';$('wifiResult').textContent=method==='DELETE'?'已遗忘网络。':'已保存。请在设备上选择“已有 WiFi”；热点暂时保持连接。';await info();}catch(e){$('wifiResult').textContent=e.message;}finally{$('saveWifi').disabled=$('forgetWifi').disabled=false;}}
-$('wifiForm').onsubmit=e=>{e.preventDefault();const ssid=$('ssid').value,password=$('password').value;if(new TextEncoder().encode(ssid).length>32){$('wifiResult').textContent='SSID 超过32字节，请缩短名称。';return;}configure('POST',{ssid,password});};
-$('forgetWifi').onclick=()=>configure('DELETE');
+document.querySelectorAll('.upload').forEach(section=>section.querySelector('.send').onclick=()=>sendFiles(section));
+info().then(loadDirectory).catch(error=>$('storage').textContent=error.message+'，请刷新网页重试');
 </script>
 </html>

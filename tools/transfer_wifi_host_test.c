@@ -144,19 +144,24 @@ int main(void) {
     transfer_connection_t net;
     connection_begin(&net, 100);
     assert(connection_poll(&net, 100) == 1 && net.attempts == 1);
-    assert(connection_poll(&net, 15099) == 0);
-    assert(connection_poll(&net, 15100) == -1 && net.failed);
-    assert(connection_poll(&net, 20000) == 0);
+    assert(connection_poll(&net, 29999) == 0);
+    assert(connection_poll(&net, 30100) == -1 && net.failed);
+    assert(connection_poll(&net, 40000) == 0);
     connection_begin(&net, 0);
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 5; ++i) {
         assert(connection_poll(&net, i * 1000) == 1);
         connection_lost(&net, i * 1000);
     }
-    assert(connection_poll(&net, 3000) == -1);
+    assert(connection_poll(&net, 5000) == -1);
     connection_begin(&net, 0); net.online = true;
     assert(connection_poll(&net, 100000) == 0);
     connection_lost(&net, 100000);
     assert(connection_poll(&net, 100999) == 0);
     assert(connection_poll(&net, 101000) == 1 && net.attempts == 1);
+    assert(time_route(true, true, true, false) == TRANSFER_TIME_ONLINE);
+    assert(time_route(true, true, false, false) == TRANSFER_TIME_UNAVAILABLE);
+    assert(time_route(true, false, true, false) == TRANSFER_TIME_UNAVAILABLE);
+    assert(time_route(false, true, false, true) == TRANSFER_TIME_TEMPORARY);
+    assert(time_route(false, true, false, false) == TRANSFER_TIME_UNAVAILABLE);
     puts("transfer WiFi policy tests passed");
 }

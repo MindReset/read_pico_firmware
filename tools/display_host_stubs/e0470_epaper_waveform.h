@@ -3,4 +3,4 @@
  */
 #pragma once
 #include "epdiy.h"
-extern const EpdWaveform E0470_WAVEFORM, E0470_FOLLOW_WAVEFORM;
+extern const EpdWaveform E0470_WAVEFORM, E0470_FOLLOW_WAVEFORM, E0470_GRAY8_WAVEFORM, E0470_FULL_WAVEFORM;

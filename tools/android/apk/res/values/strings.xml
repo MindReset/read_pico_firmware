@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SPDX-FileCopyrightText: 2026 mindreset
+  SPDX-License-Identifier: Apache-2.0
+
+  中文：快捷方式文案。shortcuts.xml 的 label 必须是字符串资源引用，不能直接写文本
+  （aapt 会报 "String types not allowed"），故单独放这里。
+  English: shortcut labels. shortcuts.xml labels must reference string resources
+  rather than inline text (aapt rejects inline strings), hence this file.
+-->
+<resources>
+    <string name="shortcut_push_short">一键推流</string>
+    <string name="shortcut_push_long">一键推流（读取剪贴板并推送到墨水屏）</string>
+    <string name="shortcut_push_disabled">一键推流暂不可用</string>
+</resources>

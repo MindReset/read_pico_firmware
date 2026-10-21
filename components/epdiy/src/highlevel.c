@@ -124,7 +124,11 @@ enum EpdDrawError epd_hl_update_screen_full(
 
     uint32_t t2 = esp_timer_get_time() / 1000;
 
-    memcpy(state->back_fb, state->front_fb, (size_t)col_bytes * fb_height);
+    // 只有物理刷新完整成功，后缓冲才可成为下一次差分的真实基准。
+    // Advance the differential baseline only after a fully successful physical draw.
+    if (err == EPD_DRAW_SUCCESS) {
+        memcpy(state->back_fb, state->front_fb, (size_t)col_bytes * fb_height);
+    }
 
     uint32_t t3 = esp_timer_get_time() / 1000;
     hl_record_timing(t1 - ts, t2 - t1, t3 - t2);
@@ -256,7 +260,8 @@ static enum EpdDrawError hl_update_area(
 
     int buf_width = epd_width();
 
-    for (int l = diff_area.y; diff_area.width > 0 && l < diff_area.y + diff_area.height; l++) {
+    for (int l = diff_area.y; err == EPD_DRAW_SUCCESS && diff_area.width > 0 &&
+         l < diff_area.y + diff_area.height; l++) {
         if (state->dirty_lines[l] > 0) {
             uint8_t* lfb = state->front_fb + buf_width / 2 * l;
             uint8_t* lbb = state->back_fb + buf_width / 2 * l;

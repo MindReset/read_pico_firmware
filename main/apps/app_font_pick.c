@@ -39,6 +39,11 @@
 #define FONT_HIT_COLD (-4)
 #define FONT_HIT_WARM (-5)
 #define FONT_HIT_WGHT (-6)
+#define FONT_HIT_FONTS (-7)
+// 书内字体开关固定占内容区最下面一行，列表和样本在剩下的高度里自适应。
+// The embedded-face switch owns the bottom row of the content area; the list and samples
+// adapt to what is left.
+#define FONT_SWITCH_H UI_ROW_H_SM
 
 typedef struct {
     int list_y;
@@ -54,6 +59,7 @@ typedef struct {
     EpdRect cold;
     EpdRect warm;
     EpdRect wght;
+    EpdRect fonts_switch;
 } font_geom_t;
 
 typedef struct {
@@ -129,13 +135,14 @@ static int rows_for(int budget) {
 static font_geom_t font_geom(void) {
     const int content = UI_CONTENT_BOTTOM - UI_CONTENT_TOP;
     const int score_h = UI_SEC_HEAD + FONT_SCORE_ROWS * UI_ROW_H_SM;
+    const int switch_h = FONT_SWITCH_H + UI_SECTION_GAP;
     const int min_list = UI_SEC_HEAD + FONT_MIN_LIST * FONT_ROW_H
         + (FONT_MIN_LIST - 1) * UI_GAP;
     const int sample_n = sample_fit(
-        content - min_list - score_h - 2 * UI_SECTION_GAP - UI_SEC_HEAD
+        content - min_list - score_h - switch_h - 2 * UI_SECTION_GAP - UI_SEC_HEAD
     );
     const int sample_h = UI_SEC_HEAD + sample_inner_h(sample_n);
-    int budget = content - sample_h - score_h - 2 * UI_SECTION_GAP;
+    int budget = content - sample_h - score_h - switch_h - 2 * UI_SECTION_GAP;
     int per = rows_for(budget);
     bool paged = leaf_count(per) > 1;
     if (paged) {
@@ -147,6 +154,7 @@ static font_geom_t font_geom(void) {
     const int nav_y = paged ? UI_CONTENT_TOP + list_h + UI_GAP : 0;
     const int sample_y = UI_CONTENT_TOP + list_h
         + (paged ? UI_GAP + FONT_NAV_H : 0) + UI_SECTION_GAP;
+    const int score_y = sample_y + sample_h + UI_SECTION_GAP;
     char sub[80];
     font_sub(sub, sizeof(sub));
 
@@ -154,7 +162,7 @@ static font_geom_t font_geom(void) {
         .list_y = UI_CONTENT_TOP,
         .nav_y = nav_y,
         .sample_y = sample_y,
-        .score_y = sample_y + sample_h + UI_SECTION_GAP,
+        .score_y = score_y,
         .per_page = per,
         .sample_n = sample_n,
         .spec_w = ttf_text_width_px(UI_PX_CAPTION, "000") + UI_GAP,
@@ -164,6 +172,10 @@ static font_geom_t font_geom(void) {
         .cold = ui_bar_rect(0, 2),
         .warm = ui_bar_rect(1, 2),
         .wght = font_head(sub).accessory,
+        .fonts_switch = (EpdRect){
+            UI_MARGIN, score_y + score_h + UI_SECTION_GAP,
+            ui_content_width(), FONT_SWITCH_H,
+        },
     };
 }
 
@@ -305,6 +317,24 @@ static void draw_fonts(uint8_t* fb, const font_geom_t* g, int leaf) {
     ui_draw_button(fb, g->next, "下一页 Next", leaf + 1 < leaves);
 }
 
+// 书内自带字体：开则 EPUB 里的 TTF 按 CSS 指定使用，关则整本书回到系统字体。
+// 列表和样本展示的始终是系统字体，所以这一行不随开关变。
+// Embedded book faces: on uses the EPUB's own TTFs as CSS asks, off puts the whole book back
+// on the system face. The list and samples always show the system face, so this row does not
+// follow the switch.
+static void draw_fonts_switch(uint8_t* fb, EpdRect row) {
+    const bool on = app_settings_book_fonts();
+    ui_fill_round_rect(fb, row, 20, 0xf0);
+    ui_draw_round_rect(fb, row, 20, 0x68);
+    ui_text_vc(fb, row.x + 22, row.y + row.height / 2, UI_PX_LABEL, "书内自带字体",
+               EPD_DRAW_ALIGN_LEFT, false);
+    EpdRect track = {row.x + row.width - 69 - 22, row.y + (row.height - 39) / 2, 69, 39};
+    ui_fill_round_rect(fb, track, 19, on ? 0x38 : 0xc4);
+    const int cx = track.x + (on ? 49 : 20);
+    epd_fill_circle(cx, track.y + 19, 16, UI_GRAY_WHITE, fb);
+    epd_draw_circle(cx, track.y + 19, 16, 0x78, fb);
+}
+
 static void draw_page(uint8_t* fb, int leaf, bool time_samples) {
     if (!ttf_font_ready()) {
         read_pico_sd_info_t sd = { 0 };
@@ -343,6 +373,7 @@ static void draw_page(uint8_t* fb, int leaf, bool time_samples) {
         }
     }
     draw_scores(fb, g.score_y);
+    draw_fonts_switch(fb, g.fonts_switch);
     ui_draw_button(fb, g.cold, "冷启动 Cold", false);
     ui_draw_button(fb, g.warm, "热启动 Warm", false);
     ui_draw_menu_handle(fb, false);
@@ -355,6 +386,7 @@ static int hit_test(uint16_t x, uint16_t y, int leaf) {
     leaf = clamp_leaf(leaf, leaves);
 
     if (ui_rect_hit(g.wght, x, y)) return FONT_HIT_WGHT;
+    if (ui_rect_hit(g.fonts_switch, x, y)) return FONT_HIT_FONTS;
     if (ui_rect_hit(g.cold, x, y)) return FONT_HIT_COLD;
     if (ui_rect_hit(g.warm, x, y)) return FONT_HIT_WARM;
     if (g.paged) {
@@ -448,6 +480,10 @@ static app_redraw_t on_touch(app_ctx_t* ctx, const cst836u_touch_t* touch) {
         s_wght_i = (s_wght_i + 1) % FONT_WGHT_N;
         bench_reset();
         return APP_REDRAW_FULL;
+    }
+    if (hit == FONT_HIT_FONTS) {
+        app_settings_set_book_fonts(!app_settings_book_fonts());
+        return APP_REDRAW_PAGE;
     }
     if (hit == FONT_HIT_COLD) return bench_run(ctx, true);
     if (hit == FONT_HIT_WARM) return bench_run(ctx, false);

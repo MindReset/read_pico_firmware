@@ -11,6 +11,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// 字体引擎的宿主替身：一律拒绝，书内字体在书源测试里回退系统字体。
+// 真实引擎在装载失败时也会释放调用方交出的那块内存，这里保持一致。
+// Host stand-in for the font engine: always declines, so embedded faces fall back to the system
+// face under test. The real engine also frees the bytes handed to it when a load fails.
+int ttf_font_open_mem(uint8_t* data, size_t len, const char* label) {
+    (void)len; (void)label;
+    free(data);
+    return -1;
+}
+void ttf_font_close_embedded(void) {}
 static const char *path = "/tmp/book-source-test.txt";
 static void write_bytes(const char *s, size_t n) {
     FILE *f = fopen(path, "wb"); assert(f); assert(fwrite(s, 1, n, f) == n); fclose(f);
@@ -29,7 +39,7 @@ static void roundtrip(const char *s, size_t n) {
 int main(int argc, char **argv) {
     const char *s = "Chapter 1 Start\nhello\nChapter 2 End\nworld\n";
     write_bytes(s, strlen(s)); assert(book_open(path) == ESP_OK);
-    assert(book_chapter_count() == 2); char title[41];
+    assert(book_chapter_count() == 2); char title[256];
     assert(book_chapter_title(1, title, sizeof(title)) == ESP_OK);
     assert(strcmp(title, "Chapter 2 End") == 0); book_close(); roundtrip(s, strlen(s));
     s = "第一章 开始\n你好\n第二章 结束\n再见\n";

@@ -32,8 +32,8 @@ extern "C" {
 /// / CST836U INT on TXD0 / GPIO43. Open-drain, active-low, 10k pull-up on the FPC.
 #define READ_PICO_TP_INT_GPIO CONFIG_READ_PICO_TP_INT_GPIO
 
-#define READ_PICO_PRODUCT_NAME "Read Pico"
-#define READ_PICO_DEVICE_NAME "小纸 Pico"
+#define READ_PICO_PRODUCT_NAME "kiikoread"
+#define READ_PICO_DEVICE_NAME "kiikoread"
 /// 芯片平放实测 -5,-119,-1005；转到设备坐标后屏幕朝上约为 +Z。
 /// / Chip at rest on the bench: -5,-119,-1005. Device frame is about +Z face-up.
 #define READ_PICO_ACCEL_ZERO_X_MG 119
@@ -84,8 +84,16 @@ esp_err_t read_pico_get_ioe_status(read_pico_status_t* status);
 /// / Sequential 8-register read; refreshes CFG/INV cache. Footer Read and page enter.
 esp_err_t read_pico_get_ioe_status_full(read_pico_status_t* status);
 int read_pico_ioe_int_level(void);
+/// 读取低有效卡座 CD；通信失败时不改输出，调用方不得将失败解释为拔卡。
+/// / Read active-low slot CD; leave output untouched on failure, which is not card removal.
+esp_err_t read_pico_sd_detect(bool* present);
+/// 简化检测；通信失败返回 false。挂载与拔卡判断应使用 checked detect。
+/// / Convenience detection returns false on I/O failure; mounting and removal use checked detect.
 bool read_pico_sd_present(void);
 bool read_pico_rails_on(void);
+/// 刷新结束后释放 MODE/XOE/VCOM_EN，保留高压轨与原电压；已经中性时不访问 I2C，失败返回 false 供重试。
+/// Release MODE/XOE/VCOM_EN after output, retaining HV rails and voltage settings; neutral state does no I2C, false requests a retry.
+bool read_pico_epd_release_drive(void);
 
 /// 翻转 VCOMCTL：1=外部 VCOM_EN，0=自动时序。
 /// / Toggle VCOMCTL: 1=external VCOM_EN, 0=auto timing.

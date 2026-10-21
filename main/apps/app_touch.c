@@ -161,7 +161,7 @@ static void draw_touch_keys(
     for (int k = 0; k < UI_KEY_COUNT; k++) {
         const EpdRect r = g->key[k];
         if (down[k]) {
-            epd_fill_rect(r, UI_GRAY_BLACK, framebuffer);
+            ui_fill_rect_fast(r, UI_GRAY_BLACK, framebuffer);
         } else {
             epd_draw_rect(r, UI_GRAY_BLACK, framebuffer);
         }
@@ -439,14 +439,14 @@ static app_redraw_t tick_follow_continuous(app_ctx_t* ctx) {
 // 抬手定稿：先把缩略图这块参考帧对齐成真实状态，diff 才会把框和分隔线重画回来。/ On lift settle: first align this thumbnail's reference frame to the real state so the diff redraws the box and divider.
 static app_redraw_t tick_settle_continuous(app_ctx_t* ctx) {
     const touch_geom_t g = touch_geom();
-    epd_fill_rect(g.follow, 0xFF, ctx->hl->back_fb);
+    ui_fill_rect_fast(g.follow, 0xFF, ctx->hl->back_fb);
     for (int i = 0; i < s_dot_count; i++) {
         epd_fill_circle(
             s_dot_x[i], s_dot_y[i], TOUCH_DOT_R, 0x00, ctx->hl->back_fb
         );
     }
     for (int k = 0; k < UI_KEY_COUNT; k++) {
-        if (s_key_down[k]) epd_fill_rect(g.key[k], 0x00, ctx->hl->back_fb);
+        if (s_key_down[k]) ui_fill_rect_fast(g.key[k], 0x00, ctx->hl->back_fb);
         s_key_down[k] = false;
     }
     continuous_du_reset();

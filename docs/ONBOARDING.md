@@ -32,7 +32,7 @@ This document is for **first-time human developers and AI agents**. After readin
   1. 用户通过功能菜单逐项检查硬件（屏、触摸、传感器、电源、TF 卡、蜂鸣器）。
   2. 开发者以它的板级支持包（BSP）与芯片驱动为起点写自己的固件。
 - **不是**：通用阅读器产品固件。页面是"演示 + 自检"，不追求功能完备。
-- **许可**：主体 Apache-2.0；`components/epdiy` 为 LGPL-3.0-or-later（上游 epdiy v2.0.0 的裁剪 fork）；内置字体 ChillDuanSans 为 SIL OFL-1.1。复用/分发前看各组件 `LICENSE`。
+- **许可**：适用范围以 [LICENSE](../LICENSE) 为准；已有代码和历史授权保留 Apache-2.0 或各组件许可。政策实施后明确标注的新增原创内容可适用个人学习、禁止商用许可；不能追溯撤回原授权。`components/epdiy` 仍为 LGPL-3.0-or-later，字体、图标等保留各自许可。复用/分发前看 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)。
 - **仓库关系**：上游为 `MindReset/read_pico_firmware`。在 fork 上工作时把上游加为 `upstream` 远端；向上游提 PR 前请阅读 [CONTRIBUTING.md](../CONTRIBUTING.md)。
 - **配套生态**：Dot Open Platform <https://github.com/MindReset/dot_open_platform>。
 
@@ -58,7 +58,7 @@ This document is for **first-time human developers and AI agents**. After readin
 | TF 卡 | 1-bit SDMMC | CLK/CMD/D0 = 38/42/44 | 挂载点 `/sdcard`；字体目录 `/sdcard/assets/fonts`、`/sdcard/fonts` |
 | 蜂鸣器 | 无源，GPIO2 | PWM / 1-bit | 三种驱动路径 CLASSIC / HF / DIRECT_1BIT |
 | I2C 总线 | SCL 40 / SDA 39，400 kHz | Kconfig 菜单 "Read Pico board configuration" 可改 | |
-| 按键 | 屏下三个触摸键区 KEY1/KEY2/KEY3 + 电源键（PMU） | — | KEY2 = 整屏 GC16；KEY3 = 菜单把手；电源键短按 = 锁屏。**没有 BOOT / RESET 物理键** |
+| 按键 | 屏下三个触摸键区 KEY1/KEY2/KEY3 + 电源键（PMU） | — | 产品系统页 = 返回／首页／返回；阅读正文 = 上一页／页面设置／下一页；电源键短按 = 锁屏。**没有 BOOT / RESET 物理键** |
 | 调试口 | USB Serial/JTAG（VID 303A, PID 1001） | Windows 显示为 "USB 串行设备 (COMx)" | 端口号因机器而异，记在 `docs/HANDOFF.local.md`。烧写由 esptool `--before default_reset` 自动进下载模式，不需要按键 |
 
 ---
@@ -303,11 +303,9 @@ flowchart TD
 
 ### 6.5 睡眠与锁屏（[main/sleep.c](../main/sleep.c)、[main/settings.c](../main/settings.c)）
 
-- 模式 `app_sleep_mode_t`：LIGHT 0 / DEEP 1 / OFF 2（默认）。
-- 无操作 2 分钟（`APP_AUTO_SLEEP_MS`）走同一条锁屏路径；独占 PMU 的页和传书页不计时。
+- 模式 `app_sleep_mode_t`：LIGHT 0 / DEEP 1（默认）/ OFF 2。
 - 浅睡：`app_light_sleep_wait()`，唤醒源 IOE INT（GPIO41 低电平）+ 可选拿起（SC7A20H，350 mg / 3 拍，带静默窗口）。
-- 软睡/关机：`app_enter_host_sleep()` 经 PMU 执行，成功**不返回**；失败返回错误，锁屏退到浅睡。锁屏前主循环先调当前页 `on_exit`。
-- 三种睡眠前都把常开 SYS_VDD 上的外设收口：触摸深睡、加速度计掉电、9555 的 MODE 拉低与 Port1 推高；关机/软睡另把 CW_INT 改输出低，避免关机期间 INT# 被拉住。
+- 软睡/关机：`app_enter_host_sleep()` 经 PMU 执行，**不返回**。
 - NVS 键（命名空间 `read_pico`）：`sleep`(u8)、`font`(str，空 = 内置)、`lwake`、`lboot`、`pickup`。自检结果在命名空间 `pmu_st` 键 `blob`（magic 0xAA）。
 
 ### 6.6 PMU 协议要点（[components/read_pico_pmu](../components/read_pico_pmu/)）
@@ -401,7 +399,7 @@ flowchart TD
 
 - 格式：[.clang-format](../.clang-format)（Google 基础，4 空格，100 列，指针贴类型，`else` 跟右括号）。
 - 注释**全仓中英双语**，规范在 AGENTS.md "注释规范"。速记：
-  - 文件头固定模板（SPDX 2026 mindreset / Apache-2.0 → 中文职责 → English → 冻结 → Frozen）。
+  - 文件头保留真实版权人与适用许可；既有文件不得批量改授权。新增原创文件按根目录 LICENSE 与 CONTRIBUTING.md 明确许可；结构仍为 SPDX → 中文职责 → English → 冻结 → Frozen。
   - 头文件公开 API 与 struct 成员 `///`；`.c` 内部 `//`；不要 `/** */`。
   - 单行 `// 中文。/ English.`；多行中文一行紧跟英文一行；enum 尾注 `///< 中文 / English`。
   - 大 `.c` 用 `/* ---- 区块名 / Section ---- */` 分区。
@@ -598,12 +596,9 @@ Read AGENTS.md, then docs/ONBOARDING.md, then docs/HANDOFF.md. Do not duplicate 
 
 ### 图书与传书的契约扩展 / Book and transfer contract extensions
 
-`owns_keys` 只在菜单关闭时接管三键；图书工具条提供强刷，中键长按或把手打开演示菜单。传书组件不依赖页面；由 `app_transfer` 注入存储根、限额、容量回调。文件提交、删除或进度清理重试后通过书源 revision 请求下次进图书时重扫；文件变更回调只清对应路径进度。传书与阅读互斥，停止HTTP并等待退出后才切图书页，进度API由调用端串行化。
-`owns_keys` captures three keys outside the menu; Books provides toolbar refresh; holding the middle key or using the handle opens the demo menu. Transfer receives storage policy from its page. File commits, deletions and metadata retries invalidate the shelf through a storage revision; an injected callback clears progress only for the affected path. Transfer and reading are exclusive; HTTP is stopped and joined before entering Books, serializing progress API callers.
+`owns_keys` 只在菜单关闭时接管三键。产品系统页使用返回／首页／返回；阅读正文保留翻页、页面设置与中键长按回书架。图书工具条提供强刷。传书组件不依赖页面；由 `app_transfer` 注入存储根、限额、容量回调。文件提交、删除或进度清理重试后通过书源 revision 请求下次进图书时重扫；文件变更回调只清对应路径进度。传书与阅读互斥，停止HTTP并等待退出后才切图书页，进度API由调用端串行化。
+`owns_keys` captures three keys outside the menu. Product system pages use Back/Home/Back; reading retains page turns, settings and hold-to-shelf. Books offers toolbar refresh. Transfer receives storage policy from its page. File commits, deletions and metadata retries invalidate the shelf through a storage revision; an injected callback clears progress only for the affected path. Transfer and reading are exclusive; HTTP is stopped and joined before entering Books, serializing progress API callers.
 
 
 传书页通过 `display_set_bulk_io` 在页内提高扫描预填余量，退出恢复默认；大文件进度用低频FOLLOW DU，结束/离页清残影。欠载恢复必须保留目标前缓冲，不能调用 `epd_hl_set_all_white` 丢掉整页。相关回归：`tools/run_display_host_test.sh`。
 Transfer scopes additional scan prefill via `display_set_bulk_io`, restoring defaults on exit. Bulk progress uses infrequent FOLLOW DU with completion/exit cleanup. Underrun recovery must preserve the target front buffer; clearing it with `epd_hl_set_all_white` loses the page. Regression: `tools/run_display_host_test.sh`.
-
-TTF 上传使用调用方注入的独立 TF 字体目录；`app_transfer` 进页用 `ttf_font_suspend_sd(true)` 切内置并暂停 SD 字体打开，先停 HTTP 再解除暂停，不能让写入与字形读取并发。TTF 提交前检查结构，上限 32 MiB，字体不调用图书进度清理。部署原件、来源和 OFL 许可见 `sdcard/README.md`，内置修改版使用独立字体名。
-TTF uploads use a separately injected TF font directory. On entry, `app_transfer` calls `ttf_font_suspend_sd(true)` to select the built-in font and suspend SD opens; stop HTTP before resuming, preventing concurrent font replacement and glyph reads. TTF structure is checked before commit, with a 32 MiB cap and no book-progress cleanup. See `sdcard/README.md` for the original font, provenance and OFL; the modified embedded subset has its own font name.

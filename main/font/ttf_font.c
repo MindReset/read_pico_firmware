@@ -3,14 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * 可变 TTF：卡上按需读扇区，glyf/gvar 能装下就整表进 PSRAM；字形按
- * codepoint/字号/字重缓存。内置字体是 ChillDuanSans 子集。
+ * codepoint/字号/字重缓存。内置字体是 Noto Sans SC Medium 子集。
  *
  * Variable TTF: sector I/O from the card; glyf/gvar map into PSRAM when
  * they fit. Glyphs are cached by codepoint, size and weight. The built-in
- * font is a ChillDuanSans subset.
+ * font is a Noto Sans SC Medium subset.
+ * User revision: five reader stroke levels apply to static/variable/embedded faces,
+ * preserving advances and proportions; normal is unchanged, with one bounded glyph scratch buffer.
+ * 用户修订：标题复用当前字体的轮廓与缓存；覆盖检查只读现有 cmap，不切字体或另加载字库。
+ * User revision: titles reuse the active outlines/cache; coverage checks read the existing cmap without switching or loading another face.
  */
 
 #include "ttf_font.h"
+#include "ttf_stroke_filter.h"
 
 #include <dirent.h>
 #include <fcntl.h>
@@ -49,7 +54,16 @@ static void ttf_free(void* ptr, void* userdata) {
 
 /* ---- 调参 / Tunables ---- */
 // 光栅化位图 LRU 上限，PSRAM。/ Raster bitmap LRU cap, PSRAM.
-#define TTF_CACHE_LIMIT (1536 * 1024)
+// 字形缓存的总预算。TTF_CACHE_LIMIT 原来是每槽的，多槽之后那是 4 × 512 KB，而字体字节、
+// loca 和字形表本身已经吃掉好几 MB；抽干 PSRAM 的症状不是文字出问题，而是插图解码拿不到
+// 连续内存——翻几页之后图片就没了（诊断实测：图要 384 KB，只剩 269 KB）。
+// 320 KB 够一页正文重新光栅化，代价只是翻页时多算几个字。
+// One budget for all glyph caches. TTF_CACHE_LIMIT used to be per slot, which across four slots
+// is 4 x 512 KB, on top of the face bytes, loca and the outline tables. Draining PSRAM does not
+// show up as broken text but as illustration decoding that cannot get a contiguous block: images
+// vanish after a few page turns (measured: an image wanted 384 KB with 269 KB left).
+// 320 KB still re-rasterizes a page of body text; the cost is a few extra glyphs per turn.
+#define TTF_CACHE_LIMIT (320 * 1024)
 // 哈希桶数。/ Hash buckets.
 #define TTF_CACHE_BUCKETS 256
 // 两档字号的像素高，对齐 ui_kit 正文/标题。/ Small/large px, matches ui_kit body/title.
@@ -64,7 +78,7 @@ static void ttf_free(void* ptr, void* userdata) {
 #define TTF_MAX_VAR_PTS (TTF_MAX_PTS + 4)
 // 单字形 gvar 切片缓冲。/ Per-glyph gvar slice buffer.
 #define TTF_GVAR_SLICE_MAX 2048
-// wght 轴：ChillDuanSans 常用区间，默认最轻。/ wght axis used by ChillDuanSans; default is lightest.
+// 可变字重轴的通用边界；静态内建字体忽略此轴。/ Generic variable-weight bounds; the static built-in font ignores this axis.
 #define TTF_WGHT_MIN 300
 #define TTF_WGHT_MAX 800
 #define TTF_WGHT_DEF 300
@@ -83,13 +97,14 @@ static const char* TAG = "ttf_font";
 
 static const char* const k_font_dirs[] = {
     "/sdcard/assets/fonts",
-    "/sdcard/fonts",
+    NULL,
 };
 
 typedef struct glyph_entry {
     uint32_t codepoint;
     uint8_t size;
     uint16_t weight;
+    int8_t stroke;
     int16_t width;
     int16_t height;
     int16_t left;
@@ -123,57 +138,8 @@ typedef struct {
 // several milliseconds. 32×4KB PSRAM slots keep recent sectors. Before a
 // line is drawn, needed blocks are sorted and merged. If glyf/gvar fit,
 // they are streamed into PSRAM at open so a cold start does not touch the card.
-static int font_fd = -1;
-static const uint8_t* font_mem;
-static uint32_t font_mem_len;
-static uint32_t font_file_pos = UINT32_MAX;
-static char font_path[TTF_FONT_PATH_MAX];
-
 extern const uint8_t builtin_ttf_start[] asm("_binary_builtin_ttf_start");
 extern const uint8_t builtin_ttf_end[] asm("_binary_builtin_ttf_end");
-static int packed_root = -1;
-static int packed_weight = -1;
-static uint32_t file_glyf_off;
-static uint32_t file_glyf_len;
-static uint8_t* file_loca;
-static uint32_t file_loca_len;
-static bool loca_long;
-static int num_glyphs;
-static uint8_t* glyf_ram;
-static uint32_t glyf_ram_off;
-static uint32_t glyf_ram_len;
-static uint8_t* gvar_ram;
-static uint32_t gvar_ram_off;
-static uint32_t gvar_ram_len;
-static uint8_t* io_data;
-static uint8_t* io_run_buf;
-static uint32_t io_base[TTF_IO_SLOTS];
-static uint16_t io_fill[TTF_IO_SLOTS];
-static uint16_t io_age[TTF_IO_SLOTS];
-static uint16_t io_clock;
-static uint32_t touch_blocks[TTF_PREFETCH_MAX];
-static int touch_n;
-
-static uint8_t* font_data;
-static uint32_t work_loca_off;
-static uint32_t work_glyf_off;
-static stbtt_fontinfo font_info;
-static bool font_ready;
-static bool sd_suspended; // 字体传输期间仅允许内置字体。/ Only built-in fonts while transferring font files.
-static ttf_size_metrics_t size_metrics[2];
-static int raw_ascent_units;
-static int current_weight = TTF_WGHT_DEF;
-static int wght_min = TTF_WGHT_MIN;
-static int wght_def = TTF_WGHT_DEF;
-static int wght_max = TTF_WGHT_MAX;
-static uint32_t file_gvar_off;
-static uint32_t file_gvar_len;
-static uint32_t gvar_data_array_off;
-static uint32_t* gvar_glyph_off;
-static int16_t shared_tuple_f2dot14[8];
-static int shared_tuple_count;
-static int gvar_axis_count;
-static bool gvar_ready;
 typedef struct {
     uint8_t slice[TTF_GVAR_SLICE_MAX];
     int16_t x[TTF_MAX_PTS];
@@ -193,11 +159,139 @@ typedef struct {
     uint16_t shared_pts[TTF_MAX_VAR_PTS];
 } ttf_work_t;
 
+// 每套字体一份的状态。字段一律加 f_ 前缀，是刻意的：下面那组同名宏把旧的全局名映射到
+// “当前槽”，字段若与宏同名，`s->name` 与 struct 内的字段声明都会被展开成语法错误。
+// Per-face state. The f_ prefix is deliberate: the same-name macros below map the old
+// globals onto the current slot, so a same-named field would be macro-expanded both in
+// `s->name` accesses and inside this struct body.
+typedef struct {
+    int f_fd;
+    const uint8_t* f_mem;
+    uint32_t f_mem_len;
+    bool f_mem_owned;      ///< f_mem 在堆上、关闭槽位时释放 / f_mem is heap, freed on close
+    uint32_t f_file_pos;
+    char f_path[TTF_FONT_PATH_MAX];
+    int f_packed_root;
+    int f_packed_weight;
+    uint32_t f_file_glyf_off;
+    uint32_t f_file_glyf_len;
+    uint8_t* f_file_loca;
+    uint32_t f_file_loca_len;
+    bool f_loca_long;
+    int f_num_glyphs;
+    uint8_t* f_glyf_ram;
+    uint32_t f_glyf_ram_off;
+    uint32_t f_glyf_ram_len;
+    uint8_t* f_gvar_ram;
+    uint32_t f_gvar_ram_off;
+    uint32_t f_gvar_ram_len;
+    uint8_t* f_io_data;
+    uint8_t* f_io_run_buf;
+    uint32_t f_io_base[TTF_IO_SLOTS];
+    uint16_t f_io_fill[TTF_IO_SLOTS];
+    uint16_t f_io_age[TTF_IO_SLOTS];
+    uint16_t f_io_clock;
+    uint32_t f_touch_blocks[TTF_PREFETCH_MAX];
+    int f_touch_n;
+    uint8_t* f_font_data;
+    uint32_t f_work_loca_off;
+    uint32_t f_work_glyf_off;
+    stbtt_fontinfo f_font_info;
+    bool f_ready;
+    // CFF/OpenType（OTTO）没有 glyf/loca：字形由 stb 直接从 CFF 表取，"工作字体"那套
+    // 拼装和分块预读都用不上，字体字节也直接借用不复制。
+    // A CFF/OpenType (OTTO) face has no glyf/loca: stb reads outlines straight from the CFF
+    // table, so the working-font assembly and block prefetch do not apply, and the face bytes
+    // are borrowed rather than copied.
+    bool f_cff;
+    bool f_data_borrowed;
+    ttf_size_metrics_t f_size_metrics[2];
+    int f_raw_ascent_units;
+    int f_weight;
+    int f_wght_min;
+    int f_wght_def;
+    int f_wght_max;
+    uint32_t f_file_gvar_off;
+    uint32_t f_file_gvar_len;
+    uint32_t f_gvar_data_array_off;
+    uint32_t* f_gvar_glyph_off;
+    int16_t f_shared_tuple[8];
+    int f_shared_tuple_count;
+    int f_gvar_axis_count;
+    bool f_gvar_ready;
+    glyph_entry_t* f_cache_buckets[TTF_CACHE_BUCKETS];
+    glyph_entry_t* f_lru_head;
+    glyph_entry_t* f_lru_tail;
+    size_t f_cache_bytes;
+    bool f_used;           ///< 槽位已被占用 / the slot is in use
+} ttf_slot_t;
+
+static ttf_slot_t s_slots[TTF_FONT_SLOTS];
+static ttf_slot_t* s_cur = &s_slots[TTF_FONT_SLOT_SYSTEM];
+static int s_cur_index = TTF_FONT_SLOT_SYSTEM;
+
+// 下面这组宏让 2000 多行现有函数体一行不改地作用在“当前槽”上。新增代码请直接写
+// `s_cur->f_xxx`，不要用宏名，免得以后再加字段时又撞上。
+// These macros keep the existing function bodies acting on the current slot with no
+// source change. New code should use `s_cur->f_xxx` directly, not the macro names.
+#define font_fd (s_cur->f_fd)
+#define font_mem (s_cur->f_mem)
+#define font_mem_len (s_cur->f_mem_len)
+#define font_mem_owned (s_cur->f_mem_owned)
+#define font_file_pos (s_cur->f_file_pos)
+#define font_path (s_cur->f_path)
+#define packed_root (s_cur->f_packed_root)
+#define packed_weight (s_cur->f_packed_weight)
+#define file_glyf_off (s_cur->f_file_glyf_off)
+#define file_glyf_len (s_cur->f_file_glyf_len)
+#define file_loca (s_cur->f_file_loca)
+#define file_loca_len (s_cur->f_file_loca_len)
+#define loca_long (s_cur->f_loca_long)
+#define num_glyphs (s_cur->f_num_glyphs)
+#define glyf_ram (s_cur->f_glyf_ram)
+#define glyf_ram_off (s_cur->f_glyf_ram_off)
+#define glyf_ram_len (s_cur->f_glyf_ram_len)
+#define gvar_ram (s_cur->f_gvar_ram)
+#define gvar_ram_off (s_cur->f_gvar_ram_off)
+#define gvar_ram_len (s_cur->f_gvar_ram_len)
+#define io_data (s_cur->f_io_data)
+#define io_run_buf (s_cur->f_io_run_buf)
+#define io_base (s_cur->f_io_base)
+#define io_fill (s_cur->f_io_fill)
+#define io_age (s_cur->f_io_age)
+#define io_clock (s_cur->f_io_clock)
+#define touch_blocks (s_cur->f_touch_blocks)
+#define touch_n (s_cur->f_touch_n)
+#define font_data (s_cur->f_font_data)
+#define work_loca_off (s_cur->f_work_loca_off)
+#define work_glyf_off (s_cur->f_work_glyf_off)
+#define font_info (s_cur->f_font_info)
+#define font_ready (s_cur->f_ready)
+#define cff_outline (s_cur->f_cff)
+#define font_data_borrowed (s_cur->f_data_borrowed)
+#define size_metrics (s_cur->f_size_metrics)
+#define raw_ascent_units (s_cur->f_raw_ascent_units)
+#define current_weight (s_cur->f_weight)
+#define wght_min (s_cur->f_wght_min)
+#define wght_def (s_cur->f_wght_def)
+#define wght_max (s_cur->f_wght_max)
+#define file_gvar_off (s_cur->f_file_gvar_off)
+#define file_gvar_len (s_cur->f_file_gvar_len)
+#define gvar_data_array_off (s_cur->f_gvar_data_array_off)
+#define gvar_glyph_off (s_cur->f_gvar_glyph_off)
+#define shared_tuple_f2dot14 (s_cur->f_shared_tuple)
+#define shared_tuple_count (s_cur->f_shared_tuple_count)
+#define gvar_axis_count (s_cur->f_gvar_axis_count)
+#define gvar_ready (s_cur->f_gvar_ready)
+#define cache_buckets (s_cur->f_cache_buckets)
+#define lru_head (s_cur->f_lru_head)
+#define lru_tail (s_cur->f_lru_tail)
+#define cache_bytes (s_cur->f_cache_bytes)
+
+// gvar 的暂存缓冲不进槽：一次只光栅化一个字，共享安全，也省下每槽十几 KB。
+// The gvar scratch does not move into a slot: one glyph is rasterized at a time, so it
+// is safe to share and saves a dozen KB per slot.
 static ttf_work_t* work;
-static glyph_entry_t* cache_buckets[TTF_CACHE_BUCKETS];
-static glyph_entry_t* lru_head;
-static glyph_entry_t* lru_tail;
-static size_t cache_bytes;
 static bool bench_on;
 static ttf_bench_stats_t bench;
 static int64_t bench_start_us;
@@ -547,16 +641,28 @@ static bool catalog_has_name(
     return false;
 }
 
-static ttf_font_item_t s_catalog[TTF_FONT_MAX];
+// 字体目录放 PSRAM，理由同文件列表。
+// The font catalogue lives in PSRAM for the same reason as the file list.
+static ttf_font_item_t *s_catalog;
+
+static bool catalog_alloc(void) {
+    if (!s_catalog)
+        s_catalog = heap_caps_calloc(TTF_FONT_MAX, sizeof(ttf_font_item_t),
+                                     MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    return s_catalog != NULL;
+}
 static int s_catalog_n;
 
 int ttf_font_scan(void) {
+    if (!catalog_alloc()) return 0;
     s_catalog_n = 0;
     for (size_t d = 0; d < sizeof(k_font_dirs) / sizeof(k_font_dirs[0]); d++) {
-        DIR* dir = opendir(k_font_dirs[d]);
+        const char* font_dir = k_font_dirs[d] ? k_font_dirs[d] : app_settings_fonts_dir();
+        DIR* dir = opendir(font_dir);
         if (dir == NULL) continue;
         struct dirent* ent;
         while ((ent = readdir(dir)) != NULL && s_catalog_n < TTF_FONT_MAX) {
+            if (ent->d_name[0] == '.') continue; // Ignore macOS ._ font sidecars.
             if (!is_ttf_name(ent->d_name)) continue;
             char name[TTF_FONT_NAME_MAX];
             font_stem(ent->d_name, name, sizeof(name));
@@ -565,7 +671,7 @@ int ttf_font_scan(void) {
             }
             snprintf(
                 s_catalog[s_catalog_n].path, sizeof(s_catalog[s_catalog_n].path),
-                "%s/%s", k_font_dirs[d], ent->d_name
+                "%s/%s", font_dir, ent->d_name
             );
             strlcpy(s_catalog[s_catalog_n].name, name, sizeof(s_catalog[0].name));
             s_catalog_n++;
@@ -605,7 +711,10 @@ static int open_font_file(const char* preferred) {
 }
 
 const char* ttf_font_path(void) {
-    return font_path;
+    // 系统字体的路径永远取自 0 号槽：内嵌字体可能占着游标，设置页问的仍是系统字体。
+    // The system path always comes from slot 0: an embedded face may own the cursor,
+    // but the settings page is still asking about the system face.
+    return s_slots[TTF_FONT_SLOT_SYSTEM].f_path;
 }
 
 bool ttf_font_path_is_builtin(const char* path) {
@@ -613,15 +722,30 @@ bool ttf_font_path_is_builtin(const char* path) {
 }
 
 bool ttf_font_is_builtin(void) {
-    return font_ready && font_mem != NULL;
+    const ttf_slot_t* sys = &s_slots[TTF_FONT_SLOT_SYSTEM];
+    return sys->f_ready && sys->f_mem != NULL;
 }
 
 const char* ttf_font_display_name(void) {
     static char name[TTF_FONT_NAME_MAX];
-    if (ttf_font_is_builtin() || ttf_font_path_is_builtin(font_path)) return "内建";
-    if (font_path[0] == '\0') return "";
-    font_stem(font_path, name, sizeof(name));
-    return name;
+    const char* path = s_slots[TTF_FONT_SLOT_SYSTEM].f_path;
+    if (ttf_font_is_builtin() || ttf_font_path_is_builtin(path)) return "思源黑体（内建）";
+    if (path[0] == '\0') return "";
+    font_stem(path, name, sizeof(name));
+    return ttf_font_localized_name(name);
+}
+
+const char* ttf_font_localized_name(const char* stem) {
+    if (!stem) return "";
+    if (!strcasecmp(stem, "Song")) return "思源宋体";
+    if (!strcasecmp(stem, "Hei")) return "思源黑体";
+    if (!strcasecmp(stem, "Kai")) return "思源楷体";
+    if (!strcasecmp(stem, "FangSong")) return "思源仿宋";
+    if (!strcasecmp(stem, "WenKai")) return "文楷";
+    if (!strcasecmp(stem, "KingHwa")) return "京华老宋";
+    if (!strcasecmp(stem, "ChillKai")) return "寒蝉正楷";
+    if (!strcasecmp(stem, "CangErYunHei05")) return "仓耳云黑05";
+    return stem;
 }
 
 static bool find_sfnt_table(
@@ -704,6 +828,8 @@ static bool enqueue_composite_children(
 }
 
 /* ---- gvar 变体 / gvar variation ---- */
+static int s_stroke_adjust;
+
 static int clamp_weight(int wght) {
     if (wght < wght_min) return wght_min;
     if (wght > wght_max) return wght_max;
@@ -1394,6 +1520,9 @@ static bool load_variation(const uint8_t* header, size_t header_len) {
 
 // 把当前字形及其复合引用从 SD 填进工作字体的 glyf 窗口，并改写 loca。
 static bool pack_glyph_tree(int root_gid) {
+    // CFF 字形由 stb 直接从 CFF 表取，没有 glyf 可打包。
+    // CFF outlines come straight out of the CFF table, so there is no glyf run to pack.
+    if (cff_outline) return true;
     if (root_gid == packed_root && current_weight == packed_weight) {
         return true;
     }
@@ -1451,6 +1580,36 @@ static bool copy_table(
 }
 
 static uint8_t* build_working_font(const uint8_t* header, size_t header_len) {
+    // OTTO 是 CFF/OpenType：没有 glyf/loca，拼"工作字体"无从谈起。stb 自己会读 CFF 表，
+    // 所以整份原始字体就是字体数据；字节已在 PSRAM，借用不复制。文件型字体（SD 上的
+    // 系统字体）不支持这条路径，得先把整份读进内存才有意义。
+    // OTTO means CFF/OpenType: there is no glyf/loca, so there is nothing to assemble. stb
+    // reads the CFF table itself, so the original bytes are the font data; they are already in
+    // PSRAM and are borrowed rather than copied. A file-backed face (a system font on the card)
+    // is not supported here, since it would have to be read in full first.
+    if (header_len >= 4 && memcmp(header, "OTTO", 4) == 0) {
+        if (font_mem == NULL) {
+            ESP_LOGW(TAG, "CFF face is file-backed; only in-memory CFF is supported");
+            return NULL;
+        }
+        uint32_t maxp_off = 0, maxp_len = 0;
+        if (!find_sfnt_table(header, header_len, "maxp", &maxp_off, &maxp_len) ||
+            maxp_len < 6 || (size_t)maxp_off + 6 > font_mem_len) {
+            ESP_LOGW(TAG, "CFF face has no usable maxp table");
+            return NULL;
+        }
+        s_cur->f_cff = true;
+        s_cur->f_data_borrowed = true;
+        num_glyphs = be16(font_mem + maxp_off + 4);
+        file_glyf_off = 0;
+        file_glyf_len = 0;
+        file_loca = NULL;
+        file_loca_len = 0;
+        work_loca_off = 0;
+        work_glyf_off = 0;
+        return (uint8_t*)font_mem;
+    }
+
     const char* tags[] = { "cmap", "glyf", "head", "hhea", "hmtx", "loca", "maxp" };
     sfnt_table_t src[7];
     for (int i = 0; i < 7; i++) {
@@ -1458,6 +1617,12 @@ static uint8_t* build_working_font(const uint8_t* header, size_t header_len) {
         if (memcmp(tags[i], "glyf", 4) == 0) {
             uint32_t glyf_len = 0;
             if (!find_sfnt_table(header, header_len, "glyf", &file_glyf_off, &glyf_len)) {
+                // OTTO（CFF/OpenType）没有 glyf/loca，这套引擎只做 TrueType 轮廓；这里以前
+                // 静默返回，装载失败时看不出是字体格式不对还是文件坏了。
+                // An OTTO (CFF/OpenType) face has no glyf/loca and this engine only handles
+                // TrueType outlines. This used to return silently, leaving a failed load
+                // indistinguishable from a corrupt file.
+                ESP_LOGW(TAG, "no glyf table: CFF/OpenType face unsupported");
                 return NULL;
             }
             file_glyf_len = glyf_len;
@@ -1558,7 +1723,9 @@ static int size_to_px(int size) {
 
 static int clamp_px(int pixel_height) {
     if (pixel_height < 12) return 12;
-    if (pixel_height > 120) return 120;
+    // 锁屏91em需要更高的原生栅格高度；仍小于8位缓存键上限。
+    // The 91em lock count needs a taller native raster; stay below the byte-sized cache key limit.
+    if (pixel_height > 160) return 160;
     return pixel_height;
 }
 
@@ -1594,6 +1761,15 @@ static void lru_touch(glyph_entry_t* entry) {
     if (lru_tail == NULL) lru_tail = entry;
 }
 
+// 字形缓存的总预算。TTF_CACHE_LIMIT 原来是每槽的，多槽之后那是 4 × 512 KB，而字体字节、
+// loca 和字形表本身已经吃掉好几 MB；抽干 PSRAM 的症状不是文字出问题，而是插图解码拿不到
+// 连续内存——翻几页之后图片就没了。所以这里按所有槽合起来算。
+// One budget for all glyph caches. TTF_CACHE_LIMIT used to be per slot, which across four slots
+// is 4 x 512 KB, on top of the face bytes, loca and the outline tables. Draining PSRAM does not
+// show up as broken text but as illustration decoding that cannot get a contiguous block:
+// images disappear after a few page turns. So the budget is now shared.
+static size_t s_cache_total;
+
 static void cache_reset(void) {
     size_t n = 0;
     for (unsigned i = 0; i < TTF_CACHE_BUCKETS; i++) {
@@ -1609,10 +1785,27 @@ static void cache_reset(void) {
     }
     lru_head = NULL;
     lru_tail = NULL;
+    s_cache_total -= cache_bytes;
     cache_bytes = 0;
     if (n > 0) {
         ESP_LOGI(TAG, "glyph cache dropped %u entries", (unsigned)n);
     }
+}
+
+// 本槽已经淘汰干净还是超预算，说明份额被别的槽占着；整体清一次。
+// 让缓存反复回填，好过让整页插图解码失败。
+// This slot is empty and we are still over budget, so another slot is holding it: drop them
+// all. Refilling caches beats a page of illustrations that cannot be decoded.
+static void cache_clear_all(void) {
+    int keep = s_cur_index;
+    for (int i = 0; i < TTF_FONT_SLOTS; i++) {
+        if (!s_slots[i].f_ready || i == keep) continue;
+        s_cur_index = i;
+        s_cur = &s_slots[i];
+        cache_reset();
+    }
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
 }
 
 static void cache_evict_one(void) {
@@ -1631,21 +1824,23 @@ static void cache_evict_one(void) {
     }
 
     cache_bytes -= victim->bitmap_bytes + sizeof(*victim);
+    s_cache_total -= victim->bitmap_bytes + sizeof(*victim);
     heap_caps_free(victim->bitmap);
     heap_caps_free(victim);
 }
 
 static void cache_reserve(size_t extra) {
-    while (lru_tail != NULL && cache_bytes + extra > TTF_CACHE_LIMIT) {
+    while (lru_tail != NULL && s_cache_total + extra > TTF_CACHE_LIMIT) {
         cache_evict_one();
     }
+    if (s_cache_total + extra > TTF_CACHE_LIMIT) cache_clear_all();
 }
 
 static glyph_entry_t* cache_lookup(uint32_t codepoint, int size) {
     unsigned bucket = cache_bucket(codepoint, size);
     for (glyph_entry_t* entry = cache_buckets[bucket]; entry != NULL; entry = entry->hash_next) {
         if (entry->codepoint == codepoint && entry->size == (uint8_t)size
-            && entry->weight == (uint16_t)current_weight) {
+            && entry->weight == (uint16_t)current_weight && entry->stroke == s_stroke_adjust) {
             lru_touch(entry);
             return entry;
         }
@@ -1666,6 +1861,7 @@ static glyph_entry_t* rasterize_glyph(uint32_t codepoint, int pixel_height) {
     if (width < 0) width = 0;
     if (height < 0) height = 0;
 
+    if (width > 1024 || height > 1024 || (size_t)width * height > TTF_CACHE_LIMIT / 2) return NULL;
     size_t bitmap_bytes = (size_t)width * (size_t)height;
     cache_reserve(bitmap_bytes + sizeof(glyph_entry_t));
 
@@ -1687,6 +1883,22 @@ static glyph_entry_t* rasterize_glyph(uint32_t codepoint, int pixel_height) {
         );
     }
 
+    if (bitmap_bytes && s_stroke_adjust) {
+        int pad=((s_stroke_adjust<0?-s_stroke_adjust:s_stroke_adjust)+15)/16;
+        size_t adjusted_bytes = (size_t)(width + 2*pad) * (height + 2*pad);
+        uint8_t *adjusted = heap_caps_malloc(adjusted_bytes, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+        if (!adjusted) {
+            heap_caps_free(entry->bitmap);
+            heap_caps_free(entry);
+            return NULL;
+        }
+        ttf_stroke_filter_fine(adjusted, entry->bitmap, width, height, pixel_height, s_stroke_adjust);
+        heap_caps_free(entry->bitmap);
+        entry->bitmap = adjusted;
+        width += 2*pad; height += 2*pad; x0 -= pad; y0 -= pad;
+        bitmap_bytes = adjusted_bytes;
+        cache_reserve(bitmap_bytes + sizeof(*entry));
+    }
     int advance = 0;
     int lsb = 0;
     stbtt_GetGlyphHMetrics(&font_info, gid, &advance, &lsb);
@@ -1694,6 +1906,7 @@ static glyph_entry_t* rasterize_glyph(uint32_t codepoint, int pixel_height) {
     entry->codepoint = codepoint;
     entry->size = (uint8_t)pixel_height;
     entry->weight = (uint16_t)current_weight;
+    entry->stroke = (int8_t)s_stroke_adjust;
     entry->width = (int16_t)width;
     entry->height = (int16_t)height;
     entry->left = (int16_t)x0;
@@ -1705,6 +1918,7 @@ static glyph_entry_t* rasterize_glyph(uint32_t codepoint, int pixel_height) {
     entry->hash_next = cache_buckets[bucket];
     cache_buckets[bucket] = entry;
     cache_bytes += bitmap_bytes + sizeof(*entry);
+    s_cache_total += bitmap_bytes + sizeof(*entry);
     lru_touch(entry);
     return entry;
 }
@@ -1725,14 +1939,84 @@ static const glyph_entry_t* get_glyph(uint32_t codepoint, int pixel_height) {
     return entry;
 }
 
-static void warm_text_io(int pixel_height, const char* text) {
-    if (text == NULL || glyf_ram != NULL) return;
+/* ---- 绘制期的字体切换 / Faces during a draw ---- */
+
+// 一行里可能混着几种字体：正文用书内字体，行内数字/引文用另一种。调用方在绘制前
+// 交出这一行的切换点，绘制循环走到哪个字节就换哪套字体；行宽、字距、两端对齐的
+// 算法一个字都不动，只有取字形的槽跟着变。
+// A line may mix faces: body text in a book face, inline digits or quotes in another. The
+// caller hands over this line's switch points before drawing; the glyph loop follows them.
+// Line width, tracking and justification math are untouched -- only the slot changes.
+static const ttf_run_t* s_draw_runs;
+static size_t s_draw_run_count;
+
+void ttf_draw_set_runs(const ttf_run_t* runs, size_t count) {
+    s_draw_runs = (runs != NULL && count > 0) ? runs : NULL;
+    s_draw_run_count = s_draw_runs != NULL ? count : 0;
+    // 先站到首段的字体上：各绘制函数开头的 font_ready 判断看的就是当前槽。首段没装载
+    // 就留在原地，绘制循环自己会按段跳过它。
+    // Stand on the first run's face: the font_ready test at the top of each draw entry
+    // checks the current slot. An unloaded first run is left alone and skipped by the loop.
+    if (s_draw_runs != NULL && ttf_font_slot_ready(s_draw_runs[0].slot)) {
+        ttf_font_select(s_draw_runs[0].slot);
+    }
+}
+
+// 一行里的 run 很少（通常只有一个），线性看过去比二分更快也更好读。
+// A line has few runs, usually one, so a linear walk beats a binary search.
+static uint8_t run_slot_at(size_t offset) {
+    uint8_t slot = s_draw_runs[0].slot;
+    for (size_t i = 1; i < s_draw_run_count; ++i) {
+        if (s_draw_runs[i].offset > offset) break;
+        slot = s_draw_runs[i].slot;
+    }
+    return slot;
+}
+
+// 绘制循环每个字都调用，所以只在真的换槽时才动游标。没有 run 表时什么都不做，
+// 保持单字体调用方的行为完全不变。
+// Called once per glyph, so the cursor only moves on a real change. With no run table it
+// does nothing, leaving single-face callers exactly as they were.
+static inline void run_apply(size_t offset) {
+    if (s_draw_runs == NULL) return;
+    uint8_t slot = run_slot_at(offset);
+    // 没装载成功的槽一律不选：否则循环会拿一张空字体去取字形。
+    // Never select an unloaded slot, or the loop would look glyphs up in an empty face.
+    if (slot != (uint8_t)s_cur_index && ttf_font_slot_ready(slot)) ttf_font_select(slot);
+}
+
+static void warm_text_io(int pixel_height, const char* text, const char* end);
+
+// 按 run 分段预热分块 IO：不同字体的块缓存是分开的，混在一起 flush 会串槽。
+// Warm block IO per run: each face keeps its own block cache, and flushing them together
+// would mix slots.
+static void warm_runs(int pixel_height, const char* text) {
+    const char* end = text + strlen(text);
+    if (s_draw_runs == NULL) {
+        warm_text_io(pixel_height, text, end);
+        return;
+    }
+    for (size_t i = 0; i < s_draw_run_count; ++i) {
+        const char* from = text + s_draw_runs[i].offset;
+        const char* to = i + 1 < s_draw_run_count ? text + s_draw_runs[i + 1].offset : end;
+        if (from >= end || to <= from) continue;
+        if (to > end) to = end;
+        ttf_font_select(s_draw_runs[i].slot);
+        warm_text_io(pixel_height, from, to);
+    }
+}
+
+static void warm_text_io(int pixel_height, const char* text, const char* end) {
+    // CFF 没有 glyf 分块可预读：`file_loca` 是空的，照旧走下去会取到空表。
+    // There are no glyf blocks to prefetch for CFF: `file_loca` is empty and the walk below
+    // would index a null table.
+    if (text == NULL || glyf_ram != NULL || cff_outline) return;
     touch_n = 0;
     const char* cursor = text;
     uint32_t cps[TTF_GATHER_MAX];
     int seen = 0;
     pixel_height = clamp_px(pixel_height);
-    while (*cursor != '\0' && seen < TTF_GATHER_MAX) {
+    while (cursor < end && *cursor != '\0' && seen < TTF_GATHER_MAX) {
         uint32_t cp = decode_utf8(&cursor);
         if (cp == 0) break;
         bool dup = false;
@@ -1760,31 +2044,72 @@ static void warm_text_io(int pixel_height, const char* text) {
 }
 
 static int measure_width(int pixel_height, const char* text) {
-    // 字宽只依赖已驻留的 cmap/hmtx；分页不读取轮廓、不生成整章位图。
-    // Resident cmap/hmtx suffice for advances; pagination never reads outlines or rasterizes a chapter.
-    float scale = stbtt_ScaleForPixelHeight(&font_info, (float)pixel_height);
     int width = 0;
+    float scale = stbtt_ScaleForPixelHeight(&font_info, (float)pixel_height);
     const char* cursor = text;
     while (*cursor != '\0') {
+        run_apply((size_t)(cursor - text));
         uint32_t cp = decode_utf8(&cursor);
-        int advance = 0, lsb = 0;
-        int gid = stbtt_FindGlyphIndex(&font_info, (int)cp);
-        stbtt_GetGlyphHMetrics(&font_info, gid, &advance, &lsb);
-        width += (int)lroundf(advance * scale);
+        const glyph_entry_t* glyph = cache_lookup(cp, pixel_height);
+        if (glyph != NULL) {
+            width += glyph->advance_x;
+        } else {
+            // 排版只需字宽；实际绘制时才读取轮廓并生成位图。/ Layout needs advances only; drawing loads outlines and rasterizes.
+            int advance = 0, lsb = 0;
+            int gid = stbtt_FindGlyphIndex(&font_info, (int)cp);
+            stbtt_GetGlyphHMetrics(&font_info, gid, &advance, &lsb);
+            width += (int)lroundf(advance * scale);
+        }
     }
     return width;
 }
 
+// 这两个查询问的是“系统字体”：主循环、设置页和书架都靠它们判断当前字体能否排这本书。
+// 内嵌字体把游标借走时，这里必须仍然看 0 号槽。
+// These two answer for the system face: the loop, settings and shelf ask whether the
+// active face can set this book. While an embedded face owns the cursor, slot 0 is
+// still the answer.
 bool ttf_font_ready(void) {
-    return font_ready;
+    return s_slots[TTF_FONT_SLOT_SYSTEM].f_ready;
 }
 
-void ttf_set_weight(int wght) {
-    current_weight = clamp_weight(wght);
+bool ttf_font_has_text(const char *text) {
+    const ttf_slot_t* sys = &s_slots[TTF_FONT_SLOT_SYSTEM];
+    if (!sys->f_ready || !text) return false;
+    while (*text) {
+        if (!stbtt_FindGlyphIndex(&sys->f_font_info, (int)decode_utf8(&text))) return false;
+    }
+    return true;
 }
+
+// 字重是用户级设置，对每一套驻留字体都成立；写在当前槽上会让内嵌字体漏掉。
+// Weight is a user-level setting that holds for every resident face; writing it on the
+// current slot alone would miss the embedded ones.
+void ttf_set_weight(int wght) {
+    int w = clamp_weight(wght);
+    for (int i = 0; i < TTF_FONT_SLOTS; i++) {
+        s_slots[i].f_weight = w;
+    }
+}
+
+// Coverage adjustment also works for static TTF/CFF faces and embedded font slots.
+// No extra face or full-page buffer is loaded; the shared glyph cache remains bounded.
+void ttf_set_stroke_adjust_fine(int steps) {
+    if(steps < -32)steps=-32;
+    if(steps > 32)steps=32;
+    if(s_stroke_adjust==steps)return;
+    s_stroke_adjust=steps;cache_clear_all();
+}
+int ttf_get_stroke_adjust_fine(void) {return s_stroke_adjust;}
+void ttf_set_stroke_adjust(int level) {
+    if(level < -2)level=-2;
+    if(level > 2)level=2;
+    ttf_set_stroke_adjust_fine(level*16);
+}
+int ttf_get_stroke_adjust(void) {return s_stroke_adjust/16;}
 
 int ttf_get_weight(void) {
-    return current_weight;
+    return s_slots[TTF_FONT_SLOT_SYSTEM].f_weight;
 }
 
 int ttf_ascender(int size) {
@@ -1797,6 +2122,15 @@ int ttf_ascender_px(int pixel_height) {
     return (int)lroundf(
         raw_ascent_units * stbtt_ScaleForPixelHeight(&font_info, (float)pixel_height)
     );
+}
+
+int ttf_em_height_px(int em_size) {
+    if (!font_ready) return clamp_px(em_size);
+    if (em_size < 1) em_size = 1;
+    if (em_size > 120) em_size = 120;
+    float scale = stbtt_ScaleForPixelHeight(&font_info, 1.f);
+    float em = stbtt_ScaleForMappingEmToPixels(&font_info, (float)em_size);
+    return scale > 0 && isfinite(em / scale) ? clamp_px((int)lroundf(em / scale)) : clamp_px(em_size);
 }
 
 void ttf_font_cache_clear(void) {
@@ -1823,11 +2157,20 @@ static void abandon_font_source(void) {
         close(font_fd);
         font_fd = -1;
     }
+    // 内嵌字体的字节由槽位自己分配，关槽时要连它一起还回去。
+    // An embedded face owns heap bytes; closing the slot must hand them back too.
+    if (font_mem_owned && font_mem != NULL) {
+        heap_caps_free((void*)font_mem);
+    }
+    font_mem_owned = false;
     font_mem = NULL;
     font_mem_len = 0;
 }
 
-void ttf_font_unload(void) {
+// 只清“当前槽”。对外入口 ttf_font_unload() 永远作用于 0 号槽，见文件后半的字体槽一节。
+// Clears the current slot only. The public ttf_font_unload() always acts on slot 0; see
+// the font-slot section further down.
+static void unload_here(void) {
     font_ready = false;
     cache_reset();
     io_unmap();
@@ -1836,8 +2179,13 @@ void ttf_font_unload(void) {
     font_file_pos = UINT32_MAX;
     heap_caps_free(file_loca);
     file_loca = NULL;
-    heap_caps_free(font_data);
+    // 借来的字体字节属于槽的内存镜像，由 abandon_font_source 归还。
+    // Borrowed face bytes belong to the slot's memory image and go back through
+    // abandon_font_source.
+    if (!font_data_borrowed) heap_caps_free(font_data);
     font_data = NULL;
+    font_data_borrowed = false;
+    cff_outline = false;
     reset_variation();
     packed_root = -1;
     packed_weight = -1;
@@ -1872,9 +2220,13 @@ static esp_err_t load_opened_font(void) {
         return ESP_ERR_NO_MEM;
     }
 
-    try_map_table(
-        file_glyf_off, file_glyf_len, &glyf_ram, &glyf_ram_off, &glyf_ram_len, "glyf"
-    );
+    // CFF 没有 glyf 表，长度为零，不必去映射。
+    // A CFF face has no glyf table; its length is zero and there is nothing to map.
+    if (file_glyf_len) {
+        try_map_table(
+            file_glyf_off, file_glyf_len, &glyf_ram, &glyf_ram_off, &glyf_ram_len, "glyf"
+        );
+    }
 
     load_variation(header, sizeof(header));
     if (gvar_ready && file_gvar_len > 0) {
@@ -1916,36 +2268,206 @@ static esp_err_t load_opened_font(void) {
     return ESP_OK;
 }
 
-esp_err_t ttf_font_open_builtin(void) {
-    ttf_font_unload();
+/* ---- 字体槽 / Font slots ---- */
+
+// 槽 0 是系统字体，只由 ttf_font_open* 重载；1..N 装书籍内嵌字体，按需打开。
+// Slot 0 is the system face, reloaded only through ttf_font_open*; slots 1..N hold
+// embedded book faces opened on demand.
+
+// 这里清的是槽结构本身，包括只在装载时赋初值的文件游标、packed 记忆和字重。
+// This clears the slot struct itself, including the file cursor, the packed-glyph memo
+// and the weight that only get their initial values at load time.
+static void slot_init(ttf_slot_t* s) {
+    memset(s, 0, sizeof(*s));
+    s->f_fd = -1;
+    s->f_file_pos = UINT32_MAX;
+    s->f_packed_root = -1;
+    s->f_packed_weight = -1;
+    s->f_weight = TTF_WGHT_DEF;
+    s->f_wght_min = TTF_WGHT_MIN;
+    s->f_wght_def = TTF_WGHT_DEF;
+    s->f_wght_max = TTF_WGHT_MAX;
+}
+
+static bool s_slots_ready;
+
+static void slot_restore(int index) {
+    s_cur_index = index;
+    s_cur = &s_slots[index];
+}
+
+void ttf_font_slots_init(void) {
+    if (s_slots_ready) return;
+    for (int i = 0; i < TTF_FONT_SLOTS; i++) {
+        slot_init(&s_slots[i]);
+    }
+    s_slots_ready = true;
+    slot_restore(TTF_FONT_SLOT_SYSTEM);
+}
+
+// 借游标去指定槽干活；返回原槽号，调用方负责还原。
+// Lend the cursor to one slot; returns the previous index for the caller to restore.
+static int slot_lend(int slot) {
+    int keep = s_cur_index;
+    s_cur_index = slot;
+    s_cur = &s_slots[slot];
+    return keep;
+}
+
+int ttf_font_select(int slot) {
+    ttf_font_slots_init();
+    int keep = s_cur_index;
+    if (slot >= 0 && slot < TTF_FONT_SLOTS) {
+        s_cur_index = slot;
+        s_cur = &s_slots[slot];
+    }
+    return keep;
+}
+
+int ttf_font_selected(void) {
+    return s_cur_index;
+}
+
+bool ttf_font_slot_ready(int slot) {
+    return slot >= 0 && slot < TTF_FONT_SLOTS && s_slots[slot].f_ready;
+}
+
+bool ttf_font_slot_has_text(int slot, const char* text) {
+    if (slot < 0 || slot >= TTF_FONT_SLOTS || text == NULL) return false;
+    const ttf_slot_t* s = &s_slots[slot];
+    if (!s->f_ready) return false;
+    while (*text) {
+        if (!stbtt_FindGlyphIndex(&s->f_font_info, (int)decode_utf8(&text))) return false;
+    }
+    return true;
+}
+
+// 对外入口永远拆系统字体：主循环和存储卡页说的都是“把当前字体放掉”，
+// 不能让游标停在内嵌槽上时误伤书籍字体。
+// The public entry always drops the system face: the loop and the card page mean the
+// active face, and must not hit a book face just because the cursor sits there.
+void ttf_font_unload(void) {
+    ttf_font_slots_init();
+    int keep = slot_lend(TTF_FONT_SLOT_SYSTEM);
+    unload_here();
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
+}
+
+// 把**所有**槽的字形位图和分块缓冲还给堆，字体本身保持装载。阅读页开书前调用：
+// 系统字体的缓存是 PSRAM 里最容易腾的一块，而书内字体要的正是这块地方；字体不动，
+// 用到时按需重新缓存。
+// Hand every slot's glyph bitmaps and block buffers back to the heap while keeping the faces
+// loaded. The reader calls this before opening a book: the system face's cache is the easiest
+// PSRAM to reclaim, and embedded faces need exactly that room. Faces stay put and re-cache on
+// demand.
+size_t ttf_font_cache_clear_all(void) {
+    ttf_font_slots_init();
+    int keep = s_cur_index;
+    size_t freed = 0;
+    for (int i = 0; i < TTF_FONT_SLOTS; i++) {
+        if (!s_slots[i].f_ready) continue;
+        s_cur_index = i;
+        s_cur = &s_slots[i];
+        freed += cache_bytes;
+        cache_reset();
+        packed_root = -1;
+        packed_weight = -1;
+        io_reset();
+    }
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
+    return freed;
+}
+
+void ttf_font_close_embedded(void) {
+    ttf_font_slots_init();
+    int keep = s_cur_index;
+    for (int i = TTF_FONT_SLOT_SYSTEM + 1; i < TTF_FONT_SLOTS; i++) {
+        if (!s_slots[i].f_used) continue;
+        s_cur_index = i;
+        s_cur = &s_slots[i];
+        unload_here();
+        s_slots[i].f_used = false;
+    }
+    if (keep <= TTF_FONT_SLOT_SYSTEM || !s_slots[keep].f_used) {
+        keep = TTF_FONT_SLOT_SYSTEM;
+    }
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
+}
+
+int ttf_font_open_mem(uint8_t* data, size_t len, const char* label) {
+    ttf_font_slots_init();
+    if (data == NULL || len < 64) {
+        if (data != NULL) heap_caps_free(data);
+        return -1;
+    }
+
+    int slot = -1;
+    for (int i = TTF_FONT_SLOT_SYSTEM + 1; i < TTF_FONT_SLOTS; i++) {
+        if (!s_slots[i].f_used) {
+            slot = i;
+            break;
+        }
+    }
+    if (slot < 0) {
+        heap_caps_free(data);
+        return -1;
+    }
+
+    int keep = slot_lend(slot);
+    unload_here();   // 槽里可能还留着上一本书的字形 / the slot may hold a previous book
+    s_slots[slot].f_used = true;
+    font_fd = -1;
+    font_mem = data;
+    font_mem_len = (uint32_t)len;
+    font_mem_owned = true;
+    if (label != NULL) {
+        strlcpy(font_path, label, sizeof(font_path));
+    }
+
+    esp_err_t err = ensure_work() ? load_opened_font() : ESP_ERR_NO_MEM;
+    if (err != ESP_OK) {
+        // 顺带把 data 还掉，失败后调用方不必再管这块内存。
+        // This also hands back data, so the caller owns nothing after a failure.
+        unload_here();
+        s_slots[slot].f_used = false;
+        slot = -1;
+    }
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
+    return slot;
+}
+
+// 系统字体永远住在 0 号槽。这两个入口把游标借过去再还回来，免得设置页换系统字体
+// 时踩掉正在用的内嵌槽。
+// The system face always lives in slot 0. These entries lend the cursor and restore it,
+// so reloading the system face never clobbers a live embedded slot.
+static esp_err_t open_builtin_here(void) {
+    unload_here();
     if (!ensure_work()) return ESP_ERR_NO_MEM;
 
     font_mem = builtin_ttf_start;
     font_mem_len = (uint32_t)(builtin_ttf_end - builtin_ttf_start);
+    font_mem_owned = false;
     font_fd = -1;
     strlcpy(font_path, TTF_FONT_BUILTIN, sizeof(font_path));
     ESP_LOGI(TAG, "using builtin (%u KB)", (unsigned)(font_mem_len / 1024));
     return load_opened_font();
 }
 
-esp_err_t ttf_font_suspend_sd(bool suspend) {
-    sd_suspended = suspend;
-    if (suspend && (!font_ready || !ttf_font_is_builtin())) return ttf_font_open_builtin();
-    return ESP_OK;
-}
-
-esp_err_t ttf_font_open(const char* path) {
+static esp_err_t open_path_here(const char* path) {
     if (ttf_font_path_is_builtin(path)) {
         return ttf_font_open_builtin();
     }
-    if (sd_suspended) return ESP_ERR_INVALID_STATE;
 
     char prev[TTF_FONT_PATH_MAX];
     strlcpy(prev, font_path, sizeof(prev));
     bool had = font_ready;
     bool prev_file = had && !ttf_font_path_is_builtin(prev);
 
-    ttf_font_unload();
+    unload_here();
     if (!ensure_work()) return ESP_ERR_NO_MEM;
 
     font_fd = open_font_file(path);
@@ -1961,7 +2483,7 @@ esp_err_t ttf_font_open(const char* path) {
     esp_err_t err = load_opened_font();
     if (err != ESP_OK) {
         if (prev_file && strcmp(prev, path) != 0) {
-            ttf_font_unload();
+            unload_here();
             font_fd = try_open_path(prev);
             if (font_fd >= 0 && load_opened_font() == ESP_OK) return err;
         }
@@ -1970,8 +2492,27 @@ esp_err_t ttf_font_open(const char* path) {
     return ESP_OK;
 }
 
+esp_err_t ttf_font_open_builtin(void) {
+    ttf_font_slots_init();
+    int keep = slot_lend(TTF_FONT_SLOT_SYSTEM);
+    esp_err_t err = open_builtin_here();
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
+    return err;
+}
+
+esp_err_t ttf_font_open(const char* path) {
+    ttf_font_slots_init();
+    int keep = slot_lend(TTF_FONT_SLOT_SYSTEM);
+    esp_err_t err = open_path_here(path);
+    s_cur_index = keep;
+    s_cur = &s_slots[keep];
+    return err;
+}
+
 esp_err_t ttf_font_init(void) {
-    if (font_ready) return ESP_OK;
+    ttf_font_slots_init();
+    if (ttf_font_ready()) return ESP_OK;
     const char* path = app_settings_font_path();
     if (ttf_font_path_is_builtin(path)) {
         return ttf_font_open_builtin();
@@ -1992,9 +2533,10 @@ void ttf_measure_line_px(
     int max_below = 0;
     if (font_ready && text != NULL) {
         pixel_height = clamp_px(pixel_height);
-        warm_text_io(pixel_height, text);
+        warm_runs(pixel_height, text);
         const char* cursor = text;
         while (*cursor != '\0') {
+            run_apply((size_t)(cursor - text));
             uint32_t cp = decode_utf8(&cursor);
             const glyph_entry_t* glyph = get_glyph(cp, pixel_height);
             if (glyph == NULL) continue;
@@ -2012,8 +2554,24 @@ int ttf_text_width_px(int pixel_height, const char* text) {
     return measure_width(clamp_px(pixel_height), text);
 }
 
+int ttf_text_left_bearing_px(int pixel_height, const char* text) {
+    if (!font_ready || !text || !*text) return 0;
+    pixel_height = clamp_px(pixel_height);
+    const char *cursor = text;
+    uint32_t cp = decode_utf8(&cursor);
+    const glyph_entry_t *glyph = cache_lookup(cp, pixel_height);
+    if (glyph) return glyph->left;
+    int advance, lsb;
+    int gid = stbtt_FindGlyphIndex(&font_info, (int)cp);
+    stbtt_GetGlyphHMetrics(&font_info, gid, &advance, &lsb);
+    return (int)floorf(lsb * stbtt_ScaleForPixelHeight(&font_info, (float)pixel_height));
+}
+
 // 线性抗锯齿的中间灰在这块屏上偏亮。按 TTF_COVER_GAMMA 抬覆盖率，半透明边缘更深。
 static uint8_t s_cover[256];
+static bool s_antialias = true;
+void ttf_set_antialias(bool enabled) { s_antialias = enabled; }
+bool ttf_get_antialias(void) { return s_antialias; }
 
 /* ---- 绘制 / Draw ---- */
 static void ttf_cover_lut_init(void) {
@@ -2030,6 +2588,7 @@ static void ttf_cover_lut_init(void) {
 }
 
 static uint8_t mix_ink(uint8_t alpha, uint8_t fg, uint8_t bg) {
+    if (!s_antialias) return alpha >= 128 ? fg : bg;
     return (uint8_t)(bg + s_cover[alpha] * ((int)fg - (int)bg) / 255);
 }
 
@@ -2047,7 +2606,7 @@ void ttf_draw_text_px(
     if (!font_ready || framebuffer == NULL || text == NULL) return;
     ttf_cover_lut_init();
     pixel_height = clamp_px(pixel_height);
-    warm_text_io(pixel_height, text);
+    warm_runs(pixel_height, text);
 
     int cursor_x = x;
     if (align & EPD_DRAW_ALIGN_CENTER) {
@@ -2058,6 +2617,7 @@ void ttf_draw_text_px(
 
     const char* cursor = text;
     while (*cursor != '\0') {
+        run_apply((size_t)(cursor - text));
         uint32_t cp = decode_utf8(&cursor);
         const glyph_entry_t* glyph = get_glyph(cp, pixel_height);
         if (glyph == NULL) continue;
@@ -2078,13 +2638,416 @@ void ttf_draw_text_px(
     }
 }
 
+bool ttf_text_mask_px(uint8_t *mask, unsigned width, unsigned height, int x,
+                      int baseline, int pixel_height, const char *text) {
+    if (!font_ready || !mask || !text || !width || !height ||
+        width > 684u || height > 180u) return false;
+    pixel_height = clamp_px(pixel_height);
+    ttf_cover_lut_init();
+    warm_runs(pixel_height, text);
+    const char *cursor = text;
+    while (*cursor) {
+        const glyph_entry_t *glyph = get_glyph(decode_utf8(&cursor), pixel_height);
+        if (!glyph) return false;
+        for (int gy = 0; glyph->bitmap && gy < glyph->height; ++gy) {
+            int yy = baseline - glyph->top + gy;
+            if (yy < 0 || (unsigned)yy >= height) continue;
+            for (int gx = 0; gx < glyph->width; ++gx) {
+                int xx = x + glyph->left + gx;
+                if (xx < 0 || (unsigned)xx >= width) continue;
+                uint8_t alpha = s_cover[glyph->bitmap[gy * glyph->width + gx]];
+                uint8_t *pixel = &mask[(size_t)yy * width + (unsigned)xx];
+                if (alpha > *pixel) *pixel = alpha;
+            }
+        }
+        x += glyph->advance_x;
+    }
+    return true;
+}
+
+void ttf_draw_text_px_spaced(
+    uint8_t* framebuffer, int x, int y, int pixel_height, const char* text,
+    int tracking_px, uint8_t fg, uint8_t bg
+) {
+    if (!tracking_px) {
+        ttf_draw_text_px(framebuffer, x, y, pixel_height, text, EPD_DRAW_ALIGN_LEFT, fg, bg);
+        return;
+    }
+    if (!font_ready || framebuffer == NULL || text == NULL) return;
+    ttf_cover_lut_init();
+    pixel_height = clamp_px(pixel_height);
+    warm_runs(pixel_height, text);
+    int cursor_x = x;
+    const char* cursor = text;
+    while (*cursor != '\0') {
+        run_apply((size_t)(cursor - text));
+        uint32_t cp = decode_utf8(&cursor);
+        const glyph_entry_t* glyph = get_glyph(cp, pixel_height);
+        if (glyph == NULL) continue;
+        if (glyph->bitmap != NULL) {
+            for (int gy = 0; gy < glyph->height; gy++) {
+                int yy = y - glyph->top + gy;
+                for (int gx = 0; gx < glyph->width; gx++) {
+                    uint8_t alpha = glyph->bitmap[gy * glyph->width + gx];
+                    if (alpha == 0) continue;
+                    epd_draw_pixel(cursor_x + glyph->left + gx, yy,
+                                   mix_ink(alpha, fg, bg) << 4, framebuffer);
+                }
+            }
+        }
+        cursor_x += glyph->advance_x;
+        if (*cursor) cursor_x += tracking_px;
+    }
+}
+
+// 竖排里要转 90° 的字符：拉丁字母数字、括号、横向的破折号与波浪号、弯引号与省略号。
+// 汉字、假名与全角标点保持正立，位置由 vertical_corner_cp 另行安排。
+// Characters that turn 90° in vertical setting: Latin letters and digits, brackets, horizontal
+// dashes and tildes, curly quotes and the ellipsis. Ideographs, kana and fullwidth punctuation
+// stay upright, with the latter repositioned by vertical_corner_cp.
+static bool vertical_rotated_cp(uint32_t cp) {
+    // 半角标点跟着拉丁文一起转，免得 "3.14" 里的点单独跳到字格角上。
+    // Halfwidth punctuation turns with the Latin run so a dot inside "3.14" does not jump to the
+    // cell corner on its own.
+    if (cp < 0x80) return cp > 0x20 && cp != 0x7f;
+    if ((cp >= 0x00c0 && cp <= 0x024f) || (cp >= 0x0370 && cp <= 0x04ff) ||
+        (cp >= 0x1e00 && cp <= 0x1eff) || (cp >= 0x2000 && cp <= 0x206f)) return true;
+    switch (cp) {
+        case 0x3008: case 0x3009: case 0x300a: case 0x300b:
+        case 0x300c: case 0x300d: case 0x300e: case 0x300f:
+        case 0x3010: case 0x3011: case 0x3014: case 0x3015:
+        case 0x3016: case 0x3017: case 0x3018: case 0x3019:
+        case 0x301a: case 0x301b: case 0x301d: case 0x301e: case 0x301f:
+        case 0xff08: case 0xff09: case 0xff3b: case 0xff3d: case 0xff5b: case 0xff5d:
+        case 0xff5f: case 0xff60: case 0xff62: case 0xff63: case 0xff0d: case 0xff5e:
+            return true;
+        // 形如短横的符号：负号、长音符与半角长音符、小号破折号与连字符、两三个全身宽的破折号。
+        // 它们在竖排里要立起来；留在横排方向的话，读者看到的是一道跟正文走向垂直的短线。
+        // Dash-like marks: the minus sign, the prolonged sound marks, the small dash and hyphen forms
+        // and the two/three-em dashes. They have to stand up in vertical setting; left horizontal they
+        // read as a short stroke across the column.
+        case 0x2212: case 0x2e3a: case 0x2e3b:
+        case 0x30fc: case 0xff70:
+        case 0xfe58: case 0xfe63:
+            return true;
+        default: return false;
+    }
+}
+
+// 竖排下移到字格右上角的标点：句号、逗号、顿号、冒号、分号。
+// Punctuation that moves to the top-right of its cell in vertical setting: the CJK period,
+// comma, enumeration comma, colon and semicolon.
+static bool vertical_corner_cp(uint32_t cp) {
+    switch (cp) {
+        case 0x3001: case 0x3002: case 0xff0c: case 0xff0e:
+            return true;
+        default: return false;
+    }
+}
+
+// 字形画在字身框左半、竖排里要按墨迹居中的正立字符：数字与全角！？：；。
+// 它们在横排里靠左，直接搬进竖排会贴着左边；这几个符号本身仍按竖排惯例保持正立。
+// Upright characters whose ink sits in the left half of the em box and must be centered for
+// vertical setting: digits and the fullwidth !?:;. They hug the left edge horizontally, so a
+// straight copy looks off; the marks themselves still stand upright, as vertical setting wants.
+static bool vertical_centered_cp(uint32_t cp) {
+    if (cp >= '0' && cp <= '9') return true;
+    return cp == 0xff01 || cp == 0xff1f || cp == 0xff1a || cp == 0xff1b;
+}
+
+// 数字串的竖排判定：1~3 位正立（各自按半角宽度上下排），4 位以上整串转 90°，
+// 年号、长编号这样才读得顺。判定按串首算，串中间沿用同一个结果。
+// How a digit run sets vertically: one to three stand upright, each taking its halfwidth advance,
+// and four or more turn 90° as a run, which reads better for years and long numbers. The run is
+// judged at its first digit and every following digit keeps that verdict.
+static bool vertical_digit_run_rotates(const char* after_current) {
+    int digits = 1;
+    for (const char* p = after_current; *p >= '0' && *p <= '9'; ++p) ++digits;
+    return digits >= 4;
+}
+
+// 弯引号没有竖排呈现形，直排书按惯例换成直角引号再取竖排形。
+// Curly quotes have no vertical presentation form, so vertical books swap them for corner
+// brackets and take that form instead.
+static uint32_t vertical_substitute_cp(uint32_t cp) {
+    switch (cp) {
+        case 0x201c: return 0x300c; // “ -> 「
+        case 0x201d: return 0x300d; // ” -> 」
+        case 0x2018: return 0x300e; // ‘ -> 『
+        case 0x2019: return 0x300f; // ’ -> 』
+        default: return cp;
+    }
+}
+
+// 字体自带的竖排呈现形（U+FE3x/FE4x）：直接用比把横排字形转 90° 更贴原版。
+// Vertical presentation forms fonts ship (U+FE3x/FE4x); using them beats turning the horizontal
+// glyph 90°.
+static uint32_t vertical_form_cp(uint32_t cp) {
+    switch (cp) {
+        case 0x3008: return 0xfe3f; case 0x3009: return 0xfe40;
+        case 0x300a: return 0xfe3d; case 0x300b: return 0xfe3e;
+        case 0x300c: return 0xfe41; case 0x300d: return 0xfe42;
+        case 0x300e: return 0xfe43; case 0x300f: return 0xfe44;
+        case 0x3010: return 0xfe3b; case 0x3011: return 0xfe3c;
+        case 0x3014: return 0xfe37; case 0x3015: return 0xfe38;
+        case 0x3016: return 0xfe39; case 0x3017: return 0xfe3a;
+        case 0xff08: return 0xfe35; case 0xff09: return 0xfe36;
+        case 0xff3b: return 0xfe47; case 0xff3d: return 0xfe48;
+        case 0xff5b: return 0xfe5b; case 0xff5d: return 0xfe5c;
+        case 0xff5f: return 0xfe17; case 0xff60: return 0xfe18;
+        default: return cp;
+    }
+}
+
+// 竖排取形三级回退：竖排呈现形 -> 换过的横排字形转 90° -> 原字形转 90°。
+// 字体缺哪一级就退到下一级，引号不会因为缺字形整段消失。
+// Three-step fallback for a vertical glyph: the vertical form, then the substituted horizontal
+// glyph turned 90°, then the original turned 90°. A face missing a level falls through instead of
+// dropping the mark.
+static const glyph_entry_t* vertical_glyph_for(uint32_t cp, int pixel_height, uint32_t* out_cp,
+                                               bool* out_rotate) {
+    uint32_t base = vertical_substitute_cp(cp);
+    uint32_t form = vertical_form_cp(base);
+    if (form != base) {
+        const glyph_entry_t* glyph = get_glyph(form, pixel_height);
+        if (glyph != NULL) { *out_cp = form; *out_rotate = false; return glyph; }
+    }
+    const glyph_entry_t* glyph = base != cp ? get_glyph(base, pixel_height) : NULL;
+    if (glyph != NULL) { *out_cp = base; *out_rotate = vertical_rotated_cp(base); return glyph; }
+    glyph = get_glyph(cp, pixel_height);
+    if (glyph != NULL) { *out_cp = cp; *out_rotate = vertical_rotated_cp(cp); }
+    return glyph;
+}
+
+// 正立落字形：pen_x 是字身框左边缘，baseline 是框内基线。
+// Blit an upright glyph: pen_x is the em box's left edge and baseline its baseline inside it.
+static void blit_upright(uint8_t* framebuffer, int pen_x, int baseline,
+                         const glyph_entry_t* glyph, uint8_t fg, uint8_t bg) {
+    if (glyph->bitmap == NULL) return;
+    for (int gy = 0; gy < glyph->height; gy++) {
+        int yy = baseline - glyph->top + gy;
+        for (int gx = 0; gx < glyph->width; gx++) {
+            uint8_t alpha = glyph->bitmap[gy * glyph->width + gx];
+            if (alpha == 0) continue;
+            epd_draw_pixel(pen_x + glyph->left + gx, yy, mix_ink(alpha, fg, bg) << 4, framebuffer);
+        }
+    }
+}
+
+// 旋转落字形：先在字身框里按横排基线落位，再把整个方框顺时针转 90°：(u, v) -> (px-1-v, u)。
+// 字的顶端因此朝右，和 OpenType 竖排对拉丁文的默认旋转一致。
+// Blit a rotated glyph: lay it on the horizontal baseline inside the em box, then turn the box
+// 90° clockwise: (u, v) -> (px-1-v, u). Glyph tops face right, matching OpenType's default
+// rotation for Latin in vertical layout.
+static void blit_rotated(uint8_t* framebuffer, int x, int y, int cell, int pixel_height,
+                         int baseline, const glyph_entry_t* glyph, uint8_t fg, uint8_t bg) {
+    if (glyph->bitmap == NULL) return;
+    for (int gy = 0; gy < glyph->height; gy++) {
+        int v = baseline - glyph->top + gy;
+        if (v < 0 || v >= pixel_height) continue;
+        int rx = pixel_height - 1 - v;
+        for (int gx = 0; gx < glyph->width; gx++) {
+            uint8_t alpha = glyph->bitmap[gy * glyph->width + gx];
+            if (alpha == 0) continue;
+            int u = glyph->left + gx;
+            if (u < 0 || u >= pixel_height) continue;
+            epd_draw_pixel(x + rx, y + cell + u, mix_ink(alpha, fg, bg) << 4, framebuffer);
+        }
+    }
+}
+
+int ttf_draw_text_px_rotated(
+    uint8_t* framebuffer, int x, int y, int pixel_height, const char* text,
+    uint8_t fg, uint8_t bg
+) {
+    if (!font_ready || framebuffer == NULL || text == NULL) return 0;
+    ttf_cover_lut_init();
+    pixel_height = clamp_px(pixel_height);
+    warm_runs(pixel_height, text);
+    const int baseline = ttf_ascender_px(pixel_height);
+    int cell = 0;
+    const char* cursor = text;
+    while (*cursor != '\0') {
+        run_apply((size_t)(cursor - text));
+        const glyph_entry_t* glyph = get_glyph(decode_utf8(&cursor), pixel_height);
+        if (glyph == NULL) continue;
+        blit_rotated(framebuffer, x, y, cell, pixel_height, baseline, glyph, fg, bg);
+        cell += glyph->advance_x;
+    }
+    return cell;
+}
+
+int ttf_draw_text_px_vertical(
+    uint8_t* framebuffer, int x, int y, int pixel_height, const char* text,
+    int tracking_px, uint8_t fg, uint8_t bg
+) {
+    if (!font_ready || framebuffer == NULL || text == NULL) return 0;
+    ttf_cover_lut_init();
+    pixel_height = clamp_px(pixel_height);
+    warm_runs(pixel_height, text);
+    const int baseline = ttf_ascender_px(pixel_height);
+    // 字身框取字体自己的全角步进，而不是请求的字号：这个字体在给定 px 下全角只走约 0.69 em，
+    // 拿 px 当框会把半角数字往右推四分之一个字，题头编号就和汉字不在一条竖轴上。
+    // The cell is the font's own fullwidth advance, not the requested pixel size: this face advances
+    // about 0.69 em at a given px, so centring on px pushed halfwidth digits a quarter of a cell to
+    // the right and a chapter number came off the ideographs' axis.
+    const glyph_entry_t* fullwidth = get_glyph(0x4e00, pixel_height);
+    const int cell_px = fullwidth != NULL && fullwidth->advance_x > 0 ? fullwidth->advance_x : pixel_height;
+    int cell = 0;
+    const char* cursor = text;
+    uint32_t previous_cp = 0;
+    bool digit_run_rotates = false;
+    // 半角数字的整串居中量。每个数字各自按整个字身框居中、却只前进半格，两位就会整体右移
+    // 四分之一个字，三位更多——题头的编号因此和汉字列错开。这里改成整串一起量、一起居中。
+    // Centering offset for a run of halfwidth digits. Centering each digit across the whole em box
+    // while advancing only half a cell walks a two-digit number a quarter of a cell to the right and a
+    // three-digit one further, which leaves a chapter number out of line with its neighbours. The run
+    // is measured and centered as a whole instead.
+    int run_dx = 0;
+    bool in_centered_run = false;
+    while (*cursor != '\0') {
+        run_apply((size_t)(cursor - text));
+        uint32_t cp = decode_utf8(&cursor);
+        uint32_t draw_cp = cp;
+        bool rotate = false;
+        const glyph_entry_t* glyph = vertical_glyph_for(cp, pixel_height, &draw_cp, &rotate);
+        if (glyph == NULL) continue;
+        if (cp >= '0' && cp <= '9') {
+            if (!(previous_cp >= '0' && previous_cp <= '9'))
+                digit_run_rotates = vertical_digit_run_rotates(cursor);
+            rotate = digit_run_rotates;
+        }
+        previous_cp = cp;
+        const bool centered = !rotate && vertical_centered_cp(draw_cp) && glyph->width > 0;
+        if (centered && !in_centered_run) {
+            // 量这一串的墨迹范围：竖排里每个字都落在同一个 x 上，前进只在 y 方向，所以横向范围
+            // 就是各字身框的并集——把前进量算进去会把框量歪，整串随之偏移。
+            // Measure this run's ink box: in a vertical column every glyph shares one x and the advance
+            // only moves down the column, so the horizontal extent is the union of the glyph boxes.
+            // Counting the advance in would mis-measure the box and shift the whole run.
+            in_centered_run = true;
+            int ink_left = glyph->left;
+            int ink_right = glyph->left + glyph->width;
+            const char* scan = cursor;
+            while (*scan != '\0') {
+                uint32_t next_cp = decode_utf8(&scan);
+                const glyph_entry_t* next = get_glyph(next_cp, pixel_height);
+                if (next == NULL || next->width <= 0 || !vertical_centered_cp(next_cp)) break;
+                if (next->left < ink_left) ink_left = next->left;
+                if (next->left + next->width > ink_right) ink_right = next->left + next->width;
+            }
+            run_dx = (cell_px - (ink_right - ink_left)) / 2 - ink_left;
+        } else if (!centered) in_centered_run = false;
+        if (cp != ' ' && cp != '\t') {
+            if (rotate) {
+                blit_rotated(framebuffer, x, y, cell, pixel_height, baseline, glyph, fg, bg);
+            } else {
+                // 全角句读抬到字格右上角；半角字形（数字、西文标点）按整串在字身框里水平居中，
+                // 否则整串会贴着左边，看起来和汉字错开半格。
+                // Fullwidth stops lift into the cell's top-right corner; halfwidth glyphs (digits,
+                // Western punctuation) center across the em box as a whole run, otherwise a run hugs
+                // the left edge and looks half a cell off against the ideographs.
+                int dx = 0, dy = 0;
+                if (vertical_corner_cp(cp)) { dx = cell_px / 2; dy = -cell_px / 2; }
+                else if (centered) dx = run_dx;
+                blit_upright(framebuffer, x + dx, y + cell + baseline + dy, glyph, fg, bg);
+            }
+        }
+        cell += glyph->advance_x;
+        if (*cursor != '\0') cell += tracking_px;
+    }
+    return cell;
+}
+
+static bool cjk_spacing_point(uint32_t cp) {
+    return (cp >= 0x2e80 && cp <= 0xffef) || (cp >= 0x2018 && cp <= 0x201d);
+}
+
+// 竖排列高：与 ttf_draw_text_px_vertical 的推进一致，不落墨，供排版预留位置。
+// Vertical column height: the same advance ttf_draw_text_px_vertical produces, without inking,
+// so a caller can reserve room for it.
+int ttf_vertical_text_height_px(int pixel_height, const char* text, int tracking_px) {
+    if (text == NULL) return 0;
+    pixel_height = clamp_px(pixel_height);
+    int total = 0;
+    const char* cursor = text;
+    while (*cursor != '\0') {
+        const glyph_entry_t* glyph = get_glyph(decode_utf8(&cursor), pixel_height);
+        if (glyph == NULL) continue;
+        total += glyph->advance_x;
+        if (*cursor != '\0') total += tracking_px;
+    }
+    return total;
+}
+
+void ttf_draw_text_px_fitted(
+    uint8_t* framebuffer, int x, int y, int pixel_height, const char* text,
+    int tracking_px, int target_width, uint8_t fg, uint8_t bg
+) {
+    if (!font_ready || !framebuffer || !text || !*text) return;
+    ttf_cover_lut_init();
+    pixel_height = clamp_px(pixel_height);
+    warm_runs(pixel_height, text);
+    int glyph_count = 0, cjk_gaps = 0;
+    const char* cursor = text;
+    uint32_t previous = 0;
+    while (*cursor) {
+        uint32_t cp = decode_utf8(&cursor);
+        if (glyph_count && (cjk_spacing_point(previous) || cjk_spacing_point(cp))) ++cjk_gaps;
+        previous = cp;
+        ++glyph_count;
+    }
+    int gaps = glyph_count - 1;
+    int natural = measure_width(pixel_height, text) + tracking_px * gaps;
+    int delta = target_width - natural;
+    bool compress = delta < 0;
+    int adjustable = compress ? gaps : cjk_gaps;
+    if (adjustable < 2 || (compress && -delta > adjustable * 3) ||
+        (!compress && delta > adjustable * 12)) {
+        ttf_draw_text_px_spaced(framebuffer, x, y, pixel_height, text, tracking_px, fg, bg);
+        return;
+    }
+    int quotient = delta / adjustable;
+    int remainder = delta % adjustable;
+    int adjusted = 0, cursor_x = x;
+    cursor = text;
+    while (*cursor) {
+        run_apply((size_t)(cursor - text));
+        uint32_t cp = decode_utf8(&cursor);
+        const glyph_entry_t* glyph = get_glyph(cp, pixel_height);
+        if (glyph && glyph->bitmap) {
+            for (int gy = 0; gy < glyph->height; ++gy) {
+                int yy = y - glyph->top + gy;
+                for (int gx = 0; gx < glyph->width; ++gx) {
+                    uint8_t alpha = glyph->bitmap[gy * glyph->width + gx];
+                    if (alpha) epd_draw_pixel(cursor_x + glyph->left + gx, yy,
+                                              mix_ink(alpha, fg, bg) << 4, framebuffer);
+                }
+            }
+        }
+        if (glyph) cursor_x += glyph->advance_x;
+        if (*cursor) {
+            const char* peek = cursor;
+            uint32_t next = decode_utf8(&peek);
+            cursor_x += tracking_px;
+            if (compress || cjk_spacing_point(cp) || cjk_spacing_point(next)) {
+                int step = quotient;
+                if (remainder > 0 && adjusted < remainder) ++step;
+                if (remainder < 0 && adjusted < -remainder) --step;
+                cursor_x += step;
+                ++adjusted;
+            }
+        }
+    }
+}
+
 void ttf_draw_text_px_bw(
     uint8_t* framebuffer, int x, int y, int pixel_height, const char* text,
     enum EpdFontFlags align, uint8_t fg, uint8_t bg
 ) {
     if (!font_ready || framebuffer == NULL || text == NULL) return;
     pixel_height = clamp_px(pixel_height);
-    warm_text_io(pixel_height, text);
+    warm_runs(pixel_height, text);
 
     int cursor_x = x;
     if (align & EPD_DRAW_ALIGN_CENTER) {
@@ -2095,6 +3058,7 @@ void ttf_draw_text_px_bw(
 
     const char* cursor = text;
     while (*cursor != '\0') {
+        run_apply((size_t)(cursor - text));
         uint32_t cp = decode_utf8(&cursor);
         const glyph_entry_t* glyph = get_glyph(cp, pixel_height);
         if (glyph == NULL) continue;
@@ -2113,4 +3077,3 @@ void ttf_draw_text_px_bw(
         cursor_x += glyph->advance_x;
     }
 }
-

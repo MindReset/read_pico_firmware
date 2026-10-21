@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 mindreset
  * SPDX-License-Identifier: Apache-2.0
  *
- * demo 页的统一接口。每个页面是一个 app_desc_t，放在 main/apps/ 下自己的文件里，
+ * 产品页面的统一接口。每个页面是一个 app_desc_t，放在 main/apps/ 下自己的文件里，
  * 绘制、命中、轮询和页内状态都封在那一个文件中；app_loop.c 只按这套回调调度，
  * 加一个页面不必再改主循环。
  *
@@ -76,6 +76,9 @@ typedef struct {
     /// 本轮已经被别的分支处理掉了，页内的跟随逻辑要跳过这一轮。
     /// / Another branch already handled this tick; skip in-page tracking.
     bool consumed;
+    /// 页面识别到输入时置位，主循环消费后清除，避免晃动翻页被当成空闲。
+    /// Set for recognized input; the loop consumes and clears it so shake turns reset idle time.
+    bool user_activity;
     /// 页面想跳到别的页时填这里，主循环会在本轮末尾切过去。
     /// / Request a page switch; the loop applies it at the end of the tick.
     const struct app_desc_s* request_app;
@@ -99,18 +102,28 @@ struct app_desc_s {
     /// 菜单关闭时接管三键，页面必须提供强刷和菜单入口。
     /// Own all three keys outside the menu; provide full refresh and menu exits.
     bool owns_keys;
-    /// true = 停留在本页时不计空闲自动休眠。电源键锁屏仍走全局路径。
-    /// true = idle time does not auto-sleep while this page is current. The power key still locks.
-    bool blocks_idle_sleep;
+    /// 中键短按在抬起时执行，便于长按触发不同动作。/ Fire middle-key short action on release so a hold can differ.
+    bool defer_middle_short;
+    /// 可选：按当前页面决定右下角菜单把手是否响应。/ Decide whether the bottom-right menu handle is active.
+    bool (*menu_handle_enabled)(app_ctx_t* ctx);
+    /// 可选：当前确实显示主页面，允许本地测试优化底栏切页；阅读/子页面返回 false。
+    /// Optional: true only for a main-tab view eligible for local transition testing; reader/subviews return false.
+    bool (*main_page_visible)(app_ctx_t* ctx);
     /// 进页/离页。on_enter 里做上电、唤醒传感器、拉一次数据这类副作用。
     /// / Enter/exit. on_enter powers up, wakes sensors, takes a first sample.
-    /// 锁屏走软睡/关机前也调 on_exit；下电失败回来再调 on_enter。
-    /// on_exit also runs before a soft-sleep/off lock; on_enter runs again if power-down fails.
     void (*on_enter)(app_ctx_t* ctx);
     void (*on_exit)(app_ctx_t* ctx);
     /// TF 挂载失效：停止并等待后台任务、关闭文件；主循环随后回退字体并重绘，菜单打开时也通知。
     /// On TF mount loss, join background work and close files before font fallback/redraw; also called behind menus.
     void (*on_media_lost)(app_ctx_t* ctx);
+    /// TF 首次挂载或显式重新挂载后，页面按需更新目录与封面缓存。
+    /// Refresh page-owned listings or cover caches after a first or explicit TF mount.
+    void (*on_media_ready)(app_ctx_t* ctx);
+    /// 锁屏前保存页面的阅读状态。/ Persist page state before lock rendering.
+    void (*on_before_lock)(app_ctx_t* ctx);
+    /// 可选：消费电源键短按；返回 NONE 时沿用锁屏，DONE 表示已消费但无需刷新。
+    /// Optional: consume a short power press; NONE keeps locking, DONE consumes without redraw.
+    app_redraw_t (*on_power_short)(app_ctx_t* ctx);
     /// 纯绘制，不做 I2C 写、蜂鸣这类副作用，整屏强刷才能安全复用它。
     /// / Paint only. No I2C writes or buzzer. KEY2 full redraw reuses this.
     void (*render)(app_ctx_t* ctx, uint8_t* fb);
@@ -123,8 +136,8 @@ struct app_desc_s {
     /// 默认只收 UI_KEY_1；owns_keys 页面在菜单外接收三键。
     /// / Only KEY1 normally; owns_keys pages receive all three keys outside the menu.
     app_redraw_t (*on_key)(app_ctx_t* ctx, int key);
-    /// 可选：owns_keys 页面同键持续按住500ms触发一次，按下回调仍先执行；滑出/中断取消。
-    /// Optional: fire once after a 500ms same-key hold on owns_keys pages; press still fires first, leaving/interruption cancels.
+    /// 可选：owns_keys 页面同键持续按住500ms触发一次；defer_middle_short 时中键短按只在抬起执行。
+    /// Optional: fire after a 500ms hold; with defer_middle_short, the middle short action runs only on release.
     app_redraw_t (*on_key_long)(app_ctx_t* ctx, int key);
     /// 每轮都调，页面自己判断到不到刷新间隔。
     /// / Called every tick; the page decides if its interval has elapsed.
@@ -139,9 +152,6 @@ struct app_desc_s {
 // 锁屏：浅睡按键或拿起回原页；软睡 EN=0，再短按开机；关机 EN=0，长按开机。
 // Lock: light-sleep key or pickup returns to the page; soft sleep drops EN
 // and a short press powers on; power-off drops EN and needs a long press.
-// 无操作满这段时间走同一条锁屏路径，档位仍由睡眠设置决定。
-// Idle this long, then the same lock path; the sleep setting still picks the mode.
-#define APP_AUTO_SLEEP_MS (2 * 60 * 1000)
 #define APP_LOCK_POLL_MS 200
 #define APP_LOCK_IGNORE_BOOT_MS 2000
 #define APP_LOCK_IGNORE_SELFTEST_MS 2000
@@ -156,3 +166,6 @@ void app_lock_ignore_for(int64_t ms);
 #ifdef __cplusplus
 }
 #endif
+
+/// Yield a long main-page load when another bottom tab is pressed. No display or lifecycle calls.
+bool app_poll_main_navigation(app_ctx_t *ctx);

@@ -19,6 +19,7 @@
 # Build artifacts and directories
 **/build/
 build/
+/_site/
 *.o
 *.a
 *.out
@@ -28,6 +29,9 @@ build/
 tools/fonts/
 /ChillDuanSansVF.ttf
 tools/buzzer_score_wav
+# Full fonts are local test data; only the built-in subset is distributed.
+/sdcard/fonts/
+/flash-backups/
 
 # Per-machine task handoff ledger; protocol lives in docs/HANDOFF.md
 /docs/HANDOFF.local.md
@@ -42,6 +46,15 @@ tools/buzzer_score_wav
 # ESP-IDF specific build outputs
 *.bin
 !main/assets/*.bin
+!/web-flasher/*.bin
+# gen22 封版：firmware/ 是交付目录，四件套必须入库（否则仓库里没有可烧的固件）。
+# gen22: firmware/ is the delivery directory; the four images must be tracked.
+!/firmware/*.bin
+# 历史发布包与归档固件不进仓库（留 /workspace 归档，物理不删）。
+# Historical release zips and archived images stay out (kept under /workspace).
+*.zip
+*.genNN-*
+Read_Pico.bin.gen*
 *.elf
 *.map
 flasher_args.json # Generated in build directory

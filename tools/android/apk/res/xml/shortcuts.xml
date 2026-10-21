@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SPDX-FileCopyrightText: 2026 mindreset
+  SPDX-License-Identifier: Apache-2.0
+
+  中文：桌面快捷方式（App Shortcuts）。长按桌面图标即可看到「一键推流」：
+  读取剪贴板 → 扫描连接 → 推送，全程不弹主界面，只有 Toast。
+  可把这个快捷方式单独拖到桌面当独立图标用。
+  静态快捷方式要求 minSdk 25+（本工程 minSdk 26，满足）。
+
+  English: launcher app shortcuts. Long-press the launcher icon to reveal
+  "一键推流" (one-tap push): read the clipboard -> scan and connect -> push,
+  without ever showing the main UI (Toast only). The shortcut can also be
+  dragged onto the home screen as a standalone icon.
+  Static shortcuts require minSdk 25+ (this project targets 26 - satisfied).
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="push_clipboard"
+        android:enabled="true"
+        android:icon="@drawable/icon"
+        android:shortcutShortLabel="@string/shortcut_push_short"
+        android:shortcutLongLabel="@string/shortcut_push_long"
+        android:shortcutDisabledMessage="@string/shortcut_push_disabled">
+        <intent
+            android:action="dev.readpico.push.ACTION_PUSH_CLIPBOARD"
+            android:targetPackage="dev.readpico.push"
+            android:targetClass="dev.readpico.push.MainActivity" />
+    </shortcut>
+</shortcuts>

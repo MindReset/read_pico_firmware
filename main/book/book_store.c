@@ -16,6 +16,7 @@
  */
 #include "book_store.h"
 #include "book_progress.h"
+#include "settings.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -72,14 +73,18 @@ static esp_err_t flash_root(book_store_root_t* out) {
     return err;
 }
 
-esp_err_t book_store_roots(book_store_root_t out[2], int* n) {
+esp_err_t book_store_roots(book_store_root_t out[BOOK_STORE_ROOT_MAX], int* n) {
     if (out == NULL || n == NULL) return ESP_ERR_INVALID_ARG;
     *n = 0;
     s_roots_degraded = false;
-    memset(out, 0, sizeof(*out) * 2);
+    memset(out, 0, sizeof(*out) * BOOK_STORE_ROOT_MAX);
     if (sd_ready()) {
-        if (ensure_dir("/sdcard/books") == ESP_OK)
-            out[(*n)++] = (book_store_root_t){.path = "/sdcard/books", .is_flash = false};
+        // Also show books already copied to a singular `book` directory.
+        struct stat legacy;
+        if (!strcmp(app_settings_books_dir(), "/sdcard/books") && stat("/sdcard/book", &legacy) == 0 && S_ISDIR(legacy.st_mode))
+            out[(*n)++] = (book_store_root_t){.path = "/sdcard/book", .is_flash = false};
+        if (ensure_dir(app_settings_books_dir()) == ESP_OK)
+            snprintf(out[(*n)++].path, sizeof(out[0].path), "%s", app_settings_books_dir());
         else s_roots_degraded = true;
     } else {
         read_pico_sd_info_t info = {0};
@@ -103,8 +108,8 @@ esp_err_t book_store_upload_root(book_store_root_t* out) {
         if (info.present) return ESP_ERR_INVALID_STATE;
         return flash_root(out);
     }
-    esp_err_t err = ensure_dir("/sdcard/books");
-    if (err == ESP_OK) *out = (book_store_root_t){.path = "/sdcard/books", .is_flash = false};
+    esp_err_t err = ensure_dir(app_settings_books_dir());
+    if (err == ESP_OK) snprintf(out->path, sizeof(out->path), "%s", app_settings_books_dir());
     return err;
 }
 
@@ -135,8 +140,12 @@ esp_err_t book_store_delete(const char* path, bool* removed) {
     if (!path || strnlen(path, BOOK_STORE_PATH_MAX) >= BOOK_STORE_PATH_MAX) return ESP_ERR_INVALID_ARG;
     const char* root;
     const char* name;
-    if (!strncmp(path, "/sdcard/books/", 14)) {
-        root = "/sdcard/books"; name = path + 14;
+    size_t selected_len = strlen(app_settings_books_dir());
+    if (!strncmp(path, app_settings_books_dir(), selected_len) && path[selected_len] == '/') {
+        root = app_settings_books_dir(); name = path + selected_len + 1;
+        if (!sd_ready()) return ESP_ERR_INVALID_STATE;
+    } else if (!strcmp(app_settings_books_dir(), "/sdcard/books") && !strncmp(path, "/sdcard/book/", 13)) {
+        root = "/sdcard/book"; name = path + 13;
         if (!sd_ready()) return ESP_ERR_INVALID_STATE;
     } else if (!strncmp(path, "/flash/books/", 13)) {
         root = "/flash/books"; name = path + 13;

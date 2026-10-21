@@ -16,20 +16,28 @@
 
 #include "epdiy.h"
 #include "fallback.h"
+#include "../assets/ui_icons.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// 屏幕逻辑尺寸（竖屏）。布局常量都从这两个数推，换屏只要改这里。
-// Logical screen size (portrait). Layout constants derive from these two; change them for a new panel.
-#define UI_LOCK_WIDTH 684
-#define UI_LOCK_HEIGHT 1216
+// 逻辑屏尺寸随当前显示方向(rotation)动态变化；竖屏(INVERTED_PORTRAIT)下与旧常量
+// 684×1216 完全一致。阅读横屏时 epd_rotated_display_* 返回 1216×684，所有引用点自动适配。
+// 用函数式宏而非 #define 常量：既保留 UI_LOCK_WIDTH/HEIGHT 的写法不变，又让尺寸在运行时
+// 跟随 rotation。C 语言里凡需要整数常量表达式的上下文(数组大小/enum/case/#if)会直接编译
+// 报错——那正是需要手工改的极少数点，编译器替我们逐处扫出。
+// Logical screen size follows the current rotation; under portrait (INVERTED_PORTRAIT)
+// it equals the legacy 684x1216. Landscape reading reports 1216x684 via epd_rotated_display_*.
+static inline int ui_w(void) { return epd_rotated_display_width(); }
+static inline int ui_h(void) { return epd_rotated_display_height(); }
+#define UI_LOCK_WIDTH  ui_w()
+#define UI_LOCK_HEIGHT ui_h()
 
 // 页内手势及局部定稿阈值，真机调优时同步 INTERACTION.md。
 // Page gesture and region-settling thresholds; update INTERACTION.md when tuning on hardware.
 #define UI_LONG_PRESS_MS 500
-#define UI_SWIPE_MIN_PX 64
+#define UI_SWIPE_MIN_PX 120
 #define UI_TOUCH_SLOP_PX 24
 #define UI_SETTLE_IDLE_MS 2000
 #define UI_SETTLE_DU_MAX 6
@@ -92,17 +100,69 @@ extern "C" {
 // epdiy 图形接口取 8 位灰度（仅高 4 位有效），字体属性取 4 位灰度，两者不可混用。
 // epdiy graphics uses 8-bit gray (high nibble only); font attrs use 4-bit gray. Do not mix them.
 #define UI_GRAY_WHITE 0xFF
-#define UI_GRAY_LIGHT 0xB0
+#define UI_GRAY_LIGHT 0x90
 #define UI_GRAY_BLACK 0x00
 #define UI_INK_WHITE 15
 #define UI_INK_BLACK 0
 
+/// 在现有画面上绘制半透明、轻度模糊的灰阶挡板。/ Draw a translucent, softly blurred grayscale guard over the existing image.
+void ui_draw_acrylic_guard(uint8_t *framebuffer, EpdRect rect);
+void ui_draw_frosted_pocket(uint8_t *framebuffer, EpdRect rect);
+
 /// 文字按「行的上沿」定位，基线由字号推出，调用处不用再算 ascender。
 /// Text is placed by the top of the line; the baseline comes from the size so callers skip the ascender.
+/// 系统页面字号放大 1.2 倍；阅读正文保持原字号。/ Enlarge system text by 1.2x while preserving reader text size.
+void ui_text_set_system_scale(bool enabled);
+void ui_text_set_system_font(bool enabled);
+int ui_text_effective_px(int px);
+/// 按系统字号绘制单行文字，按字形真实边界适配控件；不打开第二份字体。
+/// Scale one line to the UI preference, fitting native glyphs within a control without loading another face.
+void ui_text_box(uint8_t *fb, EpdRect box, int px, const char *text,
+                 enum EpdFontFlags align, bool inverted);
+/// 灰阶图片在绘制时增强明暗差，原始缓存保持不变。/ Increase image contrast at draw time without altering cached pixels.
+uint8_t ui_contrast_gray(uint8_t gray);
+/// 将已画图片区域转为稳定黑白点阵，仅由本地主页面测试调用。/ Convert a painted image region to stable black/white dots; used only by the local main-page trial.
+void ui_image_bw_rect(uint8_t* fb, EpdRect rect);
+/// 亚克力最终合成区转换为稳定的一像素细点阵，裁剪到屏幕；调用者限定快刷书架。/ Convert the final acrylic composition to stable one-pixel dots, clipped to the screen; callers restrict this to fast shelves.
+void ui_acrylic_bw_rect(uint8_t* fb, EpdRect rect);
 void ui_text(
     uint8_t* framebuffer, int x, int y_top, int px, const char* text,
     enum EpdFontFlags align, bool inverted
 );
+/// Draw UI metadata at the exact requested size, independent of the global UI-size preference.
+/// 按指定像素字号绘制系统信息，不受全局系统字号设置影响。
+void ui_text_fixed(
+    uint8_t* framebuffer, int x, int y_top, int px, const char* text,
+    enum EpdFontFlags align, bool inverted
+);
+int ui_text_fixed_width_px(int px, const char* text);
+/// 按完整输入内容确定字体；子串的测量与绘制不因缺字滚出视口而切换字体。
+/// Resolve the face from complete input text, keeping substring metrics/painting stable as missing glyphs scroll away.
+int ui_text_fixed_context_width_px(int px, const char* text, const char* font_sample);
+void ui_text_fixed_context_vc(
+    uint8_t* framebuffer, int x, int center_y, int px, const char* text,
+    const char* font_sample, enum EpdFontFlags align, bool inverted
+);
+/// 按固定字号和实际字形范围居中，不受系统字号缩放影响。
+/// Center fixed-size text by its ink extents, independently of system scaling.
+void ui_text_fixed_vc(
+    uint8_t* framebuffer, int x, int center_y, int px, const char* text,
+    enum EpdFontFlags align, bool inverted
+);
+/// 固定字号文字使用指定灰阶墨色，复用活动字体。/ Fixed-size text with a chosen gray ink, reusing the active face.
+void ui_text_fixed_ink_vc(uint8_t *fb, int x, int center_y, int px, const char *text,
+                          enum EpdFontFlags align, uint8_t gray);
+/// 原字号灰阶抗锯齿，边缘混合到实际底色；暂时启用后恢复正文开关，不加载另一份字体。
+/// Native-size gray antialiasing against the actual background; restore the body switch afterward and never load another face.
+void ui_text_fixed_context_aa_vc(uint8_t *fb,int x,int center_y,int px,const char *text,
+                               const char *font_sample,enum EpdFontFlags align,uint8_t gray,uint8_t background);
+/// 标题复用当前活动字体并按固定字号截短：首页系统字体、阅读页阅读字体；不加载第二份字体。
+/// Fit titles in the active face at a fixed size: Home's system face or the reader face, without loading a second font.
+int ui_text_title_fit(char *text, int preferred_px, int width, const char *font_sample);
+/// 当前页字体按目标字号直接绘制灰阶抗锯齿标题，视觉中心对齐，不受系统字号缩放影响。
+/// Rasterize the active face directly with gray antialiasing at the target size, visually centered and independent of UI scaling.
+void ui_text_title_vc(uint8_t *fb, int x, int center_y, int px, const char *text,
+                      const char *font_sample, enum EpdFontFlags align);
 void ui_text_bw(
     uint8_t* framebuffer, int x, int y_top, int px, const char* text,
     enum EpdFontFlags align, bool inverted
@@ -117,9 +177,24 @@ void ui_blit_bmp(
     uint8_t* framebuffer, int x, int y, const ui_fallback_bmp_t* bmp
 );
 
+/// 把 Lucide 图标掩模按 alpha 混进画面，中心落在 (cx, cy)，边长 size 像素。
+/// 透明处保留原像素，所以同一个图标能落在任意底色上，包括电池内部那种深浅两段的底。
+/// gray 是实心部分的灰度；图标来自 ui_icons.h，样式与出处见 THIRD_PARTY_NOTICES.md。
+/// Blend a Lucide icon mask into the frame, centered on (cx, cy) with the given
+/// pixel size. Transparent pixels keep their current value, so one icon works on
+/// any background, including the two-tone fill inside the battery. gray is the ink
+/// level of the solid part; icons come from ui_icons.h.
+void ui_draw_icon(
+    uint8_t* framebuffer, int cx, int cy, int size, ui_icon_t icon, uint8_t gray
+);
+
 void ui_draw_round_rect(
     uint8_t* framebuffer, EpdRect rect, int radius, uint8_t color
 );
+/// 控件外框用深色双像素线，黑白快刷后不消失；封面及图标仍用原绘图接口。/ Use a dark two-pixel control frame that survives BW refresh; covers and icons retain the original primitives.
+void ui_draw_control_frame(uint8_t* framebuffer, EpdRect rect, int radius, uint8_t color);
+/// 深色双像素结构分隔线；装饰性细线仍用ui_hairline。/ Dark two-pixel structural separator; retain ui_hairline for decorative rules.
+void ui_draw_separator(uint8_t* framebuffer, int y, int x, int width, uint8_t color);
 /// 选中：外框保留，内缩一圈加粗，不整块填黑，减轻残影。
 /// Selected: keep the outer frame and thicken an inset ring; do not fill solid black, which ghosts.
 void ui_draw_selected_round_rect(uint8_t* framebuffer, EpdRect rect, int radius);
@@ -227,6 +302,10 @@ int ui_datamatrix_side(const char* text);
 void ui_draw_datamatrix(uint8_t* framebuffer, EpdRect rect, const char* text);
 
 void ui_clear_page(uint8_t* framebuffer);
+/// Exact logical fill using contiguous packed rows; preserves boundary nibbles.
+void ui_fill_rect_fast(EpdRect rect, uint8_t gray, uint8_t *framebuffer);
+/// 直接写入已裁剪的一位位图，源数据按行、低位在先；不缩放、不申请内存。/ Blit a clipped row-major, least-bit-first mono bitmap directly, without rescaling or allocation.
+void ui_blit_mono_bitmap(uint8_t *framebuffer, EpdRect rect, const uint8_t *bits, size_t stride);
 /// 把逻辑矩形换算成 framebuffer 里的物理矩形。
 /// Map a logical rect to the physical rect in the framebuffer.
 EpdRect ui_rotate_rect_to_fb(EpdRect rect);

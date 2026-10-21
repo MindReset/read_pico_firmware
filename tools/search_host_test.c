@@ -26,6 +26,16 @@ int main(void) {
     miss("甲🙂乙.txt", "jiayi"); match("甲🙂乙.txt", "🙂");
     miss("甲\xc0\xaf.txt", "a"); miss("甲.txt", "\xed\xa0\x80");
     miss("甲\xf0\x9f.txt", "a"); miss(NULL, ""); miss("a.txt", NULL);
+    uint32_t candidates[12] = {0};
+    size_t found = read_pico_search_candidates("hai", candidates, 12, 0);
+    bool saw_sea = false;
+    for (size_t i = 0; i < found; ++i) if (candidates[i] == 0x6d77) saw_sea = true;
+    assert(saw_sea);
+    assert(read_pico_search_candidates("hai1", candidates, 12, 0) == 0);
+    uint32_t next[5] = {0};
+    assert(read_pico_search_candidates("xin", candidates, 5, 0) == 5);
+    assert(read_pico_search_candidates("xin", next, 5, 5) > 0);
+    assert(candidates[0] != next[0]);
     char query[66]; memset(query, 'a', 64); query[64] = 0;
     char title[257]; memset(title, 'a', 251); memcpy(title + 251, ".txt", 5);
     match(title, query); query[64] = 'a'; query[65] = 0; miss(title, query);

@@ -30,3 +30,22 @@ python tools/test_search.py build/search-deps/pypinyin-0.55.0-py2.py3-none-any.w
 生成只使用Python标准库并校验wheel摘要。无需安装或执行第三方包。固件编译直接使用已生成字表，不联网、不依赖Python。
 
 Generation uses only the Python standard library and verifies the wheel digest; it neither installs nor executes third-party packages. Firmware builds use the checked-in table without Python or network access.
+
+## 输入法反向索引 / IME reverse index
+
+`search_candidates.h` 从同一官方字表生成，只为精确拼音候选提供直接查找，支持 `skip` 继续取同音字；保留全部 20,924 个基本汉字、27,317 个读音映射。常用字优先，随后为 GB2312 一级/二级字和其余汉字。书名匹配的多音字规则不变。词组由 `main/ui/ui_ime_phrases.h` 单独维护。
+
+The reverse index provides exact-syllable candidate lookup with `skip` pagination, retaining 20,924 basic Han characters and 27,317 reading mappings. It prefers common glyphs, GB2312 level one/two and then other Han glyphs. Filename matching and its polyphonic rules are unchanged; the separately maintained IME lexicon owns phrases.
+
+```sh
+python3 tools/generate_ime_dictionary.py
+```
+
+内建字形补充从同一 OFL 黑体生成，字形分块存储；不是外置字体包。需要 FontTools 和 C 编译器才能重新生成，设备运行无需这些工具。
+The glyph supplement is generated from the same OFL black face in small blocks, rather than distributing a separate font package. Regeneration needs FontTools and a C compiler; the device does not.
+
+```sh
+python3 tools/gen_builtin_font.py
+python3 tools/gen_ui_hanzi.py
+python3 tools/ui_hanzi_host_test.py
+```

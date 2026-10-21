@@ -6,17 +6,193 @@
  *
  * Implementation of the ui_kit drawing primitives. Layout constants live
  * in the header.
+ * 用户最新修订：标题复用当前页的活动字体；首页用系统字体，阅读页用阅读字体，按原字号直接光栅化。
+ * Latest user revision: titles reuse the page's active face: system on Home, reader in books, directly rasterized at the original size.
+ * 不为标题切换或重复加载字库；内建缺字回退保留原生位图尺寸，截短保持完整内容的字体来源。
+ * Never switch or duplicate fonts for titles; built-in missing-glyph fallback retains native bitmap sizes and the full text fixes the face during truncation.
  */
 
 #include "ui_kit.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "datamatrix.h"
+#include "esp_heap_caps.h"
 #include "ttf_font.h"
+#include "ui_font.h"
+#include "ui_image_dither.h"
+#include "settings.h"
 
 #define UI_SEL_INSET 4
 #define UI_SEL_RING 3
+
+static bool s_system_text_scale = true;
+static bool s_system_ttf;
+
+void ui_text_set_system_scale(bool enabled) { s_system_text_scale = enabled; }
+void ui_text_set_system_font(bool enabled) { s_system_ttf = enabled; }
+
+int ui_text_effective_px(int px) {
+    px += 2;
+    // 系统界面与阅读工具跟随系统字号；正文关闭此开关，保持书内字号。
+    // System screens and reader controls follow UI size; body drawing disables this switch.
+    return s_system_text_scale && px < 46 ?
+        (px * app_settings_system_font_size() + 50) / 100 : px;
+}
+
+uint8_t ui_contrast_gray(uint8_t gray) {
+    int value = 128 + ((int)gray - 128) * app_settings_system_contrast() / 100;
+    if (value < 0) value = 0;
+    if (value > 255) value = 255;
+    return (uint8_t)value & 0xf0;
+}
+
+static uint8_t ui_read_pixel(const uint8_t *fb, int x, int y) {
+    int px = x, py = y;
+    switch (epd_get_rotation()) {
+        case EPD_ROT_PORTRAIT: px = epd_width() - y - 1; py = x; break;
+        case EPD_ROT_INVERTED_LANDSCAPE: px = epd_width() - x - 1; py = epd_height() - y - 1; break;
+        case EPD_ROT_INVERTED_PORTRAIT: px = y; py = epd_height() - x - 1; break;
+        default: break;
+    }
+    return epd_get_pixel(px, py, epd_width(), epd_height(), fb) >> 4;
+}
+
+void ui_image_bw_rect(uint8_t* fb, EpdRect rect) {
+    if (!fb || rect.width <= 0 || rect.height <= 0) return;
+    for (int y = 0; y < rect.height; ++y) {
+        const int py = rect.y + y;
+        if (py < 0 || py >= epd_rotated_display_height()) continue;
+        for (int x = 0; x < rect.width; ++x) {
+            const int px = rect.x + x;
+            if (px < 0 || px >= epd_rotated_display_width()) continue;
+            const uint8_t gray = (uint8_t)(ui_read_pixel(fb, px, py) * 17);
+            epd_draw_pixel(px, py, ui_image_dither_bw(gray, px, py), fb);
+        }
+    }
+}
+
+void ui_acrylic_bw_rect(uint8_t* fb, EpdRect rect) {
+    if (!fb || rect.width <= 0 || rect.height <= 0) return;
+    int64_t x0 = rect.x, y0 = rect.y;
+    int64_t x1 = x0 + rect.width, y1 = y0 + rect.height;
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (x1 > epd_rotated_display_width()) x1 = epd_rotated_display_width();
+    if (y1 > epd_rotated_display_height()) y1 = epd_rotated_display_height();
+    // 先完成原来的模糊/透明合成，再只转换挡板内的最终像素；边界与白底不额外增黑。
+    // Finish the original blur/translucency composition before converting only the guard's final pixels; do not darken boundaries or white backgrounds.
+    for (int y = (int)y0; y < y1; ++y)
+        for (int x = (int)x0; x < x1; ++x) {
+            const uint8_t gray = (uint8_t)(ui_read_pixel(fb, x, y) * 17u);
+            epd_draw_pixel(x, y, ui_image_dither_acrylic_bw(gray, x, y), fb);
+        }
+}
+
+/* ---- 图标 / Icons ---- */
+
+// 越界钳到边缘，让双线性在掩模边界上也能取样。
+// Clamp to the edge so bilinear sampling stays valid at the mask border.
+static int icon_nibble(const uint8_t *mask, int x, int y) {
+    if (x < 0) x = 0;
+    else if (x >= UI_ICON_MASK_SIZE) x = UI_ICON_MASK_SIZE - 1;
+    if (y < 0) y = 0;
+    else if (y >= UI_ICON_MASK_SIZE) y = UI_ICON_MASK_SIZE - 1;
+    const int pixel = y * UI_ICON_MASK_SIZE + x;
+    const uint8_t byte = mask[pixel / 2];
+    return pixel & 1 ? byte & 15 : byte >> 4;
+}
+
+void ui_draw_icon(
+    uint8_t *framebuffer, int cx, int cy, int size, ui_icon_t icon, uint8_t gray
+) {
+    if (framebuffer == NULL || size < 1 || icon < 0 || icon >= UI_ICON_COUNT) return;
+    const uint8_t *mask = ui_icon_masks[icon];
+    // Q16 定点：一个目标像素跨过多少源像素。掩模 72 像素，显示通常更小，所以是降采样。
+    // Q16 fixed point: source pixels spanned by one target pixel. The 72 px mask is
+    // normally drawn smaller, so this is a downscale.
+    const int32_t step = ((int32_t)UI_ICON_MASK_SIZE << 16) / size;
+    const int32_t half = step / 2 - (1 << 15);
+    const int left = cx - size / 2;
+    const int top = cy - size / 2;
+    for (int y = 0; y < size; ++y) {
+        const int32_t sy = (int32_t)y * step + half;
+        const int y0 = sy >> 16;
+        const int fy = sy & 0xffff;
+        for (int x = 0; x < size; ++x) {
+            const int32_t sx = (int32_t)x * step + half;
+            const int x0 = sx >> 16;
+            const int fx = sx & 0xffff;
+            // 双线性插值取覆盖率，再按覆盖率把 ink 混到当前像素上。
+            // Bilinear coverage, then composite the ink by that coverage.
+            const int a00 = icon_nibble(mask, x0, y0);
+            const int a10 = icon_nibble(mask, x0 + 1, y0);
+            const int a01 = icon_nibble(mask, x0, y0 + 1);
+            const int a11 = icon_nibble(mask, x0 + 1, y0 + 1);
+            const int upper = (a00 * (0x10000 - fx) + a10 * fx) >> 16;
+            const int lower = (a01 * (0x10000 - fx) + a11 * fx) >> 16;
+            const int cover = (upper * (0x10000 - fy) + lower * fy) >> 16;
+            if (cover <= 0) continue;
+            const int px = left + x;
+            const int py = top + y;
+            const int background = ui_read_pixel(framebuffer, px, py) << 4;
+            const int blended =
+                (background * (15 - cover) + (int)gray * cover + 7) / 15;
+            epd_draw_pixel(px, py, ui_contrast_gray((uint8_t)blended), framebuffer);
+        }
+    }
+}
+
+static void draw_frosted(uint8_t *fb, EpdRect rect, bool pocket) {
+    if (!fb || rect.width < 16 || rect.height < 16) return;
+    size_t count = (size_t)rect.width * rect.height;
+    uint8_t *source = heap_caps_malloc(count, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (source) {
+        for (int y = 0; y < rect.height; ++y)
+            for (int x = 0; x < rect.width; ++x)
+                source[(size_t)y * rect.width + x] = ui_read_pixel(fb, rect.x + x, rect.y + y);
+        for (int y = 0; y < rect.height; ++y) {
+            for (int x = 0; x < rect.width; ++x) {
+                int radius = pocket ? 12 : 9;
+                int inset = y < radius ? radius - y : y >= rect.height - radius ? y - (rect.height - radius + 1) : 0;
+                if (x < inset || x >= rect.width - inset) continue;
+                int delta = pocket ? 7 : 6;
+                int sum = source[(size_t)y * rect.width + x] * 4;
+                for (int oy = -delta; oy <= delta; oy += delta)
+                    for (int ox = -delta; ox <= delta; ox += delta) {
+                        int sx = x + ox, sy = y + oy;
+                        if (sx < 0) sx = 0; else if (sx >= rect.width) sx = rect.width - 1;
+                        if (sy < 0) sy = 0; else if (sy >= rect.height) sy = rect.height - 1;
+                        sum += source[(size_t)sy * rect.width + sx];
+                    }
+                int blur = sum / 13;
+                int tint = pocket ? 12 : 10;
+                int strength = pocket ? 48 : 38;
+                int gray = (blur * (100 - strength) + tint * strength + 50) / 100;
+                epd_draw_pixel(rect.x + x, rect.y + y, (uint8_t)(gray << 4), fb);
+            }
+        }
+        free(source);
+    } else {
+        for (int y = 0; y < rect.height; ++y)
+            for (int x = 0; x < rect.width; ++x)
+                if ((x + y) % 4 == 0) epd_draw_pixel(rect.x + x, rect.y + y, 0xb0, fb);
+    }
+    ui_hairline(fb, rect.y + 1, rect.x + 8, rect.width - 16, 0xe0);
+    ui_hairline(fb, rect.y + rect.height - 2, rect.x + 8, rect.width - 16, pocket ? 0x90 : 0x60);
+    epd_draw_line(rect.x, rect.y + 6, rect.x, rect.y + rect.height - 7, 0xa0, fb);
+    epd_draw_line(rect.x + rect.width - 1, rect.y + 6,
+                  rect.x + rect.width - 1, rect.y + rect.height - 7, 0xa0, fb);
+    if (pocket) return;
+    int cy = rect.y + rect.height - 18;
+    for (int cx = rect.x + 16; cx <= rect.x + rect.width - 17; cx += rect.width - 32) {
+        epd_draw_circle(cx, cy, 5, 0x70, fb);
+        epd_draw_line(cx - 2, cy, cx + 2, cy, 0x60, fb);
+    }
+}
+void ui_draw_acrylic_guard(uint8_t *fb, EpdRect rect) { draw_frosted(fb, rect, false); }
+void ui_draw_frosted_pocket(uint8_t *fb, EpdRect rect) { draw_frosted(fb, rect, true); }
 
 // 先用宽整数裁剪，再合并，避免异常坐标加法溢出。/ Clip using wide integers before union to avoid overflow on invalid coordinates.
 static EpdRect clip_refresh_rect(EpdRect r) {
@@ -52,36 +228,184 @@ void ui_text(
     uint8_t* framebuffer, int x, int y_top, int px, const char* text,
     enum EpdFontFlags align, bool inverted
 ) {
-    ttf_draw_text_px(
-        framebuffer, x, y_top + ttf_ascender_px(px), px, text, align,
-        inverted ? UI_INK_WHITE : UI_INK_BLACK,
-        inverted ? UI_INK_BLACK : UI_INK_WHITE
-    );
+    px = ui_text_effective_px(px);
+    uint8_t fg = inverted ? UI_INK_WHITE : UI_INK_BLACK;
+    uint8_t bg = inverted ? UI_INK_BLACK : UI_INK_WHITE;
+    if ((!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(text))
+        ui_font_draw_text_px(framebuffer, x, y_top + ui_font_ascender_px(px), px, text, align, fg, bg, false);
+    else ttf_draw_text_px(framebuffer, x, y_top + ttf_ascender_px(px), px, text, align, fg, bg);
+}
+
+int ui_text_fixed_width_px(int px, const char* text) {
+    return ui_text_fixed_context_width_px(px, text, text);
+}
+
+int ui_text_fixed_context_width_px(int px, const char* text, const char* font_sample) {
+    if (!text || px <= 0) return 0;
+    return (!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(font_sample ? font_sample : text)
+        ? ui_font_text_width_px(px, text)
+        : ttf_text_width_px(px, text);
+}
+
+void ui_text_fixed(
+    uint8_t* framebuffer, int x, int y_top, int px, const char* text,
+    enum EpdFontFlags align, bool inverted
+) {
+    uint8_t fg = inverted ? UI_INK_WHITE : UI_INK_BLACK;
+    uint8_t bg = inverted ? UI_INK_BLACK : UI_INK_WHITE;
+    if ((!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(text))
+        ui_font_draw_text_px(framebuffer, x, y_top + ui_font_ascender_px(px), px, text, align, fg, bg, false);
+    else
+        ttf_draw_text_px(framebuffer, x, y_top + ttf_ascender_px(px), px, text, align, fg, bg);
+}
+
+void ui_text_fixed_vc(
+    uint8_t* framebuffer, int x, int center_y, int px, const char* text,
+    enum EpdFontFlags align, bool inverted
+) {
+    ui_text_fixed_context_vc(framebuffer, x, center_y, px, text, text, align, inverted);
+}
+
+void ui_text_fixed_context_vc(
+    uint8_t* framebuffer, int x, int center_y, int px, const char* text,
+    const char* font_sample, enum EpdFontFlags align, bool inverted
+) {
+    if (!framebuffer || !text || !text[0] || px <= 0) return;
+    int above = 0, below = 0;
+    uint8_t fg = inverted ? UI_INK_WHITE : UI_INK_BLACK;
+    uint8_t bg = inverted ? UI_INK_BLACK : UI_INK_WHITE;
+    if ((!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(font_sample ? font_sample : text)) {
+        ui_font_measure_line_px(px, text, &above, &below);
+        ui_font_draw_text_px(framebuffer, x, center_y + (above - below) / 2, px, text, align, fg, bg, false);
+    } else {
+        ttf_measure_line_px(px, text, &above, &below);
+        ttf_draw_text_px(framebuffer, x, center_y + (above - below) / 2, px, text, align, fg, bg);
+    }
+}
+
+void ui_text_box(uint8_t *fb, EpdRect box, int px, const char *text,
+                 enum EpdFontFlags align, bool inverted) {
+    if (!fb || !text || !text[0] || box.width <= 0 || box.height <= 0) return;
+    px = ui_text_effective_px(px);
+    const bool builtin = (!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(text);
+    while (px > 1) {
+        int above = 0, below = 0;
+        if (builtin) ui_font_measure_line_px(px,text,&above,&below);
+        else ttf_measure_line_px(px,text,&above,&below);
+        // 基线与居中坐标分别取整，预留两像素避免奇数字形越过控件边界。
+        // Reserve two pixels for separate baseline/center rounding on odd glyph bounds.
+        const int width = ui_text_fixed_width_px(px,text), height = above + below + 2;
+        if (width <= box.width && height <= box.height) break;
+        int next = px - 1;
+        if (width > box.width && width > 0 && px * box.width / width < next)
+            next = px * box.width / width;
+        if (height > box.height && height > 0 && px * box.height / height < next)
+            next = px * box.height / height;
+        px = next > 0 ? next : 1;
+    }
+    int x = box.x;
+    if (align == EPD_DRAW_ALIGN_CENTER) x += box.width / 2;
+    else if (align == EPD_DRAW_ALIGN_RIGHT) x += box.width;
+    ui_text_fixed_vc(fb,x,box.y+box.height/2,px,text,align,inverted);
+}
+
+void ui_text_fixed_ink_vc(uint8_t *fb, int x, int center_y, int px, const char *text,
+                          enum EpdFontFlags align, uint8_t gray) {
+    if (!fb || !text || !*text || px <= 0) return;
+    int above = 0, below = 0;
+    uint8_t ink = ui_contrast_gray(gray) >> 4;
+    if ((!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(text)) {
+        ui_font_measure_line_px(px, text, &above, &below);
+        ui_font_draw_text_px(fb, x, center_y + (above-below)/2, px, text, align, ink, UI_INK_WHITE, false);
+    } else {
+        ttf_measure_line_px(px, text, &above, &below);
+        ttf_draw_text_px(fb, x, center_y + (above-below)/2, px, text, align, ink, UI_INK_WHITE);
+    }
+}
+
+static bool title_uses_active_font(const char *sample) {
+    // 用户字体始终跟随当前页，不因界面的系统字体标志改回内建黑体。
+    // User fonts always follow the active page, independently of the UI's system-face flag.
+    return ttf_font_ready() && (!ttf_font_is_builtin() || ttf_font_has_text(sample));
+}
+
+void ui_text_fixed_context_aa_vc(uint8_t *fb,int x,int center_y,int px,const char *text,
+                               const char *font_sample,enum EpdFontFlags align,uint8_t gray,uint8_t background) {
+    if(!fb||!text||!*text||px<=0)return;
+    int above=0,below=0;
+    uint8_t ink=ui_contrast_gray(gray)>>4,back=ui_contrast_gray(background)>>4;
+    if((!s_system_ttf||ttf_font_is_builtin())&&ui_font_has_text(font_sample?font_sample:text)) {
+        ui_font_measure_line_px(px,text,&above,&below);
+        ui_font_draw_text_px(fb,x,center_y+(above-below)/2,px,text,align,ink,back,false);
+    } else {
+        bool prior=ttf_get_antialias();ttf_set_antialias(true);
+        ttf_measure_line_px(px,text,&above,&below);
+        ttf_draw_text_px(fb,x,center_y+(above-below)/2,px,text,align,ink,back);
+        ttf_set_antialias(prior);
+    }
+}
+
+int ui_text_title_fit(char *text, int preferred_px, int width, const char *font_sample) {
+    const char *sample = font_sample ? font_sample : text;
+    bool builtin = !title_uses_active_font(sample) && ui_font_has_text(sample);
+    int px = builtin ? ui_font_title_px(preferred_px, sample) : preferred_px;
+    if (px < 12) px = 12;
+    if (px > 120) px = 120;
+    if (!text) return px;
+    while (*text && (builtin ? ui_font_text_width_px(px, text) : ttf_text_width_px(px, text)) > width) {
+        size_t n = strlen(text) - 1;
+        while (n && ((unsigned char)text[n] & 0xc0) == 0x80) --n;
+        text[n] = 0;
+    }
+    return px;
+}
+
+void ui_text_title_vc(uint8_t *fb, int x, int center_y, int px, const char *text,
+                      const char *font_sample, enum EpdFontFlags align) {
+    if (!fb || !text || !*text) return;
+    int above = 0, below = 0;
+    if (!title_uses_active_font(font_sample ? font_sample : text) &&
+        ui_font_has_text(font_sample ? font_sample : text)) {
+        ui_font_measure_line_px(px, text, &above, &below);
+        ui_font_draw_text_px(fb, x, center_y + (above - below) / 2, px, text, align,
+                             UI_INK_BLACK, UI_INK_WHITE, false);
+    } else {
+        bool prior=ttf_get_antialias();ttf_set_antialias(true);
+        ttf_measure_line_px(px, text, &above, &below);
+        ttf_draw_text_px(fb, x, center_y + (above - below) / 2, px, text,
+                         align, UI_INK_BLACK, UI_INK_WHITE);
+        ttf_set_antialias(prior);
+    }
 }
 
 void ui_text_bw(
     uint8_t* framebuffer, int x, int y_top, int px, const char* text,
     enum EpdFontFlags align, bool inverted
 ) {
-    ttf_draw_text_px_bw(
-        framebuffer, x, y_top + ttf_ascender_px(px), px, text, align,
-        inverted ? UI_INK_WHITE : UI_INK_BLACK,
-        inverted ? UI_INK_BLACK : UI_INK_WHITE
-    );
+    px = ui_text_effective_px(px);
+    uint8_t fg = inverted ? UI_INK_WHITE : UI_INK_BLACK;
+    uint8_t bg = inverted ? UI_INK_BLACK : UI_INK_WHITE;
+    if ((!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(text))
+        ui_font_draw_text_px(framebuffer, x, y_top + ui_font_ascender_px(px), px, text, align, fg, bg, true);
+    else ttf_draw_text_px_bw(framebuffer, x, y_top + ttf_ascender_px(px), px, text, align, fg, bg);
 }
 
 void ui_text_vc(
     uint8_t* framebuffer, int x, int center_y, int px, const char* text,
     enum EpdFontFlags align, bool inverted
 ) {
+    px = ui_text_effective_px(px);
     int above = 0;
     int below = 0;
-    ttf_measure_line_px(px, text, &above, &below);
-    ttf_draw_text_px(
-        framebuffer, x, center_y + (above - below) / 2, px, text, align,
-        inverted ? UI_INK_WHITE : UI_INK_BLACK,
-        inverted ? UI_INK_BLACK : UI_INK_WHITE
-    );
+    uint8_t fg = inverted ? UI_INK_WHITE : UI_INK_BLACK;
+    uint8_t bg = inverted ? UI_INK_BLACK : UI_INK_WHITE;
+    if ((!s_system_ttf || ttf_font_is_builtin()) && ui_font_has_text(text)) {
+        ui_font_measure_line_px(px, text, &above, &below);
+        ui_font_draw_text_px(framebuffer, x, center_y + (above - below) / 2, px, text, align, fg, bg, false);
+    } else {
+        ttf_measure_line_px(px, text, &above, &below);
+        ttf_draw_text_px(framebuffer, x, center_y + (above - below) / 2, px, text, align, fg, bg);
+    }
 }
 
 void ui_blit_bmp(
@@ -150,6 +474,7 @@ static void draw_arc(
 void ui_draw_round_rect(
     uint8_t* framebuffer, EpdRect rect, int radius, uint8_t color
 ) {
+    color = ui_contrast_gray(color);
     if (rect.width <= 0 || rect.height <= 0) return;
     const int r = clamp_radius(rect, radius);
     const int x1 = rect.x + rect.width - 1;
@@ -158,21 +483,21 @@ void ui_draw_round_rect(
     const int span_v = rect.height - 2 * r;
 
     if (span_h > 0) {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){ .x = rect.x + r, .y = rect.y, .width = span_h, .height = 1 },
             color, framebuffer
         );
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){ .x = rect.x + r, .y = y1, .width = span_h, .height = 1 },
             color, framebuffer
         );
     }
     if (span_v > 0) {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){ .x = rect.x, .y = rect.y + r, .width = 1, .height = span_v },
             color, framebuffer
         );
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){ .x = x1, .y = rect.y + r, .width = 1, .height = span_v },
             color, framebuffer
         );
@@ -194,10 +519,24 @@ EpdRect ui_inset_rect(EpdRect r, int d) {
     };
 }
 
+void ui_draw_control_frame(uint8_t* framebuffer, EpdRect rect, int radius, uint8_t color) {
+    // 在字形/封面量化前把结构线限制为深灰；双像素线保持原矩形内边界，不扩展刷新范围。
+    // Keep structural ink dark before glyph/cover quantization; two pixels stay inside the original frame and refresh bounds.
+    const uint8_t ink = color > 0x50 ? 0x50 : color;
+    ui_draw_round_rect(framebuffer, rect, radius, ink);
+    if (rect.width > 2 && rect.height > 2)
+        ui_draw_round_rect(framebuffer, ui_inset_rect(rect, 1), radius > 0 ? radius - 1 : 0, ink);
+}
+
+void ui_draw_separator(uint8_t* framebuffer, int y, int x, int width, uint8_t color) {
+    if (width <= 0) return;
+    ui_fill_rect_fast((EpdRect){x, y, width, 2}, ui_contrast_gray(color > 0x60 ? 0x60 : color), framebuffer);
+}
+
 void ui_draw_selected_round_rect(
     uint8_t* framebuffer, EpdRect rect, int radius
 ) {
-    ui_draw_round_rect(framebuffer, rect, radius, UI_GRAY_BLACK);
+    ui_draw_control_frame(framebuffer, rect, radius, UI_GRAY_BLACK);
     for (int i = 0; i < UI_SEL_RING; i++) {
         int d = UI_SEL_INSET + i;
         EpdRect inner = ui_inset_rect(rect, d);
@@ -214,7 +553,7 @@ void ui_draw_choice_round_rect(
     if (on) {
         ui_draw_selected_round_rect(framebuffer, rect, radius);
     } else {
-        ui_draw_round_rect(framebuffer, rect, radius, UI_GRAY_BLACK);
+        ui_draw_control_frame(framebuffer, rect, radius, UI_GRAY_BLACK);
     }
 }
 
@@ -222,9 +561,10 @@ void ui_fill_round_rect(
     uint8_t* framebuffer, EpdRect rect, int radius, uint8_t color
 ) {
     if (rect.width <= 0 || rect.height <= 0) return;
+    color = ui_contrast_gray(color);
     radius = clamp_radius(rect, radius);
 
-    epd_fill_rect(
+    ui_fill_rect_fast(
         (EpdRect){
             .x = rect.x + radius,
             .y = rect.y,
@@ -317,7 +657,8 @@ EpdRect ui_content_refresh_area(void) {
 }
 
 void ui_hairline(uint8_t* framebuffer, int y, int x, int w, uint8_t color) {
-    epd_fill_rect(
+    color = ui_contrast_gray(color);
+    ui_fill_rect_fast(
         (EpdRect){ .x = x, .y = y, .width = w, .height = 1 }, color, framebuffer
     );
 }
@@ -520,7 +861,7 @@ void ui_draw_chip(
     if (on) {
         ui_draw_selected_round_rect(framebuffer, rect, UI_CHIP_RADIUS);
     } else {
-        ui_draw_round_rect(framebuffer, rect, UI_CHIP_RADIUS, UI_GRAY_LIGHT);
+        ui_draw_control_frame(framebuffer, rect, UI_CHIP_RADIUS, UI_GRAY_LIGHT);
     }
     ui_text_vc(
         framebuffer, rect.x + rect.width / 2, rect.y + rect.height / 2,
@@ -627,7 +968,7 @@ static void c39_char(
     for (int i = 8; i >= 0; i--) {
         const int w = ((pat >> i) & 1) ? wide : narrow;
         if (((8 - i) & 1) == 0) {
-            epd_fill_rect(
+            ui_fill_rect_fast(
                 (EpdRect){ .x = *x, .y = y, .width = w, .height = h },
                 UI_GRAY_BLACK, framebuffer
             );
@@ -766,7 +1107,7 @@ static void c128_bars(
         const int on = (pat >> i) & 1;
         if (run > 0 && on != run_on) {
             if (run_on) {
-                epd_fill_rect(
+                ui_fill_rect_fast(
                     (EpdRect){ .x = px, .y = y, .width = run * mod, .height = h },
                     UI_GRAY_BLACK, framebuffer
                 );
@@ -778,7 +1119,7 @@ static void c128_bars(
         run++;
     }
     if (run > 0 && run_on) {
-        epd_fill_rect(
+        ui_fill_rect_fast(
             (EpdRect){ .x = px, .y = y, .width = run * mod, .height = h },
             UI_GRAY_BLACK, framebuffer
         );
@@ -990,7 +1331,7 @@ void ui_draw_datamatrix(uint8_t* framebuffer, EpdRect rect, const char* text) {
             const int on = (c < dim && mods[r * dim + c]);
             if (on && run0 < 0) run0 = c;
             if (!on && run0 >= 0) {
-                epd_fill_rect(
+                ui_fill_rect_fast(
                     (EpdRect){
                         .x = x0 + run0 * mod,
                         .y = y0 + r * mod,
@@ -1006,7 +1347,61 @@ void ui_draw_datamatrix(uint8_t* framebuffer, EpdRect rect, const char* text) {
 }
 
 void ui_clear_page(uint8_t* framebuffer) {
+
     memset(framebuffer, 0xFF, (size_t)epd_width() * epd_height() / 2);
+}
+
+void ui_blit_mono_bitmap(uint8_t *fb,EpdRect rect,const uint8_t *bits,size_t stride) {
+    if(!fb||!bits||rect.width<=0||rect.height<=0||stride<((size_t)rect.width+7)/8)return;
+    int64_t right=(int64_t)rect.x+rect.width,bottom=(int64_t)rect.y+rect.height;
+    int x0=rect.x<0?0:rect.x,y0=rect.y<0?0:rect.y;
+    int width=epd_rotated_display_width(),height=epd_rotated_display_height();
+    if(right>width)right=width;
+    if(bottom>height)bottom=height;
+    if(right<=x0||bottom<=y0)return;
+    const int pw=epd_width();
+    int dx=1,dy=pw;
+    switch(epd_get_rotation()) {
+        case EPD_ROT_PORTRAIT:dx=pw;dy=-1;break;
+        case EPD_ROT_INVERTED_LANDSCAPE:dx=-1;dy=-pw;break;
+        case EPD_ROT_INVERTED_PORTRAIT:dx=-pw;dy=1;break;
+        default:break;
+    }
+    EpdRect origin=ui_rotate_rect_to_fb((EpdRect){x0,y0,1,1});
+    int row_pixel=origin.y*pw+origin.x;
+    for(int y=y0;y<bottom;++y,row_pixel+=dy) {
+        const uint8_t *source=bits+(size_t)(y-(int64_t)rect.y)*stride;
+        int pixel=row_pixel;
+        for(int x=x0;x<right;++x,pixel+=dx) {
+            size_t sx=(size_t)(x-(int64_t)rect.x);
+            unsigned shift=(pixel&1)*4,value=source[sx/8]&(1u<<(sx&7))?15:0;
+            fb[pixel/2]=(fb[pixel/2]&~(15u<<shift))|(value<<shift);
+        }
+    }
+}
+
+void ui_fill_rect_fast(EpdRect rect, uint8_t gray, uint8_t *framebuffer) {
+    if (!framebuffer || rect.width <= 0 || rect.height <= 0) return;
+    int64_t right=(int64_t)rect.x+rect.width, bottom=(int64_t)rect.y+rect.height;
+    int width=epd_rotated_display_width(),height=epd_rotated_display_height();
+    if(rect.x<0)rect.x=0;
+    if(rect.y<0)rect.y=0;
+    if(right>width)right=width;
+    if(bottom>height)bottom=height;
+    if(right<=rect.x||bottom<=rect.y)return;
+    rect.width=(int)(right-rect.x);rect.height=(int)(bottom-rect.y);
+    EpdRect physical=ui_rotate_rect_to_fb(rect);
+    const size_t stride=(size_t)epd_width()/2;
+    const uint8_t nibble=gray>>4, packed=nibble*17u;
+    const int start=physical.x,end=physical.x+physical.width;
+    for(int y=physical.y;y<physical.y+physical.height;++y) {
+        uint8_t *row=framebuffer+(size_t)y*stride;
+        int x=start;
+        if(x&1){row[x/2]=(row[x/2]&0x0f)|(nibble<<4);++x;}
+        const int pairs=(end-x)/2;
+        if(pairs>0){memset(row+x/2,packed,(size_t)pairs);x+=pairs*2;}
+        if(x<end)row[x/2]=(row[x/2]&0xf0)|nibble;
+    }
 }
 
 // 旋转都是 90° 的整数倍，逻辑矩形映射过去仍是矩形，所以取两个对角点的包围盒就
@@ -1091,7 +1486,7 @@ static EpdRect no_font_card_rect(int y) {
 static void draw_bmp_card(
     uint8_t* framebuffer, EpdRect card, const ui_fallback_bmp_t* bmp
 ) {
-    ui_draw_round_rect(framebuffer, card, UI_BTN_RADIUS, UI_GRAY_BLACK);
+    ui_draw_control_frame(framebuffer, card, UI_BTN_RADIUS, UI_GRAY_BLACK);
     int x = card.x + (card.width - bmp->width) / 2;
     int y = card.y + (card.height - bmp->height) / 2;
     ui_blit_bmp(framebuffer, x, y, bmp);

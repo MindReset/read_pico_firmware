@@ -1,0 +1,4 @@
+# 签名私钥不入库（build-apk.sh 首次构建时自动生成）
+debug.keystore
+# v2+ 签名旁车文件，重签即再生，安装不需要
+*.idsig

@@ -1,0 +1,940 @@
+scenario=plain_portrait ok=1 gen=1 pages=2 body={43,188,598,916}
+  page=0 start=0 images=0
+  page=0 draws=20 guides=0
+  probe page=0 (83,208) -> 1 [0,3)
+  probe page=0 (581,208) -> 1 [57,60)
+  probe page=0 (83,244) -> 1 [69,72)
+  probe page=0 (581,244) -> 1 [126,129)
+  probe page=0 (83,280) -> 1 [138,141)
+  probe page=0 (581,280) -> 1 [171,174)
+  probe page=0 (83,316) -> 0 [0,0)
+  probe page=0 (581,316) -> 0 [0,0)
+  page=1 start=1123 images=0
+  page=1 draws=16 guides=0
+  probe page=1 (83,208) -> 1 [1126,1129)
+  probe page=1 (581,208) -> 1 [1165,1168)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 1 [1169,1170)
+  probe page=1 (581,280) -> 1 [1201,1209)
+  probe page=1 (83,316) -> 1 [1210,1221)
+  probe page=1 (581,316) -> 1 [1247,1258)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=0
+  offset=990 -> page=0
+  offset=1980 -> page=1
+  offset=1981 -> page=1
+  offset=2481 -> page=1
+scenario=plain_landscape ok=1 gen=3 pages=3 body={36,96,1144,500}
+  page=0 start=0 images=0
+  page=0 draws=10 guides=0
+  probe page=0 (76,116) -> 1 [0,3)
+  probe page=0 (1120,116) -> 1 [117,120)
+  probe page=0 (76,152) -> 1 [129,132)
+  probe page=0 (1120,152) -> 1 [171,174)
+  probe page=0 (76,188) -> 0 [0,0)
+  probe page=0 (1120,188) -> 0 [0,0)
+  probe page=0 (76,224) -> 1 [175,178)
+  probe page=0 (1120,224) -> 1 [295,298)
+  page=1 start=804 images=0
+  page=1 draws=10 guides=0
+  probe page=1 (76,116) -> 1 [804,807)
+  probe page=1 (1120,116) -> 1 [921,924)
+  probe page=1 (76,152) -> 1 [933,936)
+  probe page=1 (1120,152) -> 1 [987,990)
+  probe page=1 (76,188) -> 0 [0,0)
+  probe page=1 (1120,188) -> 0 [0,0)
+  probe page=1 (76,224) -> 1 [991,994)
+  probe page=1 (1120,224) -> 1 [1108,1111)
+  page=2 start=1635 images=0
+  page=2 draws=4 guides=0
+  probe page=2 (76,116) -> 1 [1635,1638)
+  probe page=2 (1120,116) -> 1 [1752,1755)
+  probe page=2 (76,152) -> 1 [1764,1767)
+  probe page=2 (1120,152) -> 1 [1800,1803)
+  probe page=2 (76,188) -> 0 [0,0)
+  probe page=2 (1120,188) -> 0 [0,0)
+  probe page=2 (76,224) -> 1 [1804,1807)
+  probe page=2 (1120,224) -> 1 [1921,1924)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=0
+  offset=990 -> page=1
+  offset=1980 -> page=2
+  offset=1981 -> page=2
+  offset=2481 -> page=2
+scenario=plain_track_indent ok=1 gen=5 pages=2 body={43,188,598,916}
+  page=0 start=0 images=0
+  page=0 draws=20 guides=0
+  probe page=0 (83,208) -> 1 [0,3)
+  probe page=0 (581,208) -> 1 [45,48)
+  probe page=0 (83,244) -> 1 [57,60)
+  probe page=0 (581,244) -> 1 [111,114)
+  probe page=0 (83,280) -> 1 [123,126)
+  probe page=0 (581,280) -> 1 [171,174)
+  probe page=0 (83,316) -> 0 [0,0)
+  probe page=0 (581,316) -> 0 [0,0)
+  page=1 start=1045 images=0
+  page=1 draws=18 guides=0
+  probe page=1 (83,208) -> 1 [1048,1051)
+  probe page=1 (581,208) -> 1 [1099,1102)
+  probe page=1 (83,244) -> 1 [1111,1114)
+  probe page=1 (581,244) -> 1 [1165,1168)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 1 [1169,1170)
+  probe page=1 (581,316) -> 1 [1195,1200)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=0
+  offset=990 -> page=0
+  offset=1980 -> page=1
+  offset=1981 -> page=1
+  offset=2481 -> page=1
+scenario=rich_portrait ok=1 gen=7 pages=5 body={43,188,598,916}
+  page=0 start=0 images=1 [0]img=0,y=262,480x360
+  page=0 draws=8 guides=0
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 1 [17,20)
+  probe page=0 (581,280) -> 1 [74,77)
+  probe page=0 (83,316) -> 1 [86,89)
+  probe page=0 (581,316) -> 1 [143,146)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=2 guides=0
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=550 images=0
+  page=2 draws=4 guides=0
+  probe page=2 (83,208) -> 1 [553,556)
+  probe page=2 (581,208) -> 1 [592,595)
+  probe page=2 (83,244) -> 0 [0,0)
+  probe page=2 (581,244) -> 0 [0,0)
+  probe page=2 (83,280) -> 1 [599,602)
+  probe page=2 (581,280) -> 1 [656,659)
+  probe page=2 (83,316) -> 1 [668,671)
+  probe page=2 (581,316) -> 1 [725,728)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=0
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [809,812)
+  probe page=4 (83,244) -> 1 [821,824)
+  probe page=4 (581,244) -> 1 [878,881)
+  probe page=4 (83,280) -> 1 [890,893)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 0 [0,0)
+  probe page=4 (581,316) -> 0 [0,0)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=2
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=rich_landscape ok=1 gen=9 pages=6 body={36,96,1144,500}
+  page=0 start=0 images=0
+  page=0 draws=4 guides=0
+  probe page=0 (76,116) -> 1 [3,6)
+  probe page=0 (1120,116) -> 1 [13,16)
+  probe page=0 (76,152) -> 0 [0,0)
+  probe page=0 (1120,152) -> 0 [0,0)
+  probe page=0 (76,188) -> 1 [17,20)
+  probe page=0 (1120,188) -> 1 [134,137)
+  probe page=0 (76,224) -> 1 [146,149)
+  probe page=0 (1120,224) -> 1 [188,191)
+  page=1 start=235 images=1 [0]img=0,y=0,480x360
+  page=1 draws=2 guides=0
+  probe page=1 (76,116) -> 0 [0,0)
+  probe page=1 (1120,116) -> 0 [0,0)
+  probe page=1 (76,152) -> 0 [0,0)
+  probe page=1 (1120,152) -> 0 [0,0)
+  probe page=1 (76,188) -> 0 [0,0)
+  probe page=1 (1120,188) -> 0 [0,0)
+  probe page=1 (76,224) -> 0 [0,0)
+  probe page=1 (1120,224) -> 0 [0,0)
+  page=2 start=413 images=1 [0]img=1,y=0,375x500
+  page=2 draws=0 guides=0
+  probe page=2 (76,116) -> 0 [0,0)
+  probe page=2 (1120,116) -> 0 [0,0)
+  probe page=2 (76,152) -> 0 [0,0)
+  probe page=2 (1120,152) -> 0 [0,0)
+  probe page=2 (76,188) -> 0 [0,0)
+  probe page=2 (1120,188) -> 0 [0,0)
+  probe page=2 (76,224) -> 0 [0,0)
+  probe page=2 (1120,224) -> 0 [0,0)
+  page=3 start=415 images=0
+  page=3 draws=4 guides=0
+  probe page=3 (76,116) -> 1 [415,418)
+  probe page=3 (1120,116) -> 1 [532,535)
+  probe page=3 (76,152) -> 1 [544,547)
+  probe page=3 (1120,152) -> 1 [592,595)
+  probe page=3 (76,188) -> 0 [0,0)
+  probe page=3 (1120,188) -> 0 [0,0)
+  probe page=3 (76,224) -> 1 [599,602)
+  probe page=3 (1120,224) -> 1 [719,722)
+  page=4 start=753 images=0
+  page=4 draws=0 guides=0
+  probe page=4 (76,116) -> 0 [0,0)
+  probe page=4 (1120,116) -> 0 [0,0)
+  probe page=4 (76,152) -> 0 [0,0)
+  probe page=4 (1120,152) -> 0 [0,0)
+  probe page=4 (76,188) -> 0 [0,0)
+  probe page=4 (1120,188) -> 0 [0,0)
+  probe page=4 (76,224) -> 0 [0,0)
+  probe page=4 (1120,224) -> 0 [0,0)
+  page=5 start=755 images=0
+  page=5 draws=4 guides=0
+  probe page=5 (76,116) -> 1 [755,758)
+  probe page=5 (1120,116) -> 1 [872,875)
+  probe page=5 (76,152) -> 1 [884,887)
+  probe page=5 (1120,152) -> 1 [938,941)
+  probe page=5 (76,188) -> 0 [0,0)
+  probe page=5 (1120,188) -> 0 [0,0)
+  probe page=5 (76,224) -> 1 [942,945)
+  probe page=5 (1120,224) -> 1 [1059,1062)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=1
+  offset=564 -> page=3
+  offset=1127 -> page=5
+  offset=1128 -> page=5
+  offset=1628 -> page=5
+scenario=rich_spacing ok=1 gen=11 pages=5 body={43,188,598,916}
+  page=0 start=0 images=1 [0]img=0,y=349,480x360
+  page=0 draws=8 guides=0
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 1 [3,6)
+  probe page=0 (581,244) -> 1 [13,16)
+  probe page=0 (83,280) -> 0 [0,0)
+  probe page=0 (581,280) -> 0 [0,0)
+  probe page=0 (83,316) -> 1 [17,20)
+  probe page=0 (581,316) -> 1 [80,83)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=1 guides=0
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=487 images=0
+  page=2 draws=5 guides=0
+  probe page=2 (83,208) -> 1 [490,493)
+  probe page=2 (581,208) -> 1 [550,553)
+  probe page=2 (83,244) -> 1 [562,565)
+  probe page=2 (581,244) -> 1 [592,595)
+  probe page=2 (83,280) -> 0 [0,0)
+  probe page=2 (581,280) -> 0 [0,0)
+  probe page=2 (83,316) -> 0 [0,0)
+  probe page=2 (581,316) -> 0 [0,0)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=0
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [818,821)
+  probe page=4 (83,244) -> 1 [830,833)
+  probe page=4 (581,244) -> 1 [890,893)
+  probe page=4 (83,280) -> 1 [902,905)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 1 [902,905)
+  probe page=4 (581,316) -> 1 [938,941)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=2
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=rich_images_hidden ok=1 gen=13 pages=2 body={43,188,598,916}
+  page=0 start=0 images=0
+  page=0 draws=19 guides=0
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 1 [17,20)
+  probe page=0 (581,280) -> 1 [74,77)
+  probe page=0 (83,316) -> 1 [86,89)
+  probe page=0 (581,316) -> 1 [143,146)
+  page=1 start=1074 images=0
+  page=1 draws=1 guides=0
+  probe page=1 (83,208) -> 1 [1077,1080)
+  probe page=1 (581,208) -> 1 [1125,1128)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=0
+  offset=1127 -> page=1
+  offset=1128 -> page=1
+  offset=1628 -> page=1
+scenario=rich_lead ok=1 gen=15 pages=5 body={43,188,598,916}
+  page=0 start=17 images=1 [0]img=0,y=408,480x360
+  page=0 draws=7 guides=0
+  probe page=0 (83,208) -> 0 [0,0)
+  probe page=0 (581,208) -> 0 [0,0)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 0 [0,0)
+  probe page=0 (581,280) -> 0 [0,0)
+  probe page=0 (83,316) -> 0 [0,0)
+  probe page=0 (581,316) -> 0 [0,0)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=2 guides=0
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=550 images=0
+  page=2 draws=4 guides=0
+  probe page=2 (83,208) -> 1 [553,556)
+  probe page=2 (581,208) -> 1 [592,595)
+  probe page=2 (83,244) -> 0 [0,0)
+  probe page=2 (581,244) -> 0 [0,0)
+  probe page=2 (83,280) -> 1 [599,602)
+  probe page=2 (581,280) -> 1 [656,659)
+  probe page=2 (83,316) -> 1 [668,671)
+  probe page=2 (581,316) -> 1 [725,728)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=0
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [809,812)
+  probe page=4 (83,244) -> 1 [821,824)
+  probe page=4 (581,244) -> 1 [878,881)
+  probe page=4 (83,280) -> 1 [890,893)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 0 [0,0)
+  probe page=4 (581,316) -> 0 [0,0)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=2
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=rich_reading_line ok=1 gen=17 pages=5 body={43,188,598,916}
+  page=0 start=0 images=1 [0]img=0,y=224,480x360
+  page=0 draws=8 guides=160
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 1 [17,20)
+  probe page=0 (581,280) -> 1 [83,86)
+  probe page=0 (83,316) -> 1 [176,179)
+  probe page=0 (581,316) -> 1 [188,191)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=2 guides=40
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=571 images=0
+  page=2 draws=3 guides=60
+  probe page=2 (83,208) -> 1 [574,577)
+  probe page=2 (581,208) -> 1 [592,595)
+  probe page=2 (83,244) -> 0 [0,0)
+  probe page=2 (581,244) -> 0 [0,0)
+  probe page=2 (83,280) -> 1 [677,680)
+  probe page=2 (581,280) -> 1 [743,746)
+  probe page=2 (83,316) -> 0 [0,0)
+  probe page=2 (581,316) -> 0 [0,0)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=120
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [821,824)
+  probe page=4 (83,244) -> 1 [833,836)
+  probe page=4 (581,244) -> 1 [902,905)
+  probe page=4 (83,280) -> 1 [914,917)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 1 [942,945)
+  probe page=4 (581,316) -> 1 [1008,1011)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=1
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=kinsoku_narrow ok=1 gen=19 pages=4 body={36,258,300,900}
+  page=0 start=0 images=0
+  page=0 draws=21 guides=0
+  probe page=0 (76,278) -> 1 [0,3)
+  probe page=0 (276,278) -> 1 [18,21)
+  probe page=0 (76,314) -> 1 [30,33)
+  probe page=0 (276,314) -> 1 [51,54)
+  probe page=0 (76,350) -> 1 [63,66)
+  probe page=0 (276,350) -> 1 [87,90)
+  probe page=0 (76,386) -> 1 [99,102)
+  probe page=0 (276,386) -> 1 [120,123)
+  page=1 start=559 images=0
+  page=1 draws=21 guides=0
+  probe page=1 (76,278) -> 1 [562,565)
+  probe page=1 (276,278) -> 1 [583,586)
+  probe page=1 (76,314) -> 1 [595,598)
+  probe page=1 (276,314) -> 1 [616,619)
+  probe page=1 (76,350) -> 1 [628,631)
+  probe page=1 (276,350) -> 1 [643,646)
+  probe page=1 (76,386) -> 0 [0,0)
+  probe page=1 (276,386) -> 0 [0,0)
+  page=2 start=1188 images=0
+  page=2 draws=21 guides=0
+  probe page=2 (76,278) -> 1 [1190,1192)
+  probe page=2 (276,278) -> 1 [1201,1209)
+  probe page=2 (76,314) -> 1 [1210,1221)
+  probe page=2 (276,314) -> 1 [1228,1232)
+  probe page=2 (76,350) -> 1 [1233,1238)
+  probe page=2 (276,350) -> 1 [1247,1258)
+  probe page=2 (76,386) -> 1 [1259,1262)
+  probe page=2 (276,386) -> 1 [1263,1269)
+  page=3 start=1794 images=0
+  page=3 draws=7 guides=0
+  probe page=3 (76,278) -> 1 [1797,1800)
+  probe page=3 (276,278) -> 1 [1800,1803)
+  probe page=3 (76,314) -> 0 [0,0)
+  probe page=3 (276,314) -> 0 [0,0)
+  probe page=3 (76,350) -> 1 [1804,1807)
+  probe page=3 (276,350) -> 1 [1825,1828)
+  probe page=3 (76,386) -> 1 [1837,1840)
+  probe page=3 (276,386) -> 1 [1858,1861)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=1
+  offset=990 -> page=1
+  offset=1980 -> page=3
+  offset=1981 -> page=3
+  offset=2481 -> page=3
+scenario=plain_portrait ok=1 gen=21 pages=2 body={43,188,598,916}
+  page=0 start=0 images=0
+  page=0 draws=20 guides=0
+  probe page=0 (83,208) -> 1 [0,3)
+  probe page=0 (581,208) -> 1 [57,60)
+  probe page=0 (83,244) -> 1 [69,72)
+  probe page=0 (581,244) -> 1 [126,129)
+  probe page=0 (83,280) -> 1 [138,141)
+  probe page=0 (581,280) -> 1 [171,174)
+  probe page=0 (83,316) -> 0 [0,0)
+  probe page=0 (581,316) -> 0 [0,0)
+  page=1 start=1123 images=0
+  page=1 draws=16 guides=0
+  probe page=1 (83,208) -> 1 [1126,1129)
+  probe page=1 (581,208) -> 1 [1165,1168)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 1 [1169,1170)
+  probe page=1 (581,280) -> 1 [1201,1209)
+  probe page=1 (83,316) -> 1 [1210,1221)
+  probe page=1 (581,316) -> 1 [1247,1258)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=0
+  offset=990 -> page=0
+  offset=1980 -> page=1
+  offset=1981 -> page=1
+  offset=2481 -> page=1
+scenario=plain_landscape ok=1 gen=23 pages=3 body={36,96,1144,500}
+  page=0 start=0 images=0
+  page=0 draws=10 guides=0
+  probe page=0 (76,116) -> 1 [0,3)
+  probe page=0 (1120,116) -> 1 [117,120)
+  probe page=0 (76,152) -> 1 [129,132)
+  probe page=0 (1120,152) -> 1 [171,174)
+  probe page=0 (76,188) -> 0 [0,0)
+  probe page=0 (1120,188) -> 0 [0,0)
+  probe page=0 (76,224) -> 1 [175,178)
+  probe page=0 (1120,224) -> 1 [295,298)
+  page=1 start=804 images=0
+  page=1 draws=10 guides=0
+  probe page=1 (76,116) -> 1 [804,807)
+  probe page=1 (1120,116) -> 1 [921,924)
+  probe page=1 (76,152) -> 1 [933,936)
+  probe page=1 (1120,152) -> 1 [987,990)
+  probe page=1 (76,188) -> 0 [0,0)
+  probe page=1 (1120,188) -> 0 [0,0)
+  probe page=1 (76,224) -> 1 [991,994)
+  probe page=1 (1120,224) -> 1 [1108,1111)
+  page=2 start=1635 images=0
+  page=2 draws=4 guides=0
+  probe page=2 (76,116) -> 1 [1635,1638)
+  probe page=2 (1120,116) -> 1 [1752,1755)
+  probe page=2 (76,152) -> 1 [1764,1767)
+  probe page=2 (1120,152) -> 1 [1800,1803)
+  probe page=2 (76,188) -> 0 [0,0)
+  probe page=2 (1120,188) -> 0 [0,0)
+  probe page=2 (76,224) -> 1 [1804,1807)
+  probe page=2 (1120,224) -> 1 [1921,1924)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=0
+  offset=990 -> page=1
+  offset=1980 -> page=2
+  offset=1981 -> page=2
+  offset=2481 -> page=2
+scenario=plain_track_indent ok=1 gen=25 pages=2 body={43,188,598,916}
+  page=0 start=0 images=0
+  page=0 draws=20 guides=0
+  probe page=0 (83,208) -> 1 [0,3)
+  probe page=0 (581,208) -> 1 [45,48)
+  probe page=0 (83,244) -> 1 [57,60)
+  probe page=0 (581,244) -> 1 [111,114)
+  probe page=0 (83,280) -> 1 [123,126)
+  probe page=0 (581,280) -> 1 [171,174)
+  probe page=0 (83,316) -> 0 [0,0)
+  probe page=0 (581,316) -> 0 [0,0)
+  page=1 start=1045 images=0
+  page=1 draws=18 guides=0
+  probe page=1 (83,208) -> 1 [1048,1051)
+  probe page=1 (581,208) -> 1 [1099,1102)
+  probe page=1 (83,244) -> 1 [1111,1114)
+  probe page=1 (581,244) -> 1 [1165,1168)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 1 [1169,1170)
+  probe page=1 (581,316) -> 1 [1195,1200)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=0
+  offset=990 -> page=0
+  offset=1980 -> page=1
+  offset=1981 -> page=1
+  offset=2481 -> page=1
+scenario=rich_portrait ok=1 gen=27 pages=5 body={43,188,598,916}
+  page=0 start=0 images=1 [0]img=0,y=262,480x360
+  page=0 draws=8 guides=0
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 1 [17,20)
+  probe page=0 (581,280) -> 1 [74,77)
+  probe page=0 (83,316) -> 1 [86,89)
+  probe page=0 (581,316) -> 1 [143,146)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=2 guides=0
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=550 images=0
+  page=2 draws=4 guides=0
+  probe page=2 (83,208) -> 1 [553,556)
+  probe page=2 (581,208) -> 1 [592,595)
+  probe page=2 (83,244) -> 0 [0,0)
+  probe page=2 (581,244) -> 0 [0,0)
+  probe page=2 (83,280) -> 1 [599,602)
+  probe page=2 (581,280) -> 1 [656,659)
+  probe page=2 (83,316) -> 1 [668,671)
+  probe page=2 (581,316) -> 1 [725,728)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=0
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [809,812)
+  probe page=4 (83,244) -> 1 [821,824)
+  probe page=4 (581,244) -> 1 [878,881)
+  probe page=4 (83,280) -> 1 [890,893)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 0 [0,0)
+  probe page=4 (581,316) -> 0 [0,0)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=2
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=rich_landscape ok=1 gen=29 pages=6 body={36,96,1144,500}
+  page=0 start=0 images=0
+  page=0 draws=4 guides=0
+  probe page=0 (76,116) -> 1 [3,6)
+  probe page=0 (1120,116) -> 1 [13,16)
+  probe page=0 (76,152) -> 0 [0,0)
+  probe page=0 (1120,152) -> 0 [0,0)
+  probe page=0 (76,188) -> 1 [17,20)
+  probe page=0 (1120,188) -> 1 [134,137)
+  probe page=0 (76,224) -> 1 [146,149)
+  probe page=0 (1120,224) -> 1 [188,191)
+  page=1 start=235 images=1 [0]img=0,y=0,480x360
+  page=1 draws=2 guides=0
+  probe page=1 (76,116) -> 0 [0,0)
+  probe page=1 (1120,116) -> 0 [0,0)
+  probe page=1 (76,152) -> 0 [0,0)
+  probe page=1 (1120,152) -> 0 [0,0)
+  probe page=1 (76,188) -> 0 [0,0)
+  probe page=1 (1120,188) -> 0 [0,0)
+  probe page=1 (76,224) -> 0 [0,0)
+  probe page=1 (1120,224) -> 0 [0,0)
+  page=2 start=413 images=1 [0]img=1,y=0,375x500
+  page=2 draws=0 guides=0
+  probe page=2 (76,116) -> 0 [0,0)
+  probe page=2 (1120,116) -> 0 [0,0)
+  probe page=2 (76,152) -> 0 [0,0)
+  probe page=2 (1120,152) -> 0 [0,0)
+  probe page=2 (76,188) -> 0 [0,0)
+  probe page=2 (1120,188) -> 0 [0,0)
+  probe page=2 (76,224) -> 0 [0,0)
+  probe page=2 (1120,224) -> 0 [0,0)
+  page=3 start=415 images=0
+  page=3 draws=4 guides=0
+  probe page=3 (76,116) -> 1 [415,418)
+  probe page=3 (1120,116) -> 1 [532,535)
+  probe page=3 (76,152) -> 1 [544,547)
+  probe page=3 (1120,152) -> 1 [592,595)
+  probe page=3 (76,188) -> 0 [0,0)
+  probe page=3 (1120,188) -> 0 [0,0)
+  probe page=3 (76,224) -> 1 [599,602)
+  probe page=3 (1120,224) -> 1 [719,722)
+  page=4 start=753 images=0
+  page=4 draws=0 guides=0
+  probe page=4 (76,116) -> 0 [0,0)
+  probe page=4 (1120,116) -> 0 [0,0)
+  probe page=4 (76,152) -> 0 [0,0)
+  probe page=4 (1120,152) -> 0 [0,0)
+  probe page=4 (76,188) -> 0 [0,0)
+  probe page=4 (1120,188) -> 0 [0,0)
+  probe page=4 (76,224) -> 0 [0,0)
+  probe page=4 (1120,224) -> 0 [0,0)
+  page=5 start=755 images=0
+  page=5 draws=4 guides=0
+  probe page=5 (76,116) -> 1 [755,758)
+  probe page=5 (1120,116) -> 1 [872,875)
+  probe page=5 (76,152) -> 1 [884,887)
+  probe page=5 (1120,152) -> 1 [938,941)
+  probe page=5 (76,188) -> 0 [0,0)
+  probe page=5 (1120,188) -> 0 [0,0)
+  probe page=5 (76,224) -> 1 [942,945)
+  probe page=5 (1120,224) -> 1 [1059,1062)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=1
+  offset=564 -> page=3
+  offset=1127 -> page=5
+  offset=1128 -> page=5
+  offset=1628 -> page=5
+scenario=rich_spacing ok=1 gen=31 pages=5 body={43,188,598,916}
+  page=0 start=0 images=1 [0]img=0,y=349,480x360
+  page=0 draws=8 guides=0
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 1 [3,6)
+  probe page=0 (581,244) -> 1 [13,16)
+  probe page=0 (83,280) -> 0 [0,0)
+  probe page=0 (581,280) -> 0 [0,0)
+  probe page=0 (83,316) -> 1 [17,20)
+  probe page=0 (581,316) -> 1 [80,83)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=1 guides=0
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=487 images=0
+  page=2 draws=5 guides=0
+  probe page=2 (83,208) -> 1 [490,493)
+  probe page=2 (581,208) -> 1 [550,553)
+  probe page=2 (83,244) -> 1 [562,565)
+  probe page=2 (581,244) -> 1 [592,595)
+  probe page=2 (83,280) -> 0 [0,0)
+  probe page=2 (581,280) -> 0 [0,0)
+  probe page=2 (83,316) -> 0 [0,0)
+  probe page=2 (581,316) -> 0 [0,0)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=0
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [818,821)
+  probe page=4 (83,244) -> 1 [830,833)
+  probe page=4 (581,244) -> 1 [890,893)
+  probe page=4 (83,280) -> 1 [902,905)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 1 [902,905)
+  probe page=4 (581,316) -> 1 [938,941)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=2
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=rich_images_hidden ok=1 gen=33 pages=2 body={43,188,598,916}
+  page=0 start=0 images=0
+  page=0 draws=19 guides=0
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 1 [17,20)
+  probe page=0 (581,280) -> 1 [74,77)
+  probe page=0 (83,316) -> 1 [86,89)
+  probe page=0 (581,316) -> 1 [143,146)
+  page=1 start=1074 images=0
+  page=1 draws=1 guides=0
+  probe page=1 (83,208) -> 1 [1077,1080)
+  probe page=1 (581,208) -> 1 [1125,1128)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=0
+  offset=1127 -> page=1
+  offset=1128 -> page=1
+  offset=1628 -> page=1
+scenario=rich_lead ok=1 gen=35 pages=5 body={43,188,598,916}
+  page=0 start=17 images=1 [0]img=0,y=408,480x360
+  page=0 draws=7 guides=0
+  probe page=0 (83,208) -> 0 [0,0)
+  probe page=0 (581,208) -> 0 [0,0)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 0 [0,0)
+  probe page=0 (581,280) -> 0 [0,0)
+  probe page=0 (83,316) -> 0 [0,0)
+  probe page=0 (581,316) -> 0 [0,0)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=2 guides=0
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=550 images=0
+  page=2 draws=4 guides=0
+  probe page=2 (83,208) -> 1 [553,556)
+  probe page=2 (581,208) -> 1 [592,595)
+  probe page=2 (83,244) -> 0 [0,0)
+  probe page=2 (581,244) -> 0 [0,0)
+  probe page=2 (83,280) -> 1 [599,602)
+  probe page=2 (581,280) -> 1 [656,659)
+  probe page=2 (83,316) -> 1 [668,671)
+  probe page=2 (581,316) -> 1 [725,728)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=0
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [809,812)
+  probe page=4 (83,244) -> 1 [821,824)
+  probe page=4 (581,244) -> 1 [878,881)
+  probe page=4 (83,280) -> 1 [890,893)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 0 [0,0)
+  probe page=4 (581,316) -> 0 [0,0)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=2
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=rich_reading_line ok=1 gen=37 pages=5 body={43,188,598,916}
+  page=0 start=0 images=1 [0]img=0,y=224,480x360
+  page=0 draws=8 guides=160
+  probe page=0 (83,208) -> 1 [3,6)
+  probe page=0 (581,208) -> 1 [13,16)
+  probe page=0 (83,244) -> 0 [0,0)
+  probe page=0 (581,244) -> 0 [0,0)
+  probe page=0 (83,280) -> 1 [17,20)
+  probe page=0 (581,280) -> 1 [83,86)
+  probe page=0 (83,316) -> 1 [176,179)
+  probe page=0 (581,316) -> 1 [188,191)
+  page=1 start=413 images=1 [0]img=1,y=0,598x797
+  page=1 draws=2 guides=40
+  probe page=1 (83,208) -> 0 [0,0)
+  probe page=1 (581,208) -> 0 [0,0)
+  probe page=1 (83,244) -> 0 [0,0)
+  probe page=1 (581,244) -> 0 [0,0)
+  probe page=1 (83,280) -> 0 [0,0)
+  probe page=1 (581,280) -> 0 [0,0)
+  probe page=1 (83,316) -> 0 [0,0)
+  probe page=1 (581,316) -> 0 [0,0)
+  page=2 start=571 images=0
+  page=2 draws=3 guides=60
+  probe page=2 (83,208) -> 1 [574,577)
+  probe page=2 (581,208) -> 1 [592,595)
+  probe page=2 (83,244) -> 0 [0,0)
+  probe page=2 (581,244) -> 0 [0,0)
+  probe page=2 (83,280) -> 1 [677,680)
+  probe page=2 (581,280) -> 1 [743,746)
+  probe page=2 (83,316) -> 0 [0,0)
+  probe page=2 (581,316) -> 0 [0,0)
+  page=3 start=753 images=0
+  page=3 draws=0 guides=0
+  probe page=3 (83,208) -> 0 [0,0)
+  probe page=3 (581,208) -> 0 [0,0)
+  probe page=3 (83,244) -> 0 [0,0)
+  probe page=3 (581,244) -> 0 [0,0)
+  probe page=3 (83,280) -> 0 [0,0)
+  probe page=3 (581,280) -> 0 [0,0)
+  probe page=3 (83,316) -> 0 [0,0)
+  probe page=3 (581,316) -> 0 [0,0)
+  page=4 start=755 images=0
+  page=4 draws=6 guides=120
+  probe page=4 (83,208) -> 1 [755,758)
+  probe page=4 (581,208) -> 1 [821,824)
+  probe page=4 (83,244) -> 1 [833,836)
+  probe page=4 (581,244) -> 1 [902,905)
+  probe page=4 (83,280) -> 1 [914,917)
+  probe page=4 (581,280) -> 1 [938,941)
+  probe page=4 (83,316) -> 1 [942,945)
+  probe page=4 (581,316) -> 1 [1008,1011)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=376 -> page=0
+  offset=564 -> page=1
+  offset=1127 -> page=4
+  offset=1128 -> page=4
+  offset=1628 -> page=4
+scenario=kinsoku_narrow ok=1 gen=39 pages=4 body={36,258,300,900}
+  page=0 start=0 images=0
+  page=0 draws=21 guides=0
+  probe page=0 (76,278) -> 1 [0,3)
+  probe page=0 (276,278) -> 1 [18,21)
+  probe page=0 (76,314) -> 1 [30,33)
+  probe page=0 (276,314) -> 1 [51,54)
+  probe page=0 (76,350) -> 1 [63,66)
+  probe page=0 (276,350) -> 1 [87,90)
+  probe page=0 (76,386) -> 1 [99,102)
+  probe page=0 (276,386) -> 1 [120,123)
+  page=1 start=559 images=0
+  page=1 draws=21 guides=0
+  probe page=1 (76,278) -> 1 [562,565)
+  probe page=1 (276,278) -> 1 [583,586)
+  probe page=1 (76,314) -> 1 [595,598)
+  probe page=1 (276,314) -> 1 [616,619)
+  probe page=1 (76,350) -> 1 [628,631)
+  probe page=1 (276,350) -> 1 [643,646)
+  probe page=1 (76,386) -> 0 [0,0)
+  probe page=1 (276,386) -> 0 [0,0)
+  page=2 start=1188 images=0
+  page=2 draws=21 guides=0
+  probe page=2 (76,278) -> 1 [1190,1192)
+  probe page=2 (276,278) -> 1 [1201,1209)
+  probe page=2 (76,314) -> 1 [1210,1221)
+  probe page=2 (276,314) -> 1 [1228,1232)
+  probe page=2 (76,350) -> 1 [1233,1238)
+  probe page=2 (276,350) -> 1 [1247,1258)
+  probe page=2 (76,386) -> 1 [1259,1262)
+  probe page=2 (276,386) -> 1 [1263,1269)
+  page=3 start=1794 images=0
+  page=3 draws=7 guides=0
+  probe page=3 (76,278) -> 1 [1797,1800)
+  probe page=3 (276,278) -> 1 [1800,1803)
+  probe page=3 (76,314) -> 0 [0,0)
+  probe page=3 (276,314) -> 0 [0,0)
+  probe page=3 (76,350) -> 1 [1804,1807)
+  probe page=3 (276,350) -> 1 [1825,1828)
+  probe page=3 (76,386) -> 1 [1837,1840)
+  probe page=3 (276,386) -> 1 [1858,1861)
+  offset=0 -> page=0
+  offset=1 -> page=0
+  offset=660 -> page=1
+  offset=990 -> page=1
+  offset=1980 -> page=3
+  offset=1981 -> page=3
+  offset=2481 -> page=3

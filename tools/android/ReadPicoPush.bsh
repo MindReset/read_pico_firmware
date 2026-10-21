@@ -1,0 +1,406 @@
+/* ============================================================================
+   ReadPicoPush.bsh —— ReadPico 墨水屏 BLE 推送 · MacroDroid 自动化脚本（实验性 v1）
+   ----------------------------------------------------------------------------
+   SPDX-FileCopyrightText: 2026 mindreset
+   SPDX-License-Identifier: Apache-2.0
+
+   运行环境：MacroDroid 的「Java Code（Java 代码）」动作，BeanShell 解释器。
+             只支持 Java 1.4 语法：无泛型、无 lambda、无钻石语法、无增强 for
+             遍历集合、无 StringBuilder/String.format。请勿按现代 Java 习惯
+             "升级"本脚本——改了就跑不动。
+             该动作默认在后台线程执行，脚本内可安全阻塞等待蓝牙回调。
+
+   触发方式：MacroDroid 触发器「剪贴板变化（Clipboard Change）」。
+             复制一段文字即自动推送，墨水屏校验通过后自动开书。
+
+   为什么不是 ReadPicoPush.macro：MacroDroid 的宏导入格式是 JSON 而非 XML，
+             且 MacroDroid 没有原生 BLE 写入动作，那个文件导入必失败
+             （三层根因见 MacroDroid手动搭建教程.md）。本脚本是当前版本
+             唯一可行的全自动推送通道。
+
+   协议：帧布局与 components/push_sink/include/push_proto.h 逐字段一致；
+         CRC32 为 IEEE 反射式，与 push_pico.py / push_frames.js 对表一致。
+   写入：WRITE_TYPE_DEFAULT（写请求，ATT 逐包回执），与固件 5f11/5f12 特性
+         的 WWR 属性对齐。固件 gen12 实证两种写均可接收，默认走 WWR 路径
+         （真机验收口径：WWR + RESUME 双重防线）。
+
+   输入：剪贴板文本。先经 magicText 读取 {clipboard}，失败时回退系统剪贴板。
+   输出：脚本末尾的裸表达式 result，由动作的「输出变量」接收，可直接 Toast。
+
+   安装与逐步配置：见同目录 MacroDroid手动搭建教程.md。
+   类型：BODY_TYPE 0=纯文本（默认） 3=URL（M1.5 起设备端抓取，实验性）
+         4=单词卡（title 即单词、正文为空，需设备有词典）。
+   ============================================================================ */
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
+import java.util.UUID;
+
+/* ---- 协议常量（与 push_proto.h 一致，勿随意改动）---- */
+String SVC_UUID       = "e2f5a1c0-9b7d-4e3f-8a61-3c9d2b7e5f10";
+String CH_DATA_UUID   = "e2f5a1c0-9b7d-4e3f-8a61-3c9d2b7e5f11";
+String CH_CTRL_UUID   = "e2f5a1c0-9b7d-4e3f-8a61-3c9d2b7e5f12";
+String CH_STATUS_UUID = "e2f5a1c0-9b7d-4e3f-8a61-3c9d2b7e5f13";
+String CCCD_UUID      = "00002902-0000-1000-8000-00805f9b34fb";
+String ADV_PREFIX     = "PicoPush-";
+int    BODY_TYPE      = 0;       /* 0=纯文本 3=URL 4=单词卡 */
+int    SESSION_ID     = 1;       /* 固定 sid，与 push_pico.py --hex 模式一致 */
+int    MAX_PAYLOAD    = 241;     /* MTU 247 时每包 DATA 载荷 */
+int    BODY_MAX       = 524288;  /* 512KB 硬上限，超出设备回 ERR(3) */
+
+/* ---- 跨线程共享状态（回调在系统线程写，脚本线程读，统一用 lock 保护）---- */
+Object lock = new Object();
+int evt = 0;              /* 事件码：97=扫到设备 98=扫描失败 1=已连接 2=MTU 3=服务发现 4=描述符写 5=特征写 99=链路断开 */
+int evtStatus = -1;       /* 最近一次 GATT 回调的 status */
+int discStatus = -1;      /* 断开时的 status */
+int scanFailCode = -1;    /* 扫描失败错误码 */
+int negotiatedMtu = 23;
+byte[] lastStatus = null; /* 最近一条 STATUS 通知帧 */
+BluetoothGatt gGatt = null;
+BluetoothGattCharacteristic chData = null;
+BluetoothGattCharacteristic chCtrl = null;
+BluetoothGattCharacteristic chStatus = null;
+BluetoothDevice foundDevice = null;
+int foundToken = 0;
+
+/* ---- 小工具 ---- */
+
+/* 字节数组转十六进制串，仅用于日志 */
+String hex(byte[] b) {
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < b.length; i++) {
+        int v = b[i] & 0xFF;
+        if (v < 16) sb.append('0');
+        sb.append(Integer.toHexString(v));
+    }
+    return sb.toString();
+}
+
+/* STATUS ERR 帧 -> 中文原因（错误码与 push_proto.h 一致） */
+String errText(byte[] frame) {
+    int code = -1;
+    if (frame != null && frame.length > 1) code = frame[1] & 0xFF;
+    if (code == 1) return "设备未处于接收窗口（错误码1）：请先在墨水屏开启手机推送";
+    if (code == 2) return "帧格式非法（错误码2）";
+    if (code == 3) return "正文超过 512KB 上限（错误码3）";
+    if (code == 4) return "CRC32 校验不符（错误码4）";
+    if (code == 5) return "TF 卡不可用（错误码5）";
+    if (code == 6) return "电量不足且未充电（错误码6）";
+    if (code == 7) return "已有一次推送在处理（错误码7）";
+    if (code == 8) return "URL 抓取失败（错误码8）";
+    if (code == 9) return "设备无词典，无法显示单词卡（错误码9）";
+    return "设备返回未知错误码 " + code;
+}
+
+/* ---- 等待原语 ---- */
+
+/* 等待事件码 want，返回该事件的 status；-1=超时 -98=扫描失败 -99=链路断开 */
+int waitEvent(int want, long timeoutMs) {
+    long deadline = System.currentTimeMillis() + timeoutMs;
+    while (System.currentTimeMillis() < deadline) {
+        if (evt == want) {
+            int s = evtStatus;
+            evt = 0;
+            evtStatus = -1;
+            return s;
+        }
+        if (evt == 98) { evt = 0; return -98; }
+        if (evt == 99) { evt = 0; return -99; }
+        long remain = deadline - System.currentTimeMillis();
+        if (remain > 0) {
+            synchronized (lock) {
+                try { lock.wait(remain); } catch (Exception e) { }
+            }
+        }
+    }
+    return -1;
+}
+
+/* 等待 opcode 命中 wantMask（按 opcode 低 4 位建位图）的 STATUS 通知；
+   非目标 opcode（READY/PROGRESS/BATT 等）取出后丢弃继续等；null=超时 */
+byte[] waitStatus(int wantMask, long timeoutMs) {
+    long deadline = System.currentTimeMillis() + timeoutMs;
+    while (System.currentTimeMillis() < deadline) {
+        synchronized (lock) {
+            if (lastStatus != null) {
+                byte[] f = lastStatus;
+                lastStatus = null;
+                if (f.length > 0 && (wantMask & (1 << (f[0] & 0x0F))) != 0) return f;
+            }
+            long remain = deadline - System.currentTimeMillis();
+            if (remain > 0) {
+                try { lock.wait(remain); } catch (Exception e) { }
+            }
+        }
+    }
+    return null;
+}
+
+/* ---- 蓝牙回调 ---- */
+
+BluetoothGattCallback gattCb = new BluetoothGattCallback() {
+    public void onConnectionStateChange(BluetoothGatt g, int status, int newState) {
+        synchronized (lock) {
+            if (newState == 2) { evt = 1; evtStatus = status; }
+            else if (newState == 0) { evt = 99; evtStatus = status; discStatus = status; }
+            lock.notifyAll();
+        }
+    }
+    public void onMtuChanged(BluetoothGatt g, int mtu, int status) {
+        synchronized (lock) { negotiatedMtu = mtu; evt = 2; evtStatus = status; lock.notifyAll(); }
+    }
+    public void onServicesDiscovered(BluetoothGatt g, int status) {
+        synchronized (lock) { evt = 3; evtStatus = status; lock.notifyAll(); }
+    }
+    public void onDescriptorWrite(BluetoothGatt g, BluetoothGattDescriptor d, int status) {
+        synchronized (lock) { evt = 4; evtStatus = status; lock.notifyAll(); }
+    }
+    public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic c, int status) {
+        synchronized (lock) { evt = 5; evtStatus = status; lock.notifyAll(); }
+    }
+    public void onCharacteristicChanged(BluetoothGatt g, BluetoothGattCharacteristic c) {
+        synchronized (lock) {
+            if (CH_STATUS_UUID.equals(c.getUuid().toString())) {
+                lastStatus = c.getValue();
+            }
+            lock.notifyAll();
+        }
+    }
+};
+
+ScanCallback scanCb = new ScanCallback() {
+    public void onScanResult(int callbackType, ScanResult result) {
+        String name = null;
+        if (result.getScanRecord() != null) name = result.getScanRecord().getDeviceName();
+        if (name == null) {
+            try { name = result.getDevice().getName(); } catch (Exception e) { name = null; }
+        }
+        if (name == null || !name.startsWith(ADV_PREFIX)) return;
+        String suffix = name.substring(ADV_PREFIX.length());
+        try {
+            synchronized (lock) {
+                foundToken = Integer.parseInt(suffix, 16) & 0xFFFF;
+                foundDevice = result.getDevice();
+                evt = 97;
+                evtStatus = 0;
+                lock.notifyAll();
+            }
+        } catch (Exception e) { }
+    }
+    public void onScanFailed(int errorCode) {
+        synchronized (lock) { scanFailCode = errorCode; evt = 98; lock.notifyAll(); }
+    }
+};
+
+/* ---- 主流程 ---- */
+
+String result = "";
+BluetoothLeScanner scanner = null;
+try {
+    /* 0) 取剪贴板文本：先 magicText，失败回退系统剪贴板 */
+    String clipText = "";
+    try { clipText = magicText.evaluateString("{clipboard}"); } catch (Exception ex) { clipText = ""; }
+    if (clipText == null) clipText = "";
+    if (clipText.indexOf("{clipboard}") >= 0) clipText = "";
+    if (clipText.length() == 0) {
+        try {
+            android.content.ClipboardManager cm = (android.content.ClipboardManager) appContext.getSystemService("clipboard");
+            if (cm != null && cm.hasPrimaryClip()) {
+                android.content.ClipData cd = cm.getPrimaryClip();
+                if (cd != null && cd.getItemCount() > 0) clipText = "" + cd.getItemAt(0).coerceToText(appContext);
+            }
+        } catch (Exception ex) { }
+    }
+    if (clipText == null || clipText.length() == 0) {
+        throw new RuntimeException("失败：剪贴板为空。先复制一段文字再触发；若刚复制过，请检查 MacroDroid 的无障碍/剪贴板权限");
+    }
+    System.out.println("clip " + clipText.length() + " chars");
+
+    /* 1) 正文与标题（单词卡/URL 正文为空，CRC32 与 total 自然为 0） */
+    byte[] body;
+    String titleText;
+    if (BODY_TYPE == 4 || BODY_TYPE == 3) {
+        body = new byte[0];
+        titleText = clipText;
+    } else {
+        try { body = clipText.getBytes("UTF-8"); } catch (Exception ex) { body = clipText.getBytes(); }
+        titleText = (clipText.length() > 40) ? clipText.substring(0, 40) : clipText;
+    }
+    if (body.length > BODY_MAX) throw new RuntimeException("失败：正文 " + body.length + " 字节超过 512KB 上限");
+    java.util.zip.CRC32 crc32 = new java.util.zip.CRC32();
+    crc32.update(body, 0, body.length);
+    long crcVal = crc32.getValue();
+
+    /* 2) 蓝牙适配器 */
+    BluetoothManager btm = (BluetoothManager) appContext.getSystemService("bluetooth");
+    if (btm == null) throw new RuntimeException("失败：本机没有蓝牙");
+    BluetoothAdapter adapter = btm.getAdapter();
+    if (adapter == null) throw new RuntimeException("失败：本机没有蓝牙");
+    if (!adapter.isEnabled()) throw new RuntimeException("失败：蓝牙未开启，请先打开系统蓝牙");
+
+    /* 3) 扫描 PicoPush-XXXX（token 从广播名后缀解析） */
+    scanner = adapter.getBluetoothLeScanner();
+    if (scanner == null) throw new RuntimeException("失败：无法启动 BLE 扫描");
+    ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+    try { scanner.startScan(null, settings, scanCb); }
+    catch (Exception ex) { throw new RuntimeException("失败：BLE 扫描启动被拒，请检查 MacroDroid 的蓝牙/附近设备权限"); }
+    System.out.println("scanning PicoPush-");
+    int st = waitEvent(97, 12000);
+    try { scanner.stopScan(scanCb); } catch (Exception ex) { }
+    if (st == -1) throw new RuntimeException("失败：12 秒内未发现 PicoPush-XXXX 广播。请先在墨水屏开启手机推送，并靠近手机");
+    if (st == -98) throw new RuntimeException("失败：系统 BLE 扫描启动失败，错误码 " + scanFailCode);
+    if (st < 0) throw new RuntimeException("失败：扫描过程异常 code=" + st);
+    if (foundDevice == null) throw new RuntimeException("失败：未捕获到设备对象");
+    System.out.println("found token=" + foundToken);
+
+    /* 4) 连接 */
+    gGatt = foundDevice.connectGatt(appContext, false, gattCb, BluetoothDevice.TRANSPORT_LE);
+    if (gGatt == null) throw new RuntimeException("失败：connectGatt 返回空");
+    st = waitEvent(1, 20000);
+    if (st == -1) throw new RuntimeException("失败：连接超时（20 秒）");
+    if (st == -99) throw new RuntimeException("失败：连接阶段链路断开（status=" + discStatus + "）");
+    if (st != 0) throw new RuntimeException("失败：连接错误 status=" + st);
+    System.out.println("connected");
+
+    /* 5) MTU（BEGIN 83 字节单次写，至少需要 MTU 86） */
+    boolean mtuOk = gGatt.requestMtu(247);
+    st = waitEvent(2, 8000);
+    if (st == -1) throw new RuntimeException("失败：MTU 协商超时，设备未响应 requestMtu（返回 " + mtuOk + "）");
+    if (st != 0 || negotiatedMtu < 86) {
+        throw new RuntimeException("失败：MTU 协商结果异常（mtu=" + negotiatedMtu + " status=" + st + "），BEGIN 帧 83 字节需要 MTU 至少 86");
+    }
+    System.out.println("mtu " + negotiatedMtu);
+
+    /* 6) 发现服务与特征 */
+    gGatt.discoverServices();
+    st = waitEvent(3, 10000);
+    if (st == -1) throw new RuntimeException("失败：服务发现超时");
+    if (st != 0) throw new RuntimeException("失败：服务发现错误 status=" + st);
+    BluetoothGattService svc = gGatt.getService(UUID.fromString(SVC_UUID));
+    if (svc == null) throw new RuntimeException("失败：设备上没有推送服务，固件版本可能过旧或未进入武装窗口");
+    chData = svc.getCharacteristic(UUID.fromString(CH_DATA_UUID));
+    chCtrl = svc.getCharacteristic(UUID.fromString(CH_CTRL_UUID));
+    chStatus = svc.getCharacteristic(UUID.fromString(CH_STATUS_UUID));
+    if (chData == null || chCtrl == null || chStatus == null) throw new RuntimeException("失败：推送特征缺失（5f11/5f12/5f13 不全）");
+    System.out.println("services ok");
+
+    /* 7) 订阅 STATUS 通知（CCCD 00002902） */
+    gGatt.setCharacteristicNotification(chStatus, true);
+    BluetoothGattDescriptor cccd = chStatus.getDescriptor(UUID.fromString(CCCD_UUID));
+    if (cccd == null) throw new RuntimeException("失败：STATUS 特征没有 CCCD 描述符");
+    cccd.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+    gGatt.writeDescriptor(cccd);
+    st = waitEvent(4, 5000);
+    if (st == -1) throw new RuntimeException("失败：通知订阅超时");
+    if (st != 0) throw new RuntimeException("失败：通知订阅被拒 status=" + st);
+    System.out.println("notify on");
+
+    /* 8) 组装 BEGIN（83 字节，全小端；title 按 UTF-8 字节截断补 0，与 push_pico.py 一致） */
+    /* 注意：BeanShell 给 byte 数组元素赋 int 字面量会抛 ArrayStoreException，
+       每一处元素赋值都必须显式 (byte) 强转（已按此纪律写完全部赋值）*/
+    byte[] begin = new byte[83];
+    begin[0] = (byte) 0x50; begin[1] = (byte) 0x43; begin[2] = (byte) 0x01; begin[3] = (byte) 0x01;
+    begin[4] = (byte) BODY_TYPE;
+    begin[5] = (byte) (foundToken & 0xFF);
+    begin[6] = (byte) ((foundToken >> 8) & 0xFF);
+    long total = body.length;
+    begin[7]  = (byte) (total & 0xFF);
+    begin[8]  = (byte) ((total >> 8) & 0xFF);
+    begin[9]  = (byte) ((total >> 16) & 0xFF);
+    begin[10] = (byte) ((total >> 24) & 0xFF);
+    begin[11] = (byte) (crcVal & 0xFF);
+    begin[12] = (byte) ((crcVal >> 8) & 0xFF);
+    begin[13] = (byte) ((crcVal >> 16) & 0xFF);
+    begin[14] = (byte) ((crcVal >> 24) & 0xFF);
+    begin[15] = (byte) (SESSION_ID & 0xFF);
+    begin[16] = (byte) ((SESSION_ID >> 8) & 0xFF);
+    begin[17] = (byte) ((SESSION_ID >> 16) & 0xFF);
+    begin[18] = (byte) ((SESSION_ID >> 24) & 0xFF);
+    byte[] titleRaw;
+    try { titleRaw = titleText.getBytes("UTF-8"); } catch (Exception ex) { titleRaw = titleText.getBytes(); }
+    if (titleRaw.length > 63) {
+        int n = 63;
+        while (n > 0 && (titleRaw[n-1] & 0xC0) == 0x80) n--;
+        System.arraycopy(titleRaw, 0, begin, 19, n);
+    } else {
+        System.arraycopy(titleRaw, 0, begin, 19, titleRaw.length);
+    }
+
+    /* 9) 写 BEGIN 到 5f12（WWR：写请求 + 逐包回执） */
+    chCtrl.setValue(begin);
+    chCtrl.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+    if (!gGatt.writeCharacteristic(chCtrl)) throw new RuntimeException("失败：BEGIN 写入请求被系统拒绝");
+    st = waitEvent(5, 10000);
+    if (st == -1) throw new RuntimeException("失败：等 BEGIN 写入回执超时");
+    if (st != 0) throw new RuntimeException("失败：BEGIN 写入失败 status=" + st);
+    System.out.println("begin written " + hex(begin));
+
+    /* 10) 等设备 READY（0x10）或 ERR（0x13） */
+    byte[] ready = waitStatus(0x09, 15000);
+    if (ready == null) throw new RuntimeException("失败：等设备 READY 超时。设备可能未处于武装窗口，或链路异常");
+    if ((ready[0] & 0xFF) == 0x13) throw new RuntimeException("设备拒绝 BEGIN：" + errText(ready));
+    System.out.println("ready " + hex(ready));
+
+    /* 11) DATA 分片写 5f11：seq(u16 LE) + len(u8) + payload，逐包等回执 */
+    int chunkMax = MAX_PAYLOAD;
+    if (negotiatedMtu - 6 < chunkMax) chunkMax = negotiatedMtu - 6;
+    if (chunkMax < 1) chunkMax = 1;
+    int nChunks = (body.length + chunkMax - 1) / chunkMax;
+    if (nChunks < 1) nChunks = 1;
+    for (int i = 0; i < nChunks; i++) {
+        int off = i * chunkMax;
+        int len = body.length - off;
+        if (len > chunkMax) len = chunkMax;
+        if (len < 0) len = 0;
+        byte[] frame = new byte[3 + len];
+        frame[0] = (byte) (i & 0xFF);
+        frame[1] = (byte) ((i >> 8) & 0xFF);
+        frame[2] = (byte) len;
+        if (len > 0) System.arraycopy(body, off, frame, 3, len);
+        chData.setValue(frame);
+        chData.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+        if (!gGatt.writeCharacteristic(chData)) throw new RuntimeException("失败：第 " + (i + 1) + " 包写入请求被系统拒绝");
+        st = waitEvent(5, 8000);
+        if (st == -1) throw new RuntimeException("失败：第 " + (i + 1) + " 包写入回执超时");
+        if (st != 0) throw new RuntimeException("失败：第 " + (i + 1) + " 包写入失败 status=" + st);
+        if ((i + 1) % 25 == 0) System.out.println("data " + (i + 1) + "/" + nChunks);
+    }
+    System.out.println("data done chunks=" + nChunks + " chunkMax=" + chunkMax);
+
+    /* 12) 写 END 到 5f12 */
+    byte[] end = new byte[4];
+    end[0] = (byte) 0x50; end[1] = (byte) 0x43; end[2] = (byte) 0x02; end[3] = (byte) 0x01;
+    chCtrl.setValue(end);
+    chCtrl.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+    if (!gGatt.writeCharacteristic(chCtrl)) throw new RuntimeException("失败：END 写入请求被系统拒绝");
+    st = waitEvent(5, 10000);
+    if (st == -1) throw new RuntimeException("失败：等 END 写入回执超时");
+    if (st != 0) throw new RuntimeException("失败：END 写入失败 status=" + st);
+
+    /* 13) 等最终回执：DONE（0x12，已校验开书）或 ERR（0x13）；其余 opcode 跳过 */
+    byte[] fin = waitStatus(0x0C, 30000);
+    if (fin == null) throw new RuntimeException("失败：等设备最终回执超时（END 后 30 秒无 DONE/ERR）");
+    if ((fin[0] & 0xFF) == 0x13) throw new RuntimeException("设备拒绝 END：" + errText(fin));
+    result = "推送成功：设备已校验并开书（" + body.length + " 字节 / " + nChunks + " 包）";
+} catch (SecurityException e) {
+    result = "失败：缺少蓝牙权限。请在 系统设置→应用→MacroDroid→权限 中授予「附近的设备/蓝牙」";
+} catch (RuntimeException e) {
+    result = e.getMessage();
+} catch (Exception e) {
+    result = "失败：脚本异常 " + e;
+} finally {
+    try { if (gGatt != null) { gGatt.disconnect(); gGatt.close(); } } catch (Exception ex) { }
+    try { if (scanner != null) scanner.stopScan(scanCb); } catch (Exception ex) { }
+}
+System.out.println("PICO_RESULT " + result);
+result;

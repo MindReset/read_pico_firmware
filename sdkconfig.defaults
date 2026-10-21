@@ -27,8 +27,8 @@ CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=32768
 CONFIG_ESP32S3_DATA_CACHE_LINE_64B=y
 # 渲染线程逐行流式读 PSRAM 里的 framebuffer，cache 越大预取越不容易失效
 CONFIG_ESP32S3_DATA_CACHE_64KB=y
-# PNG 解码的有界局部缓冲需要额外栈空间。/ Bounded PNG decoder locals need additional stack space.
-CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
+# 多层 EPUB/PNG 调用留安全余量；大型缓存不得放栈上。/ Reserve nested EPUB/PNG stack headroom; keep large caches off-stack.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=12288
 CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 CONFIG_COMPILER_OPTIMIZATION_PERF=y
@@ -43,7 +43,112 @@ CONFIG_FATFS_API_ENCODING_UTF_8=y
 # Transfer AP prefers PSRAM network buffers, preserving internal display memory.
 CONFIG_ESP_WIFI_SOFTAP_SUPPORT=y
 CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+# Read Pico only serves one browser client and scans nearby access points. The
+# high-throughput defaults reserve tens of kilobytes at esp_wifi_init(), which
+# can starve the hosted WiFi control path after the reader UI has been used.
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=4
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=8
+CONFIG_ESP_WIFI_STATIC_TX_BUFFER=y
+CONFIG_ESP_WIFI_STATIC_TX_BUFFER_NUM=4
+CONFIG_ESP_WIFI_CACHE_TX_BUFFER_NUM=8
+CONFIG_ESP_WIFI_RX_BA_WIN=4
+CONFIG_ESP_WIFI_MGMT_SBUF_NUM=16
 CONFIG_ESP_WIFI_IRAM_OPT=n
 CONFIG_ESP_WIFI_RX_IRAM_OPT=n
 CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
 CONFIG_HTTPD_MAX_URI_LEN=1024
+
+# 蓝牙翻页器：BLE HID 主机（central），配对市面上的 BLE 翻页器／键盘。
+# Bluetooth page-turner: a BLE HID host (central) pairing off-the-shelf BLE remotes.
+#
+# 只用 BLE。ESP32-S3 没有 Bluetooth Classic 射频，纯 Classic 的翻页器连不上。
+# BLE only. The ESP32-S3 has no Bluetooth Classic radio, so Classic-only remotes cannot pair.
+CONFIG_BT_ENABLED=y
+CONFIG_BT_BLUEDROID_ENABLED=n
+CONFIG_BT_NIMBLE_ENABLED=y
+# host 的全部动态分配走 PSRAM，内部 RAM 留给面板 DMA 与显示。
+# The host allocates from PSRAM, leaving internal RAM to the panel DMA and the display.
+CONFIG_BT_NIMBLE_MEM_ALLOC_MODE_EXTERNAL=y
+# 双角色：翻页器是 central（HID 主机），手机推流是 peripheral（GATT server + 广播）。
+# M1 的 MAX_CONNECTIONS 仍为 1：武装推流窗口内不连翻页器，入口文案明示，退出自动恢复。
+# Dual role: the page-turner is a central (HID host) and phone push is a peripheral
+# (GATT server + broadcaster). M1 keeps MAX_CONNECTIONS at 1: arming push drops the
+# turner link for the window (the entry page says so) and sync restores it on exit.
+CONFIG_BT_NIMBLE_ROLE_CENTRAL=y
+CONFIG_BT_NIMBLE_ROLE_OBSERVER=y
+CONFIG_BT_NIMBLE_ROLE_PERIPHERAL=y
+CONFIG_BT_NIMBLE_ROLE_BROADCASTER=y
+CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1
+CONFIG_BT_NIMBLE_MAX_BONDS=4
+# bond 密钥必须落 NVS，否则每次重启都要重新配对，自动重连形同虚设。这项默认是 n。
+# Bond keys must reach NVS, or every reboot re-pairs and auto-reconnect is useless. Defaults to n.
+CONFIG_BT_NIMBLE_NVS_PERSIST=y
+# 翻页器的 HID 输入报告占两个 CCCD；推流的 STATUS 通知特征再占一个。留 4 个不挤。
+# The turner's HID input reports take two CCCDs; the push STATUS notify takes one. Four leaves room.
+CONFIG_BT_NIMBLE_MAX_CCCDS=4
+# MTU 247：推流每包 244 字节载荷，23 的话每包 20 字节、速度差一个数量级。连接由设备主导，
+# 传输期请求 15ms/latency 0，结束回退省电参数。
+# MTU 247: push payloads of 244 B per write; at 23 each write carries 20 B, an order of magnitude
+# slower. The device drives connection parameters: 15 ms/latency 0 while transferring, then back.
+CONFIG_BT_NIMBLE_ATT_PREFERRED_MTU=247
+# 推流吞吐：ATT 写与 ACL 数据各多一倍缓冲。每块约 260 B 内部 RAM，增量几 KB，可承受。
+# Push throughput: double the ATT and ACL data buffers. Each block is ~260 B of internal RAM,
+# a few KB total, affordable.
+# gen14：MSYS_1 12->20。prep-write 长写的每个 prepare entry 从 MSYS_1 池领一个 mbuf
+# （ble_att_svr_prep_alloc -> ble_hs_mbuf_l2cap_pkt -> os_msys_get_pkthdr(0)），
+# 16 个 entry 同时排队需要 16 个 block，12 个会在第 13 个上 ENOMEM。
+# gen14: MSYS_1 12->20. Every prepare-write entry takes one MSYS_1 mbuf
+# (ble_att_svr_prep_alloc -> ble_hs_mbuf_l2cap_pkt -> os_msys_get_pkthdr(0));
+# 16 queued entries need 16 blocks - 12 runs out at the 13th with ENOMEM.
+CONFIG_BT_NIMBLE_MSYS_1_BLOCK_COUNT=20
+CONFIG_BT_NIMBLE_MSYS_2_BLOCK_COUNT=12
+CONFIG_BT_NIMBLE_ACL_BUF_COUNT=12
+# gen14：prep 队列深度 4->16。gen13 真机日志实锤 rc=6（BLE_HS_ENOMEM）：手机与设备
+# MTU 协商失败时（有效 MTU 23），83 B 的 BEGIN 由客户端走 Prepare Write 长写，
+# 每包 20 B 需 5 个 entry、241 B 的 DATA 需 13 个——默认 4 个必炸，且失败只打
+# LOGD（release 不可见）。16 覆盖 DATA 长写的 13 并留 3 个余量。
+# gen14: prep queue depth 4->16. gen13 real-hardware log proved rc=6 (BLE_HS_ENOMEM):
+# when the MTU exchange fails (effective MTU 23), the 83 B BEGIN goes out as a
+# Prepare Write long write needing 5 entries at 20 B each, and a 241 B DATA needs
+# 13 - the default 4 always overflows, and the failure only logs at LOGD
+# (invisible in release builds). 16 covers the 13 of a DATA long write plus slack.
+CONFIG_BT_NIMBLE_ATT_MAX_PREP_ENTRIES=16
+# 控制器只能用内部 RAM——它跑在硬件路径上，读不到 PSRAM。这组值是 CrossMux 在同一块
+# 板子上验证过的：BLE_MAX_ACT 是"同时允许几个控制器活动"，扫描与建立连接各占一个，
+# 压到 1 会让扫描和连接互相排斥，起不来。文件/图片/壁纸列表等搬进 PSRAM 之后 DIRAM
+# 空闲约 148KB，这里不需要再省。
+# The controller must stay in internal RAM (it sits on the hardware path and cannot read PSRAM).
+# These are the values CrossMux verified on this same board: BLE_MAX_ACT is how many controller
+# activities may coexist, scanning and connection setup each take one, and squeezing it to 1 makes
+# them mutually exclusive so the stack cannot come up. After the file, image and wallpaper lists
+# moved into PSRAM, DIRAM has about 148 KB free, so there is nothing left to economise here.
+CONFIG_BT_CTRL_BLE_MAX_ACT=3
+CONFIG_BT_CTRL_BLE_ADV_REPORT_FLOW_CTRL_NUM=50
+CONFIG_BT_CTRL_ADV_DUP_FILT_MAX=10
+CONFIG_BLE_MESH=n
+
+CONFIG_TINYUSB_MSC_ENABLED=y
+CONFIG_TINYUSB_MSC_BUFSIZE=8192
+CONFIG_TINYUSB_DESC_PRODUCT_STRING="Read Pico SD"
+CONFIG_TINYUSB_DESC_MANUFACTURER_STRING="MindReset"
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+
+# rc76: keep transfer listings and TLS allocations out of internal task RAM.
+CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
+CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC=y
+
+# 建立链路的回调链跑在 NimBLE 任务上，通知解析里 4096 字节会触到栈上限。
+# The bring-up callback chain runs on the NimBLE task; 4096 bytes reaches its limit inside report parsing.
+CONFIG_BT_NIMBLE_HOST_TASK_STACK_SIZE=8192
+CONFIG_BT_NIMBLE_TASK_STACK_SIZE=8192
+
+# RTC 睡眠计时采用更稳定的内部快钟分频；清醒仍用 RTC+高精度计时器。
+# Use the steadier divided fast oscillator for RTC; retain RTC+high-resolution time while awake.
+CONFIG_RTC_CLK_SRC_INT_RC=n
+CONFIG_RTC_CLK_SRC_INT_8MD256=y
+CONFIG_RTC_CLK_CAL_CYCLES=8190
+CONFIG_LIBC_TIME_SYSCALL_USE_RTC_HRT=y
+CONFIG_LWIP_SNTP_MAX_SERVERS=3
+CONFIG_LWIP_SNTP_STARTUP_DELAY=n

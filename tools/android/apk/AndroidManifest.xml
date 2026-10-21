@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SPDX-FileCopyrightText: 2026 mindreset
+  SPDX-License-Identifier: Apache-2.0
+
+  中文：ReadPico 推送 App 的清单。minSdk 26（Android 8）：BLE GATT API 与
+  TRANSPORT_LE 均可用；targetSdk 34。Android 12+（API 31+）走
+  BLUETOOTH_SCAN/CONNECT 运行时权限（SCAN 带 neverForLocation，不需要定位）；
+  Android 8~11 走 ACCESS_FINE_LOCATION（老系统扫描必需）。
+  English: manifest for the minimal push client.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.readpico.push"
+    android:versionCode="2"
+    android:versionName="1.1">
+
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34" />
+
+    <!-- Android 12+ -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Android 8~11：老系统扫描需要定位权限 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+
+    <application
+        android:label="PicoPush 推送"
+        android:icon="@drawable/icon"
+        android:allowBackup="false"
+        android:supportsRtl="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- gen22：桌面快捷方式「一键推流」（长按图标可见，可拖到桌面）。
+                 meta-data 必须挂在这个带 MAIN+LAUNCHER 的 Activity 上才会生效。
+                 gen22: launcher shortcut "一键推流". The meta-data must sit on the
+                 MAIN+LAUNCHER activity for the shortcuts to register. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+    </application>
+</manifest>

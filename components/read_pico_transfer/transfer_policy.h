@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 mindreset
  * SPDX-License-Identifier: Apache-2.0
  * 凭据校验和有界连接状态机；不含平台资源。/ Credential validation and bounded connection policy without platform resources.
- * 冻结：密码不进入公开状态；每轮连接最多三次、15秒。/ Frozen: passwords never enter public status; three attempts within 15 seconds.
+ * 冻结：密码不进入公开状态；每轮连接最多五次、30秒。/ Frozen: passwords never enter public status; five attempts within 30 seconds.
  */
 #pragma once
 #include <stdbool.h>
@@ -20,6 +20,20 @@ static bool admission_begin(bool stopping, bool *uploading) {
 static bool admission_stop(bool *stopping, bool uploading) {
     if (uploading) return false;
     *stopping = true; return true;
+}
+
+typedef enum {
+    TRANSFER_TIME_UNAVAILABLE,
+    TRANSFER_TIME_TEMPORARY,
+    TRANSFER_TIME_ONLINE,
+} transfer_time_route_t;
+
+// 在线 STA 对时不得重新初始化 WiFi；仅完全停服时可短暂联网。
+// Never reinitialize WiFi for an online STA; connect briefly only when fully stopped.
+static transfer_time_route_t time_route(bool wifi_active, bool sta_mode,
+                                         bool network_ready, bool fully_stopped) {
+    if (wifi_active) return sta_mode && network_ready ? TRANSFER_TIME_ONLINE : TRANSFER_TIME_UNAVAILABLE;
+    return fully_stopped ? TRANSFER_TIME_TEMPORARY : TRANSFER_TIME_UNAVAILABLE;
 }
 
 // 正文须在15秒内收齐；每次阻塞接收前后检查停止。/ Accept bodies only within 15 seconds; check cancellation around each blocking receive.
@@ -136,7 +150,7 @@ typedef struct {
 } transfer_connection_t;
 
 static void connection_begin(transfer_connection_t *c, int64_t now) {
-    *c = (transfer_connection_t){.pending = true, .deadline_ms = now + 15000, .next_ms = now};
+    *c = (transfer_connection_t){.pending = true, .deadline_ms = now + 30000, .next_ms = now};
 }
 
 static void connection_lost(transfer_connection_t *c, int64_t now) {
@@ -148,7 +162,7 @@ static void connection_lost(transfer_connection_t *c, int64_t now) {
 // 0等待、1连接、-1终止本轮。/ 0 waits, 1 connects, -1 terminates this round.
 static int connection_poll(transfer_connection_t *c, int64_t now) {
     if (c->online || c->failed) return 0;
-    if (now >= c->deadline_ms || (c->pending && c->attempts >= 3)) {
+    if (now >= c->deadline_ms || (c->pending && c->attempts >= 5)) {
         c->failed = true; c->pending = false; return -1;
     }
     if (!c->pending || now < c->next_ms) return 0;

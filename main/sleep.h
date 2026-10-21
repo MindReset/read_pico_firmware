@@ -9,13 +9,12 @@
 
 #pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
 
-#include "cst836u.h"
 #include "epd_highlevel.h"
 #include "esp_err.h"
 #include "sc7a20h.h"
+#include "cst836u.h"
 #include "settings.h"
 
 #ifdef __cplusplus
@@ -26,18 +25,23 @@ typedef enum {
     APP_WAKE_NONE = 0,
     APP_WAKE_KEY,
     APP_WAKE_PICKUP,
+    APP_WAKE_TIMEOUT,
 } app_wake_source_t;
 
-/// 登记常开 3V3 上的触摸与加速度计，睡前由本模块送进最低功耗态。
-/// Register the always-on touch and accelerometer so sleep paths can park them.
+/// 登记常开供电的触摸与加速度计，并准备 CPU 浅睡保持区。/ Bind always-on touch/accelerometer and prepare CPU light-sleep retention.
 void app_sleep_bind(cst836u_handle_t tp, sc7a20h_handle_t acc);
-/// 当前锁屏设置是否走软睡/关机。
-/// Whether the stored lock choice powers the host down (soft sleep or off).
-bool app_lock_powers_down(void);
 
 void enter_lock_and_sleep(
-    EpdiyHighlevelState* hl, int64_t* ignore_until_ms, sc7a20h_handle_t acc
+    EpdiyHighlevelState* hl, int64_t* ignore_until_ms, sc7a20h_handle_t acc, cst836u_handle_t touch,
+    bool reader_background
 );
+
+/// 主动拼贴锁屏在保存进度/切字体前清白并显示圆锁；不适用于自动休眠、直接关机或升级/上传中。
+/// Show white and a lock badge before manual-lock saves/font changes; not for idle sleep, direct shutdown or active OTA/uploads.
+void app_lock_feedback(EpdiyHighlevelState *hl);
+
+/// 在消费恢复/开书前进行冷启动与深睡密码验证。/ Gate cold/deep starts before consuming resume or opening books.
+void app_lock_boot_gate(EpdiyHighlevelState *hl, cst836u_handle_t touch, sc7a20h_handle_t acc);
 
 /// 等电源键松开，避免进睡瞬间被同一下按住立刻唤醒。
 /// Wait for the power key to release so the same press does not wake immediately.
@@ -45,10 +49,19 @@ void app_lock_wait_key_idle(int timeout_ms);
 /// ESP 浅睡，按键或拿起唤醒。acc 为空则只等按键。
 /// ESP light sleep; wake on key or pickup. Key only when acc is NULL.
 app_wake_source_t app_light_sleep_wait(sc7a20h_handle_t acc);
+/// ESP 浅睡至按键、拿起或超时；超时以毫秒计，0 表示不设期限。
+/// ESP light sleep until key, pickup, or timeout; 0 means no deadline.
+app_wake_source_t app_light_sleep_wait_timed(sc7a20h_handle_t acc, uint32_t timeout_ms);
 app_wake_source_t app_last_wake_source(void);
-/// 软睡或关机：停外设、落盘后让 PMU 拉掉 EN。成功不返回；返回即失败，外设已恢复。
-/// Soft sleep or power-off: park peripherals, sync, let the PMU drop EN. Does not return on success; a return means failure with peripherals restored.
+/// 软睡/关机前停用外设并落盘；成功不返回，交接失败恢复外设并返回错误。保留调用方的阅读/密码上下文。
+/// Park peripherals and sync before host sleep/off; success does not return, failure restores peripherals and returns an error with reader/PIN context intact.
 esp_err_t app_enter_host_sleep(app_sleep_mode_t mode);
+/// 将当前系统时间写入常供电 PMU RTC；主控断电后由 PMU 继续走时。
+/// Sync system time to the always-on PMU RTC so it keeps ticking while the host is off.
+esp_err_t app_sync_time_to_pmu(void);
+/// 让 PMU 正常重启主控；先保存 RTC，调用后不会返回。
+/// Ask the PMU for a normal host restart after preserving RTC; does not return.
+void app_restart_host(void);
 
 #ifdef __cplusplus
 }

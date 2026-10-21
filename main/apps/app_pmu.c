@@ -634,7 +634,7 @@ static void pmu_alarm_set(uint8_t mode, uint32_t secs, const char* note) {
     pmu_note(note);
 }
 
-// 和锁屏关机同一函数：停外设、卸屏轨、刷 SD，再 REQUEST_OFF → SHUTDOWN_READY；只有失败才返回。/ Same function as lock-then-off: park peripherals, drop rails, sync SD, then REQUEST_OFF → SHUTDOWN_READY; returns only on failure.
+// 和锁屏关机同一函数：停外设、卸屏轨、刷 SD 后通知 PMU；交接失败才返回。/ Use the same lock/off function to park peripherals, drop rails, sync SD and notify PMU; return only on failure.
 static void pmu_host_off(void) {
     if (app_enter_host_sleep(APP_SLEEP_OFF) != ESP_OK) pmu_note("关机失败 Off fail");
 }

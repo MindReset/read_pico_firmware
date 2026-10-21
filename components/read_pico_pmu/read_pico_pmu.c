@@ -165,6 +165,7 @@ static void parse_quick(const uint8_t* raw) {
     s_snap.qb_soc = rd16(&raw[2]);
     s_snap.qb_charge = raw[4];
     s_snap.qb_flags = raw[5];
+    s_snap.quick_ok = true;
 }
 
 static void parse_event(const uint8_t* raw) {
@@ -307,7 +308,13 @@ esp_err_t read_pico_pmu_cmd(uint16_t code, const uint8_t* payload, uint8_t plen)
     if (code == PMU_CMD_CONFIG_GET && resp.status == PMU_STATUS_OK) {
         parse_config(resp.payload);
     } else if (code == PMU_CMD_TIME_GET && resp.status == PMU_STATUS_OK) {
+        if (resp.payload_length < 8 || rd16(&resp.payload[4]) >= 1000) {
+            s_snap.time_ok = false;
+            s_snap.last_err = ESP_ERR_INVALID_RESPONSE;
+            return ESP_ERR_INVALID_RESPONSE;
+        }
         s_snap.unix_sec = rd32(&resp.payload[0]);
+        s_snap.unix_millis = rd16(&resp.payload[4]);
         s_snap.time_synced = resp.payload[6];
         s_snap.time_ok = true;
     } else if (code == PMU_CMD_ALARM_GET && resp.status == PMU_STATUS_OK) {
@@ -384,21 +391,28 @@ void read_pico_pmu_drain_events(void) {
     }
 }
 
-bool read_pico_pmu_take_key_short(void) {
-    bool lock = false;
+read_pico_pmu_key_action_t read_pico_pmu_take_key_action(void) {
+    read_pico_pmu_key_action_t action = READ_PICO_PMU_KEY_NONE;
     for (int i = 0; i < PMU_EVENT_FIFO_DEPTH; i++) {
         if (read_pico_pmu_poll() != ESP_OK) break;
         if (!s_snap.event_ok || s_snap.pending_events == 0) break;
         uint8_t type = s_snap.event.type;
         uint16_t id = s_snap.event.event_id;
         if (type == PMU_EVT_KEY_SHORT) {
-            lock = true;
+            if (action == READ_PICO_PMU_KEY_NONE) action = READ_PICO_PMU_KEY_SHORT;
             ESP_LOGI(TAG, "KEY_SHORT id=%u held=%u", (unsigned)id, (unsigned)s_snap.event.arg0);
+        } else if (type == PMU_EVT_KEY_LONG) {
+            action = READ_PICO_PMU_KEY_LONG;
+            ESP_LOGI(TAG, "KEY_LONG id=%u held=%u", (unsigned)id, (unsigned)s_snap.event.arg0);
         }
         if (id == 0) break;
         if (read_pico_pmu_event_ack(id) != ESP_OK) break;
     }
-    return lock;
+    return action;
+}
+
+bool read_pico_pmu_take_key_short(void) {
+    return read_pico_pmu_take_key_action() == READ_PICO_PMU_KEY_SHORT;
 }
 
 bool read_pico_pmu_take_key_wakeup(void) {
@@ -569,6 +583,7 @@ esp_err_t read_pico_pmu_action(uint8_t action, uint16_t delay_ms, uint16_t reaso
 // full：身份/状态/诊断/配置/时间/闹钟。否则只刷状态、快照电池和事件计数。
 // full: identity, status, diag, config, time, alarm. Else status, quick battery, event count.
 static esp_err_t refresh_core(bool full) {
+    s_snap.quick_ok = false;
     if (s_dev == NULL) return ESP_ERR_INVALID_STATE;
 
     uint8_t ident[PMU_IDENTITY_SIZE];
